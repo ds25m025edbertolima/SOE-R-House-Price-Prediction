@@ -44,8 +44,6 @@ appraisal_account_data <- appraisal_account_data %>%
     submerged_area_squarefeet = as.integer(submerged_area_squarefeet)
   )
 
-
-
 str(appraisal_account_data)
 dbWriteTable(con, "APPRAISAL_ACCOUNT", appraisal_account_data, overwrite = TRUE, row.names = FALSE)
 
