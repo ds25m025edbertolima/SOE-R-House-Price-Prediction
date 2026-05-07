@@ -50,6 +50,10 @@ vignettes/*.pdf
 .quarto/
 _freeze/
 
+# Environment variables
+.env
+.env.local
+
 # Data files - exclude large data
 data/source/**
 !data/source/.gitkeep

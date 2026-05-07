@@ -3,15 +3,35 @@ library(DBI)
 library(RPostgres)
 library(dplyr)
 
+# --- Load environment variables ---
+load_env <- function(file = ".env") {
+  if (!file.exists(file)) {
+    stop("Environment file not found: ", file)
+  }
+  lines <- readLines(file)
+  for (line in lines) {
+    line <- trimws(line)
+    if (nzchar(line) && !startsWith(line, "#")) {
+      parts <- strsplit(line, "=", fixed = TRUE)[[1]]
+      if (length(parts) == 2) {
+        key <- trimws(parts[1])
+        value <- trimws(parts[2])
+        Sys.setenv(key = value)
+      }
+    }
+  }
+}
+
+load_env("../.env")
+
 # --- Supabase connection ---
-# Find these in: Supabase dashboard → Project Settings → Database
 con <- dbConnect(
   RPostgres::Postgres(),
-  host     = "db.pyyowyfeazvvsoxrslpi.supabase.co",
-  port     = 5432,
-  dbname   = "postgres",
-  user     = "postgres",
-  password = "Il0vec0ffee!!456"
+  host     = Sys.getenv("DB_HOST"),
+  port     = as.integer(Sys.getenv("DB_PORT")),
+  dbname   = Sys.getenv("DB_NAME"),
+  user     = Sys.getenv("DB_USER"),
+  password = Sys.getenv("DB_PASSWORD")
 )
 
 dbIsValid(con)
