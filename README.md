@@ -22,7 +22,7 @@ Solution Engineering Project - House Price Prediction
 ├── publish
 ├── scratch
 ├── viz
-└── {{cookiecutter.project_slug}}.Rproj
+└── house-price-prediction.Rproj
 ```
 
 - `.Rprofile`
@@ -69,5 +69,5 @@ Solution Engineering Project - House Price Prediction
   - This directory is not tracked in git.
 - `viz`
   - Graphics and visualization development specific work such as web interactive code should go here.
-- `{{cookiecutter.project_slug}}.Rproj`
+- `house-price-prediction.Rproj`
   - This is the .Rproj file that can be used with RStudio to work within the project.
