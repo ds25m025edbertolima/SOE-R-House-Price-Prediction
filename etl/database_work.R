@@ -2,27 +2,12 @@ library(readr)
 library(DBI)
 library(RPostgres)
 library(dplyr)
+library(dotenv)
+library(here)
 
-# --- Load environment variables ---
-load_env <- function(file = ".env") {
-  if (!file.exists(file)) {
-    stop("Environment file not found: ", file)
-  }
-  lines <- readLines(file)
-  for (line in lines) {
-    line <- trimws(line)
-    if (nzchar(line) && !startsWith(line, "#")) {
-      parts <- strsplit(line, "=", fixed = TRUE)[[1]]
-      if (length(parts) == 2) {
-        key <- trimws(parts[1])
-        value <- trimws(parts[2])
-        Sys.setenv(key = value)
-      }
-    }
-  }
-}
-
-load_env("../.env")
+load_dot_env(here::here(".env"))
+# For security reasons I removed our credential from the script. All sensible data should be load using .env files.
+# .env is not commited, in ideal world we would have a system were each one of us has his own credential.
 
 # --- Supabase connection ---
 con <- dbConnect(
@@ -247,7 +232,5 @@ tax_description_data <- tax_description_data %>%
   )
 str(tax_description_data)
 dbWriteTable(con, "TAX_DESCRIPTION", tax_description_data, overwrite = TRUE, row.names = FALSE)
-
-
 
 dbDisconnect(con)
