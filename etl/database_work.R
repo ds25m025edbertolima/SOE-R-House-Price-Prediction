@@ -2,16 +2,21 @@ library(readr)
 library(DBI)
 library(RPostgres)
 library(dplyr)
+library(dotenv)
+library(here)
+
+load_dot_env(here::here(".env"))
+# For security reasons I removed our credential from the script. All sensible data should be load using .env files.
+# .env is not commited, in ideal world we would have a system were each one of us has his own credential.
 
 # --- Supabase connection ---
-# Find these in: Supabase dashboard → Project Settings → Database
 con <- dbConnect(
   RPostgres::Postgres(),
-  host     = "db.pyyowyfeazvvsoxrslpi.supabase.co",
-  port     = 5432,
-  dbname   = "postgres",
-  user     = "postgres",
-  password = "Il0vec0ffee!!456"
+  host     = Sys.getenv("DB_HOST"),
+  port     = as.integer(Sys.getenv("DB_PORT")),
+  dbname   = Sys.getenv("DB_NAME"),
+  user     = Sys.getenv("DB_USER"),
+  password = Sys.getenv("DB_PASSWORD")
 )
 
 dbIsValid(con)
