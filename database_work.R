@@ -16,6 +16,36 @@ con <- dbConnect(
 
 dbIsValid(con)
 
+### TAX ACCOUNT
+tax_account_data <- read_delim("raw_data/tax_account.txt", delim = "|", trim_ws = TRUE, col_names = FALSE)
+tax_account_cols <- c("parcel_no", "account_type", "property_type",
+                      "site_address", "use_code", "use_description",
+                      "tax_year_prior", "tax_code_area_prior_year", "exemption_type_prior_year",
+                      "current_use_code_prior_year", "land_value_prior_year", "improvement_value_prior_year",
+                      "total_market_value_prior_year", "taxable_value_prior_year", "tax_year_current",
+                      "tax_code_area_current_year", "exemption_type_current_year", "current_use_code_current_year",
+                      "land_value_current_year", "improvement_value_current_year", "total_market_value_current_year",
+                      "taxable_value_current_year", "range", "township",
+                      "section", "quarter_section", "subdivision_name", 
+                      "located_on_parcel", "")
+colnames(tax_account_data) <- tax_account_cols
+tax_account_data <- tax_account_data %>%
+  mutate(
+    tax_year_prior = as.integer(tax_year_prior),
+    land_value_prior_year = as.integer(land_value_prior_year),
+    improvement_value_prior_year = as.integer(improvement_value_prior_year),
+    total_market_value_prior_year = as.integer(total_market_value_prior_year),
+    taxable_value_prior_year = as.integer(taxable_value_prior_year),
+    tax_year_current = as.integer(tax_year_current),
+    land_value_current_year = as.integer(land_value_current_year),
+    improvement_value_current_year = as.integer(land_value_current_year),
+    total_market_value_current_year = as.integer(total_market_value_current_year),
+    taxable_value_current_year = as.integer(taxable_value_current_year)
+  )
+
+str(tax_account_data)
+dbWriteTable(con, "TAX_ACCOUNT", tax_account_data, overwrite = TRUE, row.names = FALSE)
+
 ### APPRAISAL ACCOUNT
 appraisal_account_data <- read_delim("raw_data/appraisal_account.txt", delim = "|", trim_ws = TRUE, col_names = FALSE)
 appraisal_account_cols <- c("parcel_no", "appraisal_account_type", "business_name",
@@ -39,7 +69,9 @@ appraisal_account_data <- appraisal_account_data %>%
     submerged_area_squarefeet = as.integer(submerged_area_squarefeet)
   )
 
-
+# to be able to add FK from appraisal account
+appraisal_account_data <- appraisal_account_data %>%
+  filter(parcel_no %in% tax_account_data$parcel_no)
 
 str(appraisal_account_data)
 dbWriteTable(con, "APPRAISAL_ACCOUNT", appraisal_account_data, overwrite = TRUE, row.names = FALSE)
@@ -76,7 +108,9 @@ improvement_data <- improvement_data %>%
     
     
   )
-
+# to be able to add FK from appraisal account
+improvement_data <- improvement_data %>%
+  filter(parcel_no %in% tax_account_data$parcel_no)
 
 str(improvement_data)
 dbWriteTable(con, "IMPROVEMENT", improvement_data, overwrite = TRUE, row.names = FALSE)
@@ -120,6 +154,9 @@ improvement_builtas_data <- improvement_builtas_data %>%
          bathrooms < 205,
          year_built > 0
 )
+# to be able to add FK from appraisal account
+improvement_builtas_data <- improvement_builtas_data %>%
+  filter(parcel_no %in% tax_account_data$parcel_no)
 str(improvement_builtas_data)
 dbWriteTable(con, "IMPROVEMENT_BUILT_AS", improvement_builtas_data, overwrite = TRUE, row.names = FALSE)
 
@@ -141,6 +178,11 @@ improvement_detail_data <- improvement_detail_data %>%
 improvement_detail_data <- improvement_detail_data %>%
   mutate(across(where(is.character), 
                 ~ iconv(., to = "UTF-8", sub = "")))  # sub="" removes bad chars
+
+# to be able to add FK from appraisal account
+improvement_detail_data <- improvement_detail_data %>%
+  filter(parcel_no %in% tax_account_data$parcel_no)
+
 str(improvement_detail_data)
 dbWriteTable(con, "IMPROVEMENT_DETAIL", improvement_detail_data, overwrite = TRUE, row.names = FALSE)
 
@@ -148,6 +190,10 @@ dbWriteTable(con, "IMPROVEMENT_DETAIL", improvement_detail_data, overwrite = TRU
 land_attribute_data <- read_delim("raw_data/land_attribute.txt", delim = "|", trim_ws = TRUE, col_names = FALSE)
 land_attribute_cols <- c("parcel_no", "attribute", "attribute_description")
 colnames(land_attribute_data) <- land_attribute_cols
+# to be able to add FK from appraisal account
+land_attribute_data <- land_attribute_data %>%
+  filter(parcel_no %in% tax_account_data$parcel_no)
+
 str(land_attribute_data)
 dbWriteTable(con, "LAND_ATTRIBUTE", land_attribute_data, overwrite = TRUE, row.names = FALSE)
 
@@ -168,6 +214,11 @@ sale_data <- sale_data %>%
     confirmed_unconfirmed = as.integer(confirmed_unconfirmed),
     improved_vacant = as.integer(improved_vacant)
   )
+
+# to be able to add FK from appraisal account
+sale_data <- sale_data %>%
+  filter(parcel_no %in% tax_account_data$parcel_no)
+
 str(sale_data)
 sale_data <- sale_data %>%
   mutate(across(where(is.character), 
@@ -183,50 +234,27 @@ seg_merge_data <- seg_merge_data %>%
   mutate(
     tax_year = as.integer(tax_year)
   )
+
+# to be able to add FK from appraisal account
+seg_merge_data <- seg_merge_data %>%
+  filter(parcel_no %in% tax_account_data$parcel_no)
+
 str(seg_merge_data)
 dbWriteTable(con, "SEG_MERGE", seg_merge_data, overwrite = TRUE, row.names = FALSE)
 
 
-### TAX ACCOUNT
-tax_account_data <- read_delim("raw_data/tax_account.txt", delim = "|", trim_ws = TRUE, col_names = FALSE)
-tax_account_cols <- c("parcel_no", "account_type", "property_type",
-                      "site_address", "use_code", "use_description",
-                      "tax_year_prior", "tax_code_area_prior_year", "exemption_type_prior_year",
-                      "current_use_code_prior_year", "land_value_prior_year", "improvement_value_prior_year",
-                      "total_market_value_prior_year", "taxable_value_prior_year", "tax_year_current",
-                      "tax_code_area_current_year", "exemption_type_current_year", "current_use_code_current_year",
-                      "land_value_current_year", "improvement_value_current_year", "total_market_value_current_year",
-                      "taxable_value_current_year", "range", "township",
-                      "section", "quarter_section", "subdivision_name", 
-                      "located_on_parcel", "")
-colnames(tax_account_data) <- tax_account_cols
-tax_account_data <- tax_account_data %>%
-  mutate(
-    tax_year_prior = as.integer(tax_year_prior),
-    land_value_prior_year = as.integer(land_value_prior_year),
-    improvement_value_prior_year = as.integer(improvement_value_prior_year),
-    total_market_value_prior_year = as.integer(total_market_value_prior_year),
-    taxable_value_prior_year = as.integer(taxable_value_prior_year),
-    tax_year_current = as.integer(tax_year_current),
-    land_value_current_year = as.integer(land_value_current_year),
-    improvement_value_current_year = as.integer(land_value_current_year),
-    total_market_value_current_year = as.integer(total_market_value_current_year),
-    taxable_value_current_year = as.integer(taxable_value_current_year)
-  )
-str(tax_account_data)
-dbWriteTable(con, "TAX_ACCOUNT", tax_account_data, overwrite = TRUE, row.names = FALSE)
 
 
 ### TAX DESCRIPTION
-tax_description_data <- read_delim("raw_data/tax_description.txt", delim = "|", trim_ws = TRUE, col_names = FALSE)
-tax_description_cols <- c("parcel_no", "line_no", "tax_description_line")
-colnames(tax_description_data) <- tax_description_cols
-tax_description_data <- tax_description_data %>%
-  mutate(
-    line_no = as.integer(line_no)
-  )
-str(tax_description_data)
-dbWriteTable(con, "TAX_DESCRIPTION", tax_description_data, overwrite = TRUE, row.names = FALSE)
+#tax_description_data <- read_delim("raw_data/tax_description.txt", delim = "|", trim_ws = TRUE, col_names = FALSE)
+#tax_description_cols <- c("parcel_no", "line_no", "tax_description_line")
+#colnames(tax_description_data) <- tax_description_cols
+#tax_description_data <- tax_description_data %>%
+#  mutate(
+#    line_no = as.integer(line_no)
+#  )
+#str(tax_description_data)
+#dbWriteTable(con, "TAX_DESCRIPTION", tax_description_data, overwrite = TRUE, row.names = FALSE)
 
 
 
