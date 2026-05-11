@@ -14,7 +14,7 @@
     "href": "intro.html",
     "title": "1  Introduction",
     "section": "",
-    "text": "1.1 Use Case & Motivation\nCourse Objectives: • In groups carry out in R the entire data science process on a concrete use case. • Using a reference dataset, demonstrate the process from data acquisition to the development of a prototype solution. • Presentation and documentation of the solution engineering.\nThe project presentation should include the following points: • Project objective (qualitative and quantitative objectives) [4 points] • Description of the data source (reference dataset) [4 points] • Project organization and allocation of tasks [4 points] • Project development plan (workflow), backlogs [4 points] • Answering\nUse case presentation, problem definition, motivation, objective [5 points] What are your goals? (qualitative/quantitative) What are your deliverables? Timeline, milestone plan, etc.\nThis is a book created from markdown and executable code.\nSee Knuth (1984) for additional discussion of literate programming.",
+    "text": "1.1 Use Case & Motivation\nCourse Objectives:\nThe project presentation should include the following points:\nThis is a book created from markdown and executable code.\nSee Knuth (1984) for additional discussion of literate programming.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Introduction</span>"
     ]
@@ -24,7 +24,7 @@
     "href": "intro.html#use-case-motivation",
     "title": "1  Introduction",
     "section": "",
-    "text": "Knuth, Donald E. 1984. “Literate Programming.” Comput. J. (USA) 27 (2): 97–111. https://doi.org/10.1093/comjnl/27.2.97.",
+    "text": "In groups carry out in R the entire data science process on a concrete use case.\nUsing a reference dataset, demonstrate the process from data acquisition to the development of a prototype solution.\nPresentation and documentation of the solution engineering.\n\n\n\nProject objective (qualitative and quantitative objectives) [4 points]\n\nUse case presentation, problem definition, motivation, objective\nWhat are your goals? (qualitative/quantitative)\nWhat are your deliverables? Timeline, milestone plan, etc.\n\nDescription of the data source (reference dataset) [4 points]\nProject organization and allocation of tasks [4 points]\nProject development plan (workflow), backlogs [4 points]\nAnswering\n\n\n\n\n\n\n\nKnuth, Donald E. 1984. “Literate Programming.” Comput. J. (USA) 27 (2): 97–111. https://doi.org/10.1093/comjnl/27.2.97.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Introduction</span>"
     ]
