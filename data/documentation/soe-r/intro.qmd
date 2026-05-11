@@ -1,5 +1,29 @@
 # Introduction
 
+## Use Case & Motivation
+
+
+Course Objectives:
+• In groups carry out in R the entire data science process on a concrete
+use case.
+• Using a reference dataset, demonstrate the process from data
+acquisition to the development of a prototype solution.
+• Presentation and documentation of the solution engineering.
+
+
+The project presentation should include the following points:
+• Project objective (qualitative and quantitative objectives) [4 points]
+• Description of the data source (reference dataset) [4 points]
+• Project organization and allocation of tasks [4 points]
+• Project development plan (workflow), backlogs [4 points]
+• Answering
+
+
+Use case presentation, problem definition, motivation, objective [5 points]
+What are your goals? (qualitative/quantitative)
+What are your deliverables? Timeline, milestone plan, etc.
+
+
 This is a book created from markdown and executable code.
 
 See @knuth84 for additional discussion of literate programming.

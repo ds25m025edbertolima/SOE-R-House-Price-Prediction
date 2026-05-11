@@ -1,10 +1,32 @@
 project:
   type: book
 
+lang: en
+
+author:
+  - name: Edberto Moura Lima
+    orcid: 0000-0002-8447-8460
+    affiliation: FHTW
+    roles: writing
+    corresponding: true
+    email: ds25m025@technikum-wien.at
+  - name: Gerta Hajrullahi
+    email: ds25m024@technikum-wien.at
+    affiliation: FHTW
+    roles: writing
+  - name: Helga Deutschmann
+    email: ds25m046@technikum-wien.at
+    affiliation: FHTW
+    roles: writing
+  - name: Mira Radakovic
+    email: ds25m042@technikum-wien.at
+    affiliation: FHTW
+    roles: 
+    - supervision: lead
+date: "2026-05-11"
+
 book:
   title: "soe-r"
-  author: "Norah Jones"
-  date: "2026-05-11"
   chapters:
     - index.qmd
     - intro.qmd
@@ -21,6 +43,3 @@ format:
       - brand
   pdf:
     documentclass: scrreprt
-
-
-

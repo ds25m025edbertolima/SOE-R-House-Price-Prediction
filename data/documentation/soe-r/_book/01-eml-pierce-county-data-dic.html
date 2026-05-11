@@ -6,8 +6,13 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Edberto Moura Lima">
+<meta name="author" content="Gerta Hajrullahi">
+<meta name="author" content="Helga Deutschmann">
+<meta name="author" content="Mira Radakovic">
+<meta name="dcterms.date" content="2026-05-11">
 
-<title>2&nbsp; Overview – soe-r</title>
+<title>2&nbsp; Data Source Description – soe-r</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -85,7 +90,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01-eml-pierce-county-data-dic.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Overview</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01-eml-pierce-county-data-dic.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Data Source Description</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -125,7 +130,7 @@ ul.task-list li input[type="checkbox"] {
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./01-eml-pierce-county-data-dic.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Overview</span></span></a>
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Data Source Description</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -150,28 +155,29 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#data-sources" id="toc-data-sources" class="nav-link active" data-scroll-target="#data-sources"><span class="header-section-number">2.1</span> Data Sources</a></li>
-  <li><a href="#data-mart-architecture" id="toc-data-mart-architecture" class="nav-link" data-scroll-target="#data-mart-architecture"><span class="header-section-number">2.2</span> Data Mart Architecture</a>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">2.1</span> Overview</a></li>
+  <li><a href="#data-sources" id="toc-data-sources" class="nav-link" data-scroll-target="#data-sources"><span class="header-section-number">2.2</span> Data Sources</a></li>
+  <li><a href="#data-mart-architecture" id="toc-data-mart-architecture" class="nav-link" data-scroll-target="#data-mart-architecture"><span class="header-section-number">2.3</span> Data Mart Architecture</a>
   <ul class="collapse">
-  <li><a href="#table-relationships" id="toc-table-relationships" class="nav-link" data-scroll-target="#table-relationships"><span class="header-section-number">2.2.1</span> Table Relationships</a></li>
+  <li><a href="#table-relationships" id="toc-table-relationships" class="nav-link" data-scroll-target="#table-relationships"><span class="header-section-number">2.3.1</span> Table Relationships</a></li>
   </ul></li>
-  <li><a href="#table-definitions" id="toc-table-definitions" class="nav-link" data-scroll-target="#table-definitions"><span class="header-section-number">2.3</span> Table Definitions</a>
+  <li><a href="#table-definitions" id="toc-table-definitions" class="nav-link" data-scroll-target="#table-definitions"><span class="header-section-number">2.4</span> Table Definitions</a>
   <ul class="collapse">
-  <li><a href="#tax-account-table" id="toc-tax-account-table" class="nav-link" data-scroll-target="#tax-account-table"><span class="header-section-number">2.3.1</span> Tax Account Table</a></li>
-  <li><a href="#appraisal-account-table" id="toc-appraisal-account-table" class="nav-link" data-scroll-target="#appraisal-account-table"><span class="header-section-number">2.3.2</span> Appraisal Account Table</a></li>
-  <li><a href="#improvement-table" id="toc-improvement-table" class="nav-link" data-scroll-target="#improvement-table"><span class="header-section-number">2.3.3</span> Improvement Table</a></li>
-  <li><a href="#improvement-built-as-table" id="toc-improvement-built-as-table" class="nav-link" data-scroll-target="#improvement-built-as-table"><span class="header-section-number">2.3.4</span> Improvement Built-As Table</a></li>
-  <li><a href="#improvement-detail-table" id="toc-improvement-detail-table" class="nav-link" data-scroll-target="#improvement-detail-table"><span class="header-section-number">2.3.5</span> Improvement Detail Table</a></li>
-  <li><a href="#land-attribute-table" id="toc-land-attribute-table" class="nav-link" data-scroll-target="#land-attribute-table"><span class="header-section-number">2.3.6</span> Land Attribute Table</a></li>
-  <li><a href="#sale-table" id="toc-sale-table" class="nav-link" data-scroll-target="#sale-table"><span class="header-section-number">2.3.7</span> Sale Table</a></li>
-  <li><a href="#segmerge-table" id="toc-segmerge-table" class="nav-link" data-scroll-target="#segmerge-table"><span class="header-section-number">2.3.8</span> Seg/Merge Table</a></li>
-  <li><a href="#taxpayer-table" id="toc-taxpayer-table" class="nav-link" data-scroll-target="#taxpayer-table"><span class="header-section-number">2.3.9</span> Taxpayer Table</a></li>
-  <li><a href="#tax-description-table" id="toc-tax-description-table" class="nav-link" data-scroll-target="#tax-description-table"><span class="header-section-number">2.3.10</span> Tax Description Table</a></li>
+  <li><a href="#tax-account-table" id="toc-tax-account-table" class="nav-link" data-scroll-target="#tax-account-table"><span class="header-section-number">2.4.1</span> Tax Account Table</a></li>
+  <li><a href="#appraisal-account-table" id="toc-appraisal-account-table" class="nav-link" data-scroll-target="#appraisal-account-table"><span class="header-section-number">2.4.2</span> Appraisal Account Table</a></li>
+  <li><a href="#improvement-table" id="toc-improvement-table" class="nav-link" data-scroll-target="#improvement-table"><span class="header-section-number">2.4.3</span> Improvement Table</a></li>
+  <li><a href="#improvement-built-as-table" id="toc-improvement-built-as-table" class="nav-link" data-scroll-target="#improvement-built-as-table"><span class="header-section-number">2.4.4</span> Improvement Built-As Table</a></li>
+  <li><a href="#improvement-detail-table" id="toc-improvement-detail-table" class="nav-link" data-scroll-target="#improvement-detail-table"><span class="header-section-number">2.4.5</span> Improvement Detail Table</a></li>
+  <li><a href="#land-attribute-table" id="toc-land-attribute-table" class="nav-link" data-scroll-target="#land-attribute-table"><span class="header-section-number">2.4.6</span> Land Attribute Table</a></li>
+  <li><a href="#sale-table" id="toc-sale-table" class="nav-link" data-scroll-target="#sale-table"><span class="header-section-number">2.4.7</span> Sale Table</a></li>
+  <li><a href="#segmerge-table" id="toc-segmerge-table" class="nav-link" data-scroll-target="#segmerge-table"><span class="header-section-number">2.4.8</span> Seg/Merge Table</a></li>
+  <li><a href="#taxpayer-table" id="toc-taxpayer-table" class="nav-link" data-scroll-target="#taxpayer-table"><span class="header-section-number">2.4.9</span> Taxpayer Table</a></li>
+  <li><a href="#tax-description-table" id="toc-tax-description-table" class="nav-link" data-scroll-target="#tax-description-table"><span class="header-section-number">2.4.10</span> Tax Description Table</a></li>
   </ul></li>
-  <li><a href="#key-relationships" id="toc-key-relationships" class="nav-link" data-scroll-target="#key-relationships"><span class="header-section-number">2.4</span> Key Relationships</a></li>
-  <li><a href="#data-quality-notes" id="toc-data-quality-notes" class="nav-link" data-scroll-target="#data-quality-notes"><span class="header-section-number">2.5</span> Data Quality Notes</a></li>
-  <li><a href="#data-dictionary-notes" id="toc-data-dictionary-notes" class="nav-link" data-scroll-target="#data-dictionary-notes"><span class="header-section-number">2.6</span> Data Dictionary Notes</a></li>
-  <li><a href="#access-contact" id="toc-access-contact" class="nav-link" data-scroll-target="#access-contact"><span class="header-section-number">2.7</span> Access &amp; Contact</a></li>
+  <li><a href="#key-relationships" id="toc-key-relationships" class="nav-link" data-scroll-target="#key-relationships"><span class="header-section-number">2.5</span> Key Relationships</a></li>
+  <li><a href="#data-quality-notes" id="toc-data-quality-notes" class="nav-link" data-scroll-target="#data-quality-notes"><span class="header-section-number">2.6</span> Data Quality Notes</a></li>
+  <li><a href="#data-dictionary-notes" id="toc-data-dictionary-notes" class="nav-link" data-scroll-target="#data-dictionary-notes"><span class="header-section-number">2.7</span> Data Dictionary Notes</a></li>
+  <li><a href="#access-contact" id="toc-access-contact" class="nav-link" data-scroll-target="#access-contact"><span class="header-section-number">2.8</span> Access &amp; Contact</a></li>
   </ul>
 </nav>
     </div>
@@ -180,14 +186,57 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Overview</span></h1>
+<h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Data Source Description</span></h1>
 </div>
 
 
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Authors</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Edberto Moura Lima <a href="mailto:ds25m025@technikum-wien.at" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> <a href="https://orcid.org/0000-0002-8447-8460" class="quarto-title-author-orcid"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            FHTW
+          </p>
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Gerta Hajrullahi <a href="mailto:ds25m024@technikum-wien.at" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            FHTW
+          </p>
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Helga Deutschmann <a href="mailto:ds25m046@technikum-wien.at" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            FHTW
+          </p>
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Mira Radakovic <a href="mailto:ds25m042@technikum-wien.at" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            FHTW
+          </p>
+      </div>
+  </div>
 
 <div class="quarto-title-meta">
 
-    
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">May 11, 2026</p>
+    </div>
+  </div>
   
     
   </div>
@@ -197,9 +246,12 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<section id="overview" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">2.1</span> Overview</h2>
 <p>The Pierce County Assessor-Treasurer Data Mart contains comprehensive property assessment and appraisal data maintained by Pierce County, Washington. The data is organized into multiple related tables that track property characteristics, improvements, valuations, and sales transactions.</p>
-<section id="data-sources" class="level2" data-number="2.1">
-<h2 data-number="2.1" class="anchored" data-anchor-id="data-sources"><span class="header-section-number">2.1</span> Data Sources</h2>
+</section>
+<section id="data-sources" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="data-sources"><span class="header-section-number">2.2</span> Data Sources</h2>
 <ul>
 <li><strong>Tax and Assessment System</strong>: Maintains current tax account information</li>
 <li><strong>Appraisal System</strong>: Maintains detailed property appraisals and improvements</li>
@@ -220,10 +272,10 @@ Note
 </div>
 <hr>
 </section>
-<section id="data-mart-architecture" class="level2" data-number="2.2">
-<h2 data-number="2.2" class="anchored" data-anchor-id="data-mart-architecture"><span class="header-section-number">2.2</span> Data Mart Architecture</h2>
-<section id="table-relationships" class="level3" data-number="2.2.1">
-<h3 data-number="2.2.1" class="anchored" data-anchor-id="table-relationships"><span class="header-section-number">2.2.1</span> Table Relationships</h3>
+<section id="data-mart-architecture" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="data-mart-architecture"><span class="header-section-number">2.3</span> Data Mart Architecture</h2>
+<section id="table-relationships" class="level3" data-number="2.3.1">
+<h3 data-number="2.3.1" class="anchored" data-anchor-id="table-relationships"><span class="header-section-number">2.3.1</span> Table Relationships</h3>
 <p>The data mart uses a relational schema with the following structure:</p>
 <pre><code>Tax Account (Parcel Number)
     ↓
@@ -253,10 +305,10 @@ Taxpayer (Parcel Number)</code></pre>
 <hr>
 </section>
 </section>
-<section id="table-definitions" class="level2" data-number="2.3">
-<h2 data-number="2.3" class="anchored" data-anchor-id="table-definitions"><span class="header-section-number">2.3</span> Table Definitions</h2>
-<section id="tax-account-table" class="level3" data-number="2.3.1">
-<h3 data-number="2.3.1" class="anchored" data-anchor-id="tax-account-table"><span class="header-section-number">2.3.1</span> Tax Account Table</h3>
+<section id="table-definitions" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="table-definitions"><span class="header-section-number">2.4</span> Table Definitions</h2>
+<section id="tax-account-table" class="level3" data-number="2.4.1">
+<h3 data-number="2.4.1" class="anchored" data-anchor-id="tax-account-table"><span class="header-section-number">2.4.1</span> Tax Account Table</h3>
 <p>Tracks current tax and assessment account information for each property.</p>
 <table class="caption-top table">
 <colgroup>
@@ -446,8 +498,8 @@ Taxpayer (Parcel Number)</code></pre>
 </table>
 <hr>
 </section>
-<section id="appraisal-account-table" class="level3" data-number="2.3.2">
-<h3 data-number="2.3.2" class="anchored" data-anchor-id="appraisal-account-table"><span class="header-section-number">2.3.2</span> Appraisal Account Table</h3>
+<section id="appraisal-account-table" class="level3" data-number="2.4.2">
+<h3 data-number="2.4.2" class="anchored" data-anchor-id="appraisal-account-table"><span class="header-section-number">2.4.2</span> Appraisal Account Table</h3>
 <p>Detailed property appraisal data with characteristics and valuations.</p>
 <table class="caption-top table">
 <colgroup>
@@ -613,8 +665,8 @@ Taxpayer (Parcel Number)</code></pre>
 </table>
 <hr>
 </section>
-<section id="improvement-table" class="level3" data-number="2.3.3">
-<h3 data-number="2.3.3" class="anchored" data-anchor-id="improvement-table"><span class="header-section-number">2.3.3</span> Improvement Table</h3>
+<section id="improvement-table" class="level3" data-number="2.4.3">
+<h3 data-number="2.4.3" class="anchored" data-anchor-id="improvement-table"><span class="header-section-number">2.4.3</span> Improvement Table</h3>
 <p>Detailed building improvement data linked to appraisal accounts.</p>
 <table class="caption-top table">
 <colgroup>
@@ -678,8 +730,8 @@ Taxpayer (Parcel Number)</code></pre>
 </table>
 <hr>
 </section>
-<section id="improvement-built-as-table" class="level3" data-number="2.3.4">
-<h3 data-number="2.3.4" class="anchored" data-anchor-id="improvement-built-as-table"><span class="header-section-number">2.3.4</span> Improvement Built-As Table</h3>
+<section id="improvement-built-as-table" class="level3" data-number="2.4.4">
+<h3 data-number="2.4.4" class="anchored" data-anchor-id="improvement-built-as-table"><span class="header-section-number">2.4.4</span> Improvement Built-As Table</h3>
 <p>Detailed specifications for building construction styles and features.</p>
 <table class="caption-top table">
 <colgroup>
@@ -857,8 +909,8 @@ Taxpayer (Parcel Number)</code></pre>
 </table>
 <hr>
 </section>
-<section id="improvement-detail-table" class="level3" data-number="2.3.5">
-<h3 data-number="2.3.5" class="anchored" data-anchor-id="improvement-detail-table"><span class="header-section-number">2.3.5</span> Improvement Detail Table</h3>
+<section id="improvement-detail-table" class="level3" data-number="2.4.5">
+<h3 data-number="2.4.5" class="anchored" data-anchor-id="improvement-detail-table"><span class="header-section-number">2.4.5</span> Improvement Detail Table</h3>
 <p>Additional specific improvement characteristics and features.</p>
 <table class="caption-top table">
 <colgroup>
@@ -910,8 +962,8 @@ Taxpayer (Parcel Number)</code></pre>
 </table>
 <hr>
 </section>
-<section id="land-attribute-table" class="level3" data-number="2.3.6">
-<h3 data-number="2.3.6" class="anchored" data-anchor-id="land-attribute-table"><span class="header-section-number">2.3.6</span> Land Attribute Table</h3>
+<section id="land-attribute-table" class="level3" data-number="2.4.6">
+<h3 data-number="2.4.6" class="anchored" data-anchor-id="land-attribute-table"><span class="header-section-number">2.4.6</span> Land Attribute Table</h3>
 <p>Land-specific attributes and characteristics affecting valuation.</p>
 <table class="caption-top table">
 <colgroup>
@@ -951,8 +1003,8 @@ Taxpayer (Parcel Number)</code></pre>
 </table>
 <hr>
 </section>
-<section id="sale-table" class="level3" data-number="2.3.7">
-<h3 data-number="2.3.7" class="anchored" data-anchor-id="sale-table"><span class="header-section-number">2.3.7</span> Sale Table</h3>
+<section id="sale-table" class="level3" data-number="2.4.7">
+<h3 data-number="2.4.7" class="anchored" data-anchor-id="sale-table"><span class="header-section-number">2.4.7</span> Sale Table</h3>
 <p>Historical property sales transaction data.</p>
 <table class="caption-top table">
 <colgroup>
@@ -1052,8 +1104,8 @@ Taxpayer (Parcel Number)</code></pre>
 </table>
 <hr>
 </section>
-<section id="segmerge-table" class="level3" data-number="2.3.8">
-<h3 data-number="2.3.8" class="anchored" data-anchor-id="segmerge-table"><span class="header-section-number">2.3.8</span> Seg/Merge Table</h3>
+<section id="segmerge-table" class="level3" data-number="2.4.8">
+<h3 data-number="2.4.8" class="anchored" data-anchor-id="segmerge-table"><span class="header-section-number">2.4.8</span> Seg/Merge Table</h3>
 <p>Property segregation and merger transaction history.</p>
 <table class="caption-top table">
 <colgroup>
@@ -1111,8 +1163,8 @@ Taxpayer (Parcel Number)</code></pre>
 </table>
 <hr>
 </section>
-<section id="taxpayer-table" class="level3" data-number="2.3.9">
-<h3 data-number="2.3.9" class="anchored" data-anchor-id="taxpayer-table"><span class="header-section-number">2.3.9</span> Taxpayer Table</h3>
+<section id="taxpayer-table" class="level3" data-number="2.4.9">
+<h3 data-number="2.4.9" class="anchored" data-anchor-id="taxpayer-table"><span class="header-section-number">2.4.9</span> Taxpayer Table</h3>
 <p>Property owner information (subject to privacy restrictions).</p>
 <table class="caption-top table">
 <colgroup>
@@ -1153,8 +1205,8 @@ Warning
 </div>
 <hr>
 </section>
-<section id="tax-description-table" class="level3" data-number="2.3.10">
-<h3 data-number="2.3.10" class="anchored" data-anchor-id="tax-description-table"><span class="header-section-number">2.3.10</span> Tax Description Table</h3>
+<section id="tax-description-table" class="level3" data-number="2.4.10">
+<h3 data-number="2.4.10" class="anchored" data-anchor-id="tax-description-table"><span class="header-section-number">2.4.10</span> Tax Description Table</h3>
 <p>Detailed tax coding and descriptions for parcels.</p>
 <table class="caption-top table">
 <colgroup>
@@ -1195,8 +1247,8 @@ Warning
 <hr>
 </section>
 </section>
-<section id="key-relationships" class="level2" data-number="2.4">
-<h2 data-number="2.4" class="anchored" data-anchor-id="key-relationships"><span class="header-section-number">2.4</span> Key Relationships</h2>
+<section id="key-relationships" class="level2" data-number="2.5">
+<h2 data-number="2.5" class="anchored" data-anchor-id="key-relationships"><span class="header-section-number">2.5</span> Key Relationships</h2>
 <ul>
 <li><strong>One-to-Many</strong>: Each parcel (Parcel Number) can have multiple improvements (Building IDs)</li>
 <li><strong>One-to-Many</strong>: Each improvement can have multiple built-as specifications and detail records</li>
@@ -1207,8 +1259,8 @@ Warning
 </ul>
 <hr>
 </section>
-<section id="data-quality-notes" class="level2" data-number="2.5">
-<h2 data-number="2.5" class="anchored" data-anchor-id="data-quality-notes"><span class="header-section-number">2.5</span> Data Quality Notes</h2>
+<section id="data-quality-notes" class="level2" data-number="2.6">
+<h2 data-number="2.6" class="anchored" data-anchor-id="data-quality-notes"><span class="header-section-number">2.6</span> Data Quality Notes</h2>
 <ul>
 <li><strong>Historical Data</strong>: Seg/Merge and Sale tables contain historical data. All other tables contain data for active parcels only</li>
 <li><strong>Missing Coordinates</strong>: Some parcels (building-only, mineral rights, reference parcels) may not have latitude/longitude coordinates</li>
@@ -1218,8 +1270,8 @@ Warning
 </ul>
 <hr>
 </section>
-<section id="data-dictionary-notes" class="level2" data-number="2.6">
-<h2 data-number="2.6" class="anchored" data-anchor-id="data-dictionary-notes"><span class="header-section-number">2.6</span> Data Dictionary Notes</h2>
+<section id="data-dictionary-notes" class="level2" data-number="2.7">
+<h2 data-number="2.7" class="anchored" data-anchor-id="data-dictionary-notes"><span class="header-section-number">2.7</span> Data Dictionary Notes</h2>
 <ul>
 <li><strong>Field names in bold</strong> represent primary key(s) in their respective tables</li>
 <li><strong>Size column</strong> represents maximum field length for Text and Decimal fields</li>
@@ -1228,8 +1280,8 @@ Warning
 </ul>
 <hr>
 </section>
-<section id="access-contact" class="level2" data-number="2.7">
-<h2 data-number="2.7" class="anchored" data-anchor-id="access-contact"><span class="header-section-number">2.7</span> Access &amp; Contact</h2>
+<section id="access-contact" class="level2" data-number="2.8">
+<h2 data-number="2.8" class="anchored" data-anchor-id="access-contact"><span class="header-section-number">2.8</span> Access &amp; Contact</h2>
 <p>For additional information, data downloads, or to request specific datasets:</p>
 <ul>
 <li><strong>Source</strong>: Pierce County Assessor-Treasurer Office</li>
