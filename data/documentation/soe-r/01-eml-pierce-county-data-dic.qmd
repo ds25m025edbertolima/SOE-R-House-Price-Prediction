@@ -1,16 +1,16 @@
-# Pierce County Assessor-Treasurer Data Mart
-
 ## Overview
 
 The Pierce County Assessor-Treasurer Data Mart contains comprehensive property assessment and appraisal data maintained by Pierce County, Washington. The data is organized into multiple related tables that track property characteristics, improvements, valuations, and sales transactions.
 
 ## Data Sources
 
-- **Tax and Assessment System** (light green in diagrams): Maintains current tax account information
-- **Appraisal System** (light orange in diagrams): Maintains detailed property appraisals and improvements
+- **Tax and Assessment System**: Maintains current tax account information
+- **Appraisal System**: Maintains detailed property appraisals and improvements
 - **Public Records**: Available through Pierce County Public Records Request Center
 
-**Note**: RCW 42.56.070(9) may restrict the release of taxpayer names and mailing addresses in certain circumstances. Contact the Pierce County Public Records Request Center for additional information.
+::: {.callout-note}
+RCW 42.56.070(9) may restrict the release of taxpayer names and mailing addresses in certain circumstances. Contact the Pierce County Public Records Request Center for additional information.
+:::
 
 ---
 
@@ -35,7 +35,9 @@ Appraisal Account (Parcel Number)
 Taxpayer (Parcel Number)
 ```
 
-**Key**: Field names in **bold** represent primary key(s)
+::: {.callout-tip title="Key"}
+Field names in **bold** represent primary key(s).
+:::
 
 ---
 
@@ -233,7 +235,9 @@ Property owner information (subject to privacy restrictions).
 |---|---|---|---|
 | **Parcel Number** | Text | 10 | Unique 10 digit number assigned to each property |
 
-**Note**: *RCW 42.56.070(9) may restrict the release of taxpayer names and mailing addresses in certain circumstances. Please contact the Pierce County Public Records Request Center to obtain additional information and/or initiate a request for the taxpayer table.*
+::: {.callout-warning}
+RCW 42.56.070(9) may restrict the release of taxpayer names and mailing addresses in certain circumstances. Please contact the Pierce County Public Records Request Center to obtain additional information and/or initiate a request for the taxpayer table.
+:::
 
 ---
 
@@ -282,9 +286,7 @@ Detailed tax coding and descriptions for parcels.
 ## Access & Contact
 
 For additional information, data downloads, or to request specific datasets:
+
 - **Source**: Pierce County Assessor-Treasurer Office
-- **Website**: https://www.piercecountywa.gov/
+- **Website**: <https://www.piercecountywa.gov/>
 - **Records Request**: Pierce County Public Records Request Center
-
----
-
