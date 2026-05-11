@@ -58,6 +58,7 @@ _freeze/
 data/source/**
 !data/source/.gitkeep
 !data/source/.gitignore
+scratch/
 
 # Python
 __pycache__/
@@ -95,3 +96,6 @@ env/
 *.swp
 *.swo
 *~
+
+/.quarto/
+**/*.quarto_ipynb
