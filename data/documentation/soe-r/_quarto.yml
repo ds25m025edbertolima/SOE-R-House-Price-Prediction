@@ -26,7 +26,7 @@ author:
 date: "2026-05-11"
 
 book:
-  title: "soe-r"
+  title: "soe-r-B1-Pierce-County-House-Prices"
   chapters:
     - index.qmd
     - intro.qmd
