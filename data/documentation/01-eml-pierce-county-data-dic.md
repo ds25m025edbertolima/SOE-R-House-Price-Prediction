@@ -288,5 +288,3 @@ For additional information, data downloads, or to request specific datasets:
 
 ---
 
-**Document Generated From**: Pierce County Assessor-Treasurer Data Mart Documentation
-**Last Updated**: 2026
