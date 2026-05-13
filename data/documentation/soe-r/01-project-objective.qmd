@@ -1,0 +1,45 @@
+# Project Objective
+
+## Background & Motivation
+
+Estimating house prices is a classic regression problem with clear real-world importance. Housing markets are influenced by many interconnected factors, including property characteristics, location, neighborhood effects, and market trends over time. Because nearby properties often share similar values and market conditions change continuously, house-price prediction provides an excellent example for applying the complete data-science workflow covered in this course.
+
+For this project, the publicly available Assessor–Treasurer data from Pierce County is used as the main data source. The dataset contains detailed and realistic information about properties, transactions, and assessments across multiple linked tables, offering a large-scale and practical environment for data exploration, pre-processing, feature engineering, and predictive modeling.
+
+## Project Goal
+
+Develop a machine learning system capable of predicting residential property prices using structural, spatial, economic, and neighborhood characteristics.
+
+### Qualitative Objectives
+
+1.  Build a clean housing dataset for Pierce County.
+
+2.  Explore which factors influence house prices.
+
+3.  Engineer predictive variables from property and spatial data.
+
+4.  Compare traditional statistical and machine learning approaches.
+
+5.  Deploy a simple Shiny app for interactive price estimation.
+
+6.  Allow non-technical users to test predictions using custom property inputs.
+
+7.  Create visual outputs that support decision-making.
+
+## Quantitative Objectives
+
+| Objective | Metric | Target |
+|:----------|:-------|:-------|
+| **Model Accuracy** | Root Mean Square Error (RMSE) | < USD 75,000 |
+| **Explanatory Power** | Coefficient of Determination (R²) | > 0.85 |
+| **Model Diversity** | Algorithm Benchmarking | ≥ 4 distinct algorithms |
+| **Feature Richness** | Engineered Predictors | ≥ 20 model-ready features |
+| **App Performance** | Real-time Inference | Response time < 3 seconds |
+| **Data Integrity** | Table Integration | 100% of selected source tables joined |
+
+## Deliverables & Timeline
+
+- **21.05.2026**: Project Proposal Presentation
+- **06.06.2026**: Interim Results Presentation
+- **24.06.2026**: Final Results Presentation & Project Report Submission
+- **24.06.2026**: Live demo of deployed model App

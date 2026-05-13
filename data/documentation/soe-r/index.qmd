@@ -1,5 +1,22 @@
 # Preface {.unnumbered}
 
-This is a Quarto book.
+This documentation presents the project proposal and development progress for the Predictive Modeling of Residential Property Prices in Pierce County, developed as part of the Solution Engineering course at FHTW.
 
-To learn more about Quarto books visit <https://quarto.org/docs/books>.
+The project aims to build a robust machine learning pipeline to estimate housing prices by integrating diverse data sources from the Pierce County Assessor-Treasurer. This book serves as the central repository for project objectives, data descriptions, organizational structure, and development plans.
+
+## Project Team
+
+- **Mira Radakovic** (Project Leader)
+- **Edberto Moura Lima** (Data Analyst)
+- **Gerta Hajrullahi** (Data Analyst)
+- **Helga Deutschmann** (Data Analyst)
+
+## Document Status
+
+This version corresponds to the **Pr1oject Proposal (Report 1)**.
+
+- [x] Project Objectives (Qualitative & Quantitative)
+- [x] Data Source Description & Dictionary
+- [x] Project Organization & Task Allocation
+- [x] Development Plan & Workflow
+- [x] Gantt Schedule & Milestones

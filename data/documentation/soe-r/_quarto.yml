@@ -3,35 +3,26 @@ project:
 
 lang: en
 
-author:
-  - name: Edberto Moura Lima
-    orcid: 0000-0002-8447-8460
-    affiliation: FHTW
-    roles: writing
-    corresponding: true
-    email: ds25m025@technikum-wien.at
-  - name: Gerta Hajrullahi
-    email: ds25m024@technikum-wien.at
-    affiliation: FHTW
-    roles: writing
-  - name: Helga Deutschmann
-    email: ds25m046@technikum-wien.at
-    affiliation: FHTW
-    roles: writing
-  - name: Mira Radakovic
-    email: ds25m042@technikum-wien.at
-    affiliation: FHTW
-    roles: 
-    - supervision: lead
 date: "2026-05-11"
 
 book:
-  title: "soe-r-B1-Pierce-County-House-Prices"
+  title: "Predictive Modeling of Residential Property Prices in Pierce County"
+  author:
+    - name: Edberto Moura Lima
+      affiliation: FHTW
+    - name: Gerta Hajrullahi
+      affiliation: FHTW
+    - name: Helga Deutschmann
+      affiliation: FHTW
+    - name: Mira Radakovic
+      affiliation: FHTW
   chapters:
     - index.qmd
-    - intro.qmd
-    - 01-eml-pierce-county-data-dic.qmd
-    - summary.qmd
+    - 01-project-objective.qmd
+    - 02-data-source-description.qmd
+    - 03-project-organization.qmd
+    - 04-development-plan.qmd
+    - 05-project-schedule-and-workpackages.qmd
     - references.qmd
 
 bibliography: references.bib
@@ -40,6 +31,13 @@ format:
   html:
     theme:
       - cosmo
-      - brand
+    code-fold: true
+    toc: true
+    number-sections: true
+    number-depth: 2
+    mermaid:
+      theme: neutral
+
   pdf:
     documentclass: scrreprt
+    number-sections: true
