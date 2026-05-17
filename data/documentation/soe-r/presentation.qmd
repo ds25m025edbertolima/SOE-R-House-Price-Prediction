@@ -1,0 +1,26 @@
+---
+title: "Predictive Modeling of Residential Property Prices"
+subtitle: "Pierce County Project"
+author: "Edberto, Gerta, Helga, & Mira"
+date: "2026-05-11"
+format: 
+  revealjs:
+    theme: simple
+    slide-number: true
+    transition: slide
+---
+
+{{< include 01-project-objective.qmd >}}
+
+---
+
+# Data Source Description
+
+#{{< include 02-data-source-description.qmd >}}
+
+---
+
+# Project Organization & Schedule
+
+{{< include 03-project-organization.qmd >}}
+{{< include 05-project-schedule-and-workpackages.qmd >}}

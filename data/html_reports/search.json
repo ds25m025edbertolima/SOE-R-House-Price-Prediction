@@ -1,0 +1,30 @@
+[
+  {
+    "objectID": "sol_eng_project_presentation.html#project-objectives",
+    "href": "sol_eng_project_presentation.html#project-objectives",
+    "title": "House Price Prediction",
+    "section": "Project Objectives",
+    "text": "Project Objectives\n\n\nQualitative Objectives:\n\nDevelop a user-friendly app that gives good predictions from non-technical parameters\nAvoid free input fields for better user experience and results\nOffer explanation or closest observation besides market value estimation\n\nQuantitative Objectives:\n\nAchieve test predictions within 95% confidence interval\nUser needs to input maximum 10 features"
+  },
+  {
+    "objectID": "sol_eng_project_presentation.html#data-source-description",
+    "href": "sol_eng_project_presentation.html#data-source-description",
+    "title": "House Price Prediction",
+    "section": "Data Source Description",
+    "text": "Data Source Description"
+  },
+  {
+    "objectID": "sol_eng_project_presentation.html#project-plan-workflow",
+    "href": "sol_eng_project_presentation.html#project-plan-workflow",
+    "title": "House Price Prediction",
+    "section": "Project Plan & Workflow",
+    "text": "Project Plan & Workflow"
+  },
+  {
+    "objectID": "sol_eng_project_presentation.html#project-organization",
+    "href": "sol_eng_project_presentation.html#project-organization",
+    "title": "House Price Prediction",
+    "section": "Project Organization",
+    "text": "Project Organization"
+  }
+]

@@ -1,62 +1,8 @@
----
-title: "House Price Prediction"
-date: today
-author: Deutschmann Helga,  Hajrullahi Gerta, Moura Lima Edberto, Radakovic Mira
-project:
-  output-dir: publish
-self-contained: true
-code-link: true
-code-tools: true
-format: 
-  html: 
-    toc: true
-    number-sections: true
-  revealjs:
-    scrollable: true
-    smaller: true
-    theme: sky ##https://quarto.org/docs/presentations/revealjs/themes.html
----
+# Variable selection and Data Cleaning
 
-## Project Objectives
+After all the data has been mapped put in a database we construct the final selection
+of variables used for modelling and clean this data.
 
-:::: {.columns}
-
-::: {.column width="60%"}
-**Qualitative Objectives:**
-
-* Develop a user-friendly app that gives good predictions from non-technical parameters
-* Avoid free input fields for better user experience and results
-* Offer explanation or closest observation besides market value estimation
-
-**Quantitative Objectives:**
-
-* Achieve test predictions within 95% confidence interval
-* User needs to input maximum 10 features
-:::
-
-::::
-
-## Data Source Description
-
-![](data/documentation/soe-r/db_schema.jpeg)
-
-## Project Plan & Workflow
-
-![](data/documentation/soe-r/workflow.png)
-
-
-
-
-## Project Organization
-
-![](data/documentation/soe-r/tasks.png)
-
-
----
-
-
-
-<!-- EXCLUDE FOR NOW
 ```{r}
 
 library(DBI)
@@ -70,6 +16,8 @@ library(stringr)
 
 load_dot_env(here::here(".env"))
 ```
+
+
 
 
 ```{r}
@@ -332,13 +280,3 @@ df_all %>%
 ```{r}
 #save(df_all, file = here::here("data", "df_all.RData"))
 ```
-
-
-### Exploratory Data Analysis
-
--->
-
-
-
-
-
