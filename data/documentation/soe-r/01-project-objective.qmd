@@ -1,16 +1,18 @@
 # Project Objective
 
-## Background & Motivation
+## Background & Motivation {.smaller}
 
 Estimating house prices is a classic regression problem with clear real-world importance. Housing markets are influenced by many interconnected factors, including property characteristics, location, neighborhood effects, and market trends over time. Because nearby properties often share similar values and market conditions change continuously, house-price prediction provides an excellent example for applying the complete data-science workflow covered in this course.
 
 For this project, the publicly available Assessor–Treasurer data from Pierce County is used as the main data source. The dataset contains detailed and realistic information about properties, transactions, and assessments across multiple linked tables, offering a large-scale and practical environment for data exploration, pre-processing, feature engineering, and predictive modeling.
 
+::: {.content-visible unless-format="revealjs"}
 ## Project Goal
 
 Develop a machine learning system capable of predicting residential property prices using structural, spatial, economic, and neighborhood characteristics.
+:::
 
-### Qualitative Objectives
+## Qualitative Objectives
 
 1.  Build a clean housing dataset for Pierce County.
 
@@ -37,8 +39,9 @@ Develop a machine learning system capable of predicting residential property pri
 | **App Performance** | Real-time Inference | Response time < 3 seconds |
 | **Data Integrity** | Table Integration | 100% of selected source tables joined |
 
+::: {.content-visible unless-format="revealjs"}
 : Quantitative project success criteria and performance targets. {#tbl-quantitative-objectives}
-
+:::
 ## Deliverables & Timeline
 
 - **21.05.2026**: Project Proposal Presentation

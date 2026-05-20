@@ -44,7 +44,7 @@
     "href": "01-project-objective.html#project-goal",
     "title": "1  Project Objective",
     "section": "1.2 Project Goal",
-    "text": "1.2 Project Goal\nDevelop a machine learning system capable of predicting residential property prices using structural, spatial, economic, and neighborhood characteristics.\n\nQualitative Objectives\n\nBuild a clean housing dataset for Pierce County.\nExplore which factors influence house prices.\nEngineer predictive variables from property and spatial data.\nCompare traditional statistical and machine learning approaches.\nDeploy a simple Shiny app for interactive price estimation.\nAllow non-technical users to test predictions using custom property inputs.\nCreate visual outputs that support decision-making.",
+    "text": "1.2 Project Goal\nDevelop a machine learning system capable of predicting residential property prices using structural, spatial, economic, and neighborhood characteristics.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Project Objective</span>"
     ]
@@ -53,8 +53,8 @@
     "objectID": "01-project-objective.html#quantitative-objectives",
     "href": "01-project-objective.html#quantitative-objectives",
     "title": "1  Project Objective",
-    "section": "1.3 Quantitative Objectives",
-    "text": "1.3 Quantitative Objectives\n\n\n\nTable 1.1: Quantitative project success criteria and performance targets.\n\n\n\n\n\n\n\n\n\n\nObjective\nMetric\nTarget\n\n\n\n\nModel Accuracy\nRoot Mean Square Error (RMSE)\n&lt; USD 75,000\n\n\nExplanatory Power\nCoefficient of Determination (R²)\n&gt; 0.85\n\n\nModel Diversity\nAlgorithm Benchmarking\n≥ 4 distinct algorithms\n\n\nFeature Richness\nEngineered Predictors\n≥ 20 model-ready features\n\n\nApp Performance\nReal-time Inference\nResponse time &lt; 3 seconds\n\n\nData Integrity\nTable Integration\n100% of selected source tables joined",
+    "section": "1.4 Quantitative Objectives",
+    "text": "1.4 Quantitative Objectives\n\n\n\nTable 1.1: Quantitative project success criteria and performance targets.\n\n\n\n\n\n\n\n\n\n\nObjective\nMetric\nTarget\n\n\n\n\nModel Accuracy\nRoot Mean Square Error (RMSE)\n&lt; USD 75,000\n\n\nExplanatory Power\nCoefficient of Determination (R²)\n&gt; 0.85\n\n\nModel Diversity\nAlgorithm Benchmarking\n≥ 4 distinct algorithms\n\n\nFeature Richness\nEngineered Predictors\n≥ 20 model-ready features\n\n\nApp Performance\nReal-time Inference\nResponse time &lt; 3 seconds\n\n\nData Integrity\nTable Integration\n100% of selected source tables joined",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Project Objective</span>"
     ]
@@ -63,8 +63,8 @@
     "objectID": "01-project-objective.html#deliverables-timeline",
     "href": "01-project-objective.html#deliverables-timeline",
     "title": "1  Project Objective",
-    "section": "1.4 Deliverables & Timeline",
-    "text": "1.4 Deliverables & Timeline\n\n21.05.2026: Project Proposal Presentation\n06.06.2026: Interim Results Presentation\n24.06.2026: Final Results Presentation & Project Report Submission\n24.06.2026: Live demo of deployed model App",
+    "section": "1.5 Deliverables & Timeline",
+    "text": "1.5 Deliverables & Timeline\n\n21.05.2026: Project Proposal Presentation\n06.06.2026: Interim Results Presentation\n24.06.2026: Final Results Presentation & Project Report Submission\n24.06.2026: Live demo of deployed model App",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Project Objective</span>"
     ]
@@ -84,7 +84,7 @@
     "href": "02-data-source-description.html#relational-diagram",
     "title": "2  Data Source Description & Data Dictionary",
     "section": "2.2 Relational Diagram",
-    "text": "2.2 Relational Diagram\nThe data mart uses a relational schema with the following structure:\n\n\n\n\n\n\n\n\n---\nconfig:\n  theme: 'neutral'\n---\nerDiagram\n\n    TAX_ACCOUNT {\n        string parcel_number PK\n    }\n\n    APPRAISAL_ACCOUNT {\n        string parcel_number PK\n    }\n\n    IMPROVEMENT {\n        string parcel_number PK\n        string building_id PK\n    }\n\n    IMPROVEMENT_BUILTAS {\n        string parcel_number PK\n        string building_id PK\n        string built_as_number PK\n    }\n\n    IMPROVEMENT_DETAIL {\n        string parcel_number PK\n        string building_id PK\n        string detail_type PK\n    }\n\n    LAND_ATTRIBUTE {\n        string parcel_number PK\n        string attribute PK\n    }\n\n    TAX_DESCRIPTION {\n        string parcel_number PK\n        string line_number PK\n        string tax_description_line\n    }\n\n    TAXPAYER {\n        string parcel_number PK\n    }\n\n    SEG_MERGE {\n        string seg_merge_number PK\n        string parcel_number PK\n    }\n\n    SALE {\n        string etn PK\n        string parcel_number FK\n    }\n\n    %% Relationships\n\n    TAX_ACCOUNT ||--|| APPRAISAL_ACCOUNT : \"parcel_number\"\n\n    APPRAISAL_ACCOUNT ||--o{ IMPROVEMENT : \"has buildings\"\n\n    IMPROVEMENT ||--|{ IMPROVEMENT_BUILTAS : \"built-as types\"\n\n    IMPROVEMENT ||--o{ IMPROVEMENT_DETAIL : \"details\"\n\n    APPRAISAL_ACCOUNT ||--o{ LAND_ATTRIBUTE : \"land attributes\"\n\n    TAX_ACCOUNT ||--|{ TAX_DESCRIPTION : \"tax descriptions\"\n\n    TAX_ACCOUNT ||--|| TAXPAYER : \"taxpayer\"\n\n    TAX_ACCOUNT ||--o{ SEG_MERGE : \"parcel history\"\n\n    APPRAISAL_ACCOUNT ||--o{ SALE : \"sales\"\n\n\n\n\n\n\n\n\nFigure 2.1: Entity–relationship diagram of the Pierce County Assessor–Treasurer Data Mart showing the relationships among tax, appraisal, land, improvement, taxpayer, parcel history, and sales tables. The schema integrates information from both the Tax and Assessment System and the Appraisal System using the parcel number as the central linking key.",
+    "text": "2.2 Relational Diagram\nThe data mart uses a relational schema with the following structure:\n\n\n\n\n\n\n\n\n---\nconfig:\n  theme: 'neutral'\n---\nerDiagram\n\n    TAX_ACCOUNT {\n        string parcel_number PK\n    }\n\n    APPRAISAL_ACCOUNT {\n        string parcel_number PK\n    }\n\n    IMPROVEMENT {\n        string parcel_number PK\n        string building_id PK\n    }\n\n    IMPROVEMENT_BUILTAS {\n        string parcel_number PK\n        string building_id PK\n        string built_as_number PK\n    }\n\n    IMPROVEMENT_DETAIL {\n        string parcel_number PK\n        string building_id PK\n        string detail_type PK\n    }\n\n    LAND_ATTRIBUTE {\n        string parcel_number PK\n        string attribute PK\n    }\n\n    TAX_DESCRIPTION {\n        string parcel_number PK\n        string line_number PK\n        string tax_description_line\n    }\n\n    TAXPAYER {\n        string parcel_number PK\n    }\n\n    SEG_MERGE {\n        string seg_merge_number PK\n        string parcel_number PK\n    }\n\n    SALE {\n        string etn PK\n        string parcel_number FK\n    }\n\n    %% Relationships\n\n    TAX_ACCOUNT ||--|| APPRAISAL_ACCOUNT : \"parcel_number\"\n\n    APPRAISAL_ACCOUNT ||--o{ IMPROVEMENT : \"has buildings\"\n\n    IMPROVEMENT ||--|{ IMPROVEMENT_BUILTAS : \"built-as types\"\n\n    IMPROVEMENT ||--o{ IMPROVEMENT_DETAIL : \"details\"\n\n    APPRAISAL_ACCOUNT ||--o{ LAND_ATTRIBUTE : \"land attributes\"\n\n    TAX_ACCOUNT ||--|{ TAX_DESCRIPTION : \"tax descriptions\"\n\n    TAX_ACCOUNT ||--|| TAXPAYER : \"taxpayer\"\n\n    TAX_ACCOUNT ||--o{ SEG_MERGE : \"parcel history\"\n\n    APPRAISAL_ACCOUNT ||--o{ SALE : \"sales\"\n\n\n\n\n\n\nEntity–relationship diagram of the Pierce County Assessor–Treasurer Data Mart showing the relationships among tax, appraisal, land, improvement, taxpayer, parcel history, and sales tables. The schema integrates information from both the Tax and Assessment System and the Appraisal System using the parcel number as the central linking key.\n\n\nFigure 2.1",
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Data Source Description & Data Dictionary</span>"
     ]
@@ -388,6 +388,16 @@
     "crumbs": [
       "Appendices",
       "<span class='chapter-number'>A</span>  <span class='chapter-title'>Appendix: Complete Data Dictionary</span>"
+    ]
+  },
+  {
+    "objectID": "01-project-objective.html#qualitative-objectives",
+    "href": "01-project-objective.html#qualitative-objectives",
+    "title": "1  Project Objective",
+    "section": "1.3 Qualitative Objectives",
+    "text": "1.3 Qualitative Objectives\n\nBuild a clean housing dataset for Pierce County.\nExplore which factors influence house prices.\nEngineer predictive variables from property and spatial data.\nCompare traditional statistical and machine learning approaches.\nDeploy a simple Shiny app for interactive price estimation.\nAllow non-technical users to test predictions using custom property inputs.\nCreate visual outputs that support decision-making.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Project Objective</span>"
     ]
   }
 ]
