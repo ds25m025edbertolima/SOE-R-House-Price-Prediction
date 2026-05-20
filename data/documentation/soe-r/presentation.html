@@ -149,15 +149,13 @@ Edberto, Gerta, Helga, &amp; Mira
 <h1>Project Objective</h1>
 
 </section>
-<section id="background-motivation" class="slide level2">
+<section id="background-motivation" class="slide level2 smaller">
 <h2>Background &amp; Motivation</h2>
 <p>Estimating house prices is a classic regression problem with clear real-world importance. Housing markets are influenced by many interconnected factors, including property characteristics, location, neighborhood effects, and market trends over time. Because nearby properties often share similar values and market conditions change continuously, house-price prediction provides an excellent example for applying the complete data-science workflow covered in this course.</p>
 <p>For this project, the publicly available Assessor–Treasurer data from Pierce County is used as the main data source. The dataset contains detailed and realistic information about properties, transactions, and assessments across multiple linked tables, offering a large-scale and practical environment for data exploration, pre-processing, feature engineering, and predictive modeling.</p>
 </section>
-<section id="project-goal" class="slide level2">
-<h2>Project Goal</h2>
-<p>Develop a machine learning system capable of predicting residential property prices using structural, spatial, economic, and neighborhood characteristics.</p>
-<h3 id="qualitative-objectives">Qualitative Objectives</h3>
+<section id="qualitative-objectives" class="slide level2">
+<h2>Qualitative Objectives</h2>
 <ol type="1">
 <li><p>Build a clean housing dataset for Pierce County.</p></li>
 <li><p>Explore which factors influence house prices.</p></li>
@@ -230,18 +228,166 @@ Edberto, Gerta, Helga, &amp; Mira
 
 </section></section>
 <section>
-<section id="data-source-description" class="title-slide slide level1 center">
-<h1>Data Source Description</h1>
-<p>#{{&lt; include 02-data-source-description.qmd &gt;}}</p>
+<section id="data-source-description-data-dictionary" class="title-slide slide level1 center">
+<h1>Data Source Description &amp; Data Dictionary</h1>
+<style>
+table {
+  width: 100% !important;
+}
+table colgroup col:nth-child(1) {
+  width: 25% !important;
+}
+table colgroup col:nth-child(2) {
+  width: 10% !important;
+}
+table colgroup col:nth-child(3) {
+  width: 10% !important;
+}
+table colgroup col:nth-child(4) {
+  width: 45% !important;
+}
+table td:nth-child(4),
+table th:nth-child(4) {
+  width: 45% !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+table td:nth-child(1),
+table th:nth-child(1) {
+  width: 25% !important;
+}
+table td:nth-child(2),
+table th:nth-child(2) {
+  width: 10% !important;
+}
+table td:nth-child(3),
+table th:nth-child(3) {
+  width: 10% !important;
+}
+</style>
+</section>
+<section id="overview" class="slide level2 smaller">
+<h2>Overview</h2>
+<p>The Pierce County Assessor–Treasurer Data Mart is a comprehensive relational database containing detailed property assessment, taxation, appraisal, land-use, improvement, and sales transaction records maintained by Pierce County, Washington. The dataset integrates information from multiple administrative systems and organizes it into interconnected tables linked primarily through the parcel identification number, enabling consistent tracking of individual properties across taxation, valuation, ownership, and structural characteristics.</p>
+<p>The database includes information related to property accounts, land attributes, building improvements, tax assessments, exemption categories, sales history, and geographic identifiers. Together, these tables provide a multidimensional representation of residential and commercial properties and support both fiscal administration and real-estate market analysis.</p>
+</section>
+<section id="relational-diagram" class="slide level2">
+<h2>Relational Diagram</h2>
+<div id="fig-pierce-er" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-pierce-er-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell" data-reveal="true" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class=""><p></p>
+<div>
+<pre class="mermaid mermaid-js">---
+config:
+  theme: 'neutral'
+---
+erDiagram
+
+    TAX_ACCOUNT {
+        string parcel_number PK
+    }
+
+    APPRAISAL_ACCOUNT {
+        string parcel_number PK
+    }
+
+    IMPROVEMENT {
+        string parcel_number PK
+        string building_id PK
+    }
+
+    IMPROVEMENT_BUILTAS {
+        string parcel_number PK
+        string building_id PK
+        string built_as_number PK
+    }
+
+    IMPROVEMENT_DETAIL {
+        string parcel_number PK
+        string building_id PK
+        string detail_type PK
+    }
+
+    LAND_ATTRIBUTE {
+        string parcel_number PK
+        string attribute PK
+    }
+
+    TAX_DESCRIPTION {
+        string parcel_number PK
+        string line_number PK
+        string tax_description_line
+    }
+
+    TAXPAYER {
+        string parcel_number PK
+    }
+
+    SEG_MERGE {
+        string seg_merge_number PK
+        string parcel_number PK
+    }
+
+    SALE {
+        string etn PK
+        string parcel_number FK
+    }
+
+    %% Relationships
+
+    TAX_ACCOUNT ||--|| APPRAISAL_ACCOUNT : "parcel_number"
+
+    APPRAISAL_ACCOUNT ||--o{ IMPROVEMENT : "has buildings"
+
+    IMPROVEMENT ||--|{ IMPROVEMENT_BUILTAS : "built-as types"
+
+    IMPROVEMENT ||--o{ IMPROVEMENT_DETAIL : "details"
+
+    APPRAISAL_ACCOUNT ||--o{ LAND_ATTRIBUTE : "land attributes"
+
+    TAX_ACCOUNT ||--|{ TAX_DESCRIPTION : "tax descriptions"
+
+    TAX_ACCOUNT ||--|| TAXPAYER : "taxpayer"
+
+    TAX_ACCOUNT ||--o{ SEG_MERGE : "parcel history"
+
+    APPRAISAL_ACCOUNT ||--o{ SALE : "sales"
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-pierce-er-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="data-dictionary-summary" class="slide level2 allowframebreaks smaller">
+<h2>Data Dictionary Summary</h2>
+<p>The data mart contains nine related tables. A brief summary follows:</p>
+<ol type="1">
+<li><strong>Tax Account</strong>: Current tax and assessment information per parcel</li>
+<li><strong>Appraisal Account</strong>: Detailed property appraisal with characteristics</li>
+<li><strong>Improvement</strong>: Building-level details (multiple per parcel)</li>
+<li><strong>Improvement Built-As</strong>: Construction specifications and year built</li>
+<li><strong>Improvement Detail</strong>: Features (garages, decks, fireplaces, etc.)</li>
+<li><strong>Land Attribute</strong>: Land-specific characteristics affecting valuation</li>
+<li><strong>Sale</strong>: Historical property sales transactions</li>
+<li><strong>Seg/Merge</strong>: Property segregation and merger history</li>
+<li><strong>Taxpayer</strong>: Owner information (privacy restricted)</li>
+</ol>
+<p>For detailed field definitions, see the appendix.</p>
 </section>
 <section class="slide level2">
 
 </section></section>
-<section id="project-organization-schedule" class="title-slide slide level1 center">
-<h1>Project Organization &amp; Schedule</h1>
-
-</section>
-
 <section>
 <section id="project-organization-task-allocation" class="title-slide slide level1 center">
 <h1>Project Organization &amp; Task Allocation</h1>
@@ -249,6 +395,12 @@ Edberto, Gerta, Helga, &amp; Mira
 </section>
 <section id="group-structure" class="slide level2">
 <h2>Group Structure</h2>
+<div id="tbl-team" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-team-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Project team composition and assigned roles.
+</figcaption>
+<div aria-describedby="tbl-team-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top">
 <thead>
 <tr class="header">
@@ -275,8 +427,11 @@ Edberto, Gerta, Helga, &amp; Mira
 </tr>
 </tbody>
 </table>
+</div>
+</figure>
+</div>
 </section>
-<section id="tools-infrastructure" class="slide level2">
+<section id="tools-infrastructure" class="slide level2" style="font-size: 60%;">
 <h2>Tools &amp; Infrastructure</h2>
 <table class="caption-top">
 <thead>
@@ -288,7 +443,7 @@ Edberto, Gerta, Helga, &amp; Mira
 <tbody>
 <tr class="odd">
 <td><strong>Language</strong></td>
-<td>R (primary)</td>
+<td>R</td>
 </tr>
 <tr class="even">
 <td><strong>Database</strong></td>
@@ -300,7 +455,7 @@ Edberto, Gerta, Helga, &amp; Mira
 </tr>
 <tr class="even">
 <td><strong>Project Management</strong></td>
-<td>GitHub Projects (Kanban Board)</td>
+<td>GitHub Projects + conceptboard</td>
 </tr>
 <tr class="odd">
 <td><strong>Communication</strong></td>
@@ -335,425 +490,92 @@ Edberto, Gerta, Helga, &amp; Mira
 </section>
 <section id="project-kanban-board" class="slide level2">
 <h2>Project Kanban Board</h2>
-<p>The following board tracks the real-time status of all project tasks.</p>
 
-<img data-src="tasks.png" class="r-stretch"></section>
-<section id="risk-management" class="slide level2">
-<h2>Risk Management</h2>
-<table class="caption-top">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Risk</th>
-<th>Mitigation</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Large number of tables / complex joins</td>
-<td>Build join pipeline incrementally; validate row counts at each step</td>
-</tr>
-<tr class="even">
-<td>Many missing values in building details</td>
-<td>Imputation strategies (median/mode); sensitivity analysis on imputed variables</td>
-</tr>
-<tr class="odd">
-<td>Data covers multiple property types (commercial, mobile homes)</td>
-<td>Filter to Residential Improved sales only at ingestion</td>
-</tr>
-<tr class="even">
-<td>Temporal drift in prices (market cycles)</td>
-<td>Include sale year/month as features; optionally restrict to recent years</td>
-</tr>
-<tr class="odd">
-<td>Skewed Sale Price distribution</td>
-<td>Log-transform target; evaluate models on both scales</td>
-</tr>
-<tr class="even">
-<td>Shiny App complexity</td>
-<td>Start with minimal viable app; add features iteratively</td>
-</tr>
-</tbody>
-</table>
+<img data-src="tasks.png" class="r-stretch quarto-figure-center" id="fig-kanban-board"><p class="caption">
+Figure&nbsp;2: Project task tracking board showing workflow stages from backlog to completion.
+</p></section>
+<section class="slide level2">
+
 </section></section>
 <section>
-<section id="project-schedule-work-packages" class="title-slide slide level1 center">
-<h1>Project Schedule &amp; Work Packages</h1>
-<p><strong>Project Duration</strong>: 13 May – 24 June 2026 (6 weeks)</p>
-</section>
-<section id="interactive-gantt-chart" class="slide level2">
-<h2>Interactive Gantt Chart</h2>
-<p>The following chart outlines the project timeline, milestones, and critical path.</p>
-<div class="cell" data-reveal="true" data-layout-align="default">
-<div class="cell-output-display">
-<div>
-<p></p><figure class=""><p></p>
-<div>
-<pre class="mermaid mermaid-js">gantt
-    title House Price Prediction Timeline
-    dateFormat YYYY-MM-DD
-    axisFormat %d-%m
+<section id="development-plan-overview" class="title-slide slide level1 center">
+<h1>Development Plan Overview</h1>
 
-    section Milestones
-    Proposal Submission (21.05) :milestone, m1, 2026-05-21, 0d
-    Interim Results (06.06)    :milestone, m2, 2026-06-06, 0d
-    Final Submission (24.06)   :crit, milestone, m4, 2026-06-24, 0d
+</section>
+<section id="workflow-diagram" class="slide level2">
+<h2>Workflow Diagram</h2>
 
-    section Phases
-    Project Setup      :done, wp0, 2026-05-13, 7d
-    Data Integration   :crit, wp1, 2026-05-20, 7d
-    Data Cleaning      :crit, wp2, 2026-05-27, 7d
-    EDA &amp; Features     :wp3, 2026-05-30, 10d
-    Preprocessing      :crit, wp4, 2026-06-07, 3d
-    Model Development  :wp5, 2026-06-09, 7d
-    Model Evaluation   :crit, wp6, 2026-06-16, 5d
-    Deployment         :crit, wp7, 2026-06-20, 5d
-</pre>
-</div>
-<p></p></figure><p></p>
-</div>
-</div>
-</div>
-</section>
-<section id="detailed-work-package-definitions" class="slide level2">
-<h2>Detailed Work Package Definitions</h2>
-<h3 id="wp0-project-setup">WP0: Project Setup</h3>
-<p><strong>Duration</strong>: 13–19 May | <strong>Status</strong>: Done</p>
-<h4 id="tasks">Tasks</h4>
-<ul>
-<li>Define team roles and responsibilities</li>
-<li>Create Git repository (private, shared with lecturer)</li>
-<li>Set up Supabase database connection</li>
-<li>Initialize Kanban board (Backlog/To Do/Doing/Testing/Done)</li>
-<li>Configure R development environment</li>
-</ul>
-<h4 id="deliverables">Deliverables</h4>
-<p>✓ GitHub repository ✓ Supabase connection ✓ Kanban board ✓ Team charter document</p>
-</section>
-<section class="slide level2">
-
-<h3 id="wp1-data-integration">WP1: Data Integration</h3>
-<p><strong>Duration</strong>: 20–26 May | <strong>Status</strong>: To Do</p>
-<h4 id="tasks-1">Tasks</h4>
-<ol type="1">
-<li>Download Pierce County data files</li>
-<li>Map table relationships and join keys</li>
-<li>Perform sequential table joins (validate at each step)</li>
-<li>Validate referential integrity and row counts</li>
-<li>Create data integration report</li>
-</ol>
-<h4 id="deliverables-1">Deliverables</h4>
-<ul>
-<li>Integrated dataset (.RData)</li>
-<li>Table mapping diagram</li>
-<li>Data dictionary (updated)</li>
-<li>Validation report with row counts</li>
-</ul>
-<h4 id="quality-criteria">Quality Criteria</h4>
-<ul class="task-list">
-<li><label><input type="checkbox">All tables joined successfully</label></li>
-<li><label><input type="checkbox">Row counts documented at each step</label></li>
-<li><label><input type="checkbox">No unexpected NULL values</label></li>
-<li><label><input type="checkbox">Referential integrity verified</label></li>
-</ul>
-</section>
-<section class="slide level2">
-
-<h3 id="wp2-data-cleaning-preparation">WP2: Data Cleaning &amp; Preparation</h3>
-<p><strong>Duration</strong>: 27 May – 2 June | <strong>Status</strong>: To Do</p>
-<h4 id="tasks-2">Tasks</h4>
-<ol type="1">
-<li>Filter to Residential Improved properties only</li>
-<li>Remove duplicate records</li>
-<li>Handle missing values (document strategy)</li>
-<li>Examine and document outliers</li>
-<li>Variable selection — keep only analysis-ready columns</li>
-<li>Run validation test suite</li>
-</ol>
-<h4 id="deliverables-2">Deliverables</h4>
-<ul>
-<li>Cleaned dataset (.RData)</li>
-<li>Data cleaning log</li>
-<li>Missing value analysis</li>
-<li>Quality assurance report</li>
-</ul>
-<h4 id="quality-criteria-1">Quality Criteria</h4>
-<ul class="task-list">
-<li><label><input type="checkbox">No critical missing values</label></li>
-<li><label><input type="checkbox">Data types verified</label></li>
-<li><label><input type="checkbox">Outliers documented</label></li>
-<li><label><input type="checkbox">Test suite passes</label></li>
-</ul>
-</section>
-<section class="slide level2">
-
-<h3 id="wp3-exploratory-data-analysis-feature-engineering">WP3: Exploratory Data Analysis &amp; Feature Engineering</h3>
-<p><strong>Duration</strong>: 30 May – 9 June | <strong>Status</strong>: To Do</p>
-<h4 id="wp3a-eda-tasks">WP3a: EDA Tasks</h4>
-<ul>
-<li>Univariate analysis (distributions, summaries)</li>
-<li>Bivariate analysis (price vs.&nbsp;key variables)</li>
-<li>Spatial analysis with leaflet maps</li>
-<li>Correlation matrix and hypothesis testing</li>
-</ul>
-<h4 id="wp3b-feature-engineering-tasks">WP3b: Feature Engineering Tasks</h4>
-<ul>
-<li>Create derived features (age, price/sqft, neighborhood effects, etc.)</li>
-<li>Encode categorical variables</li>
-<li>Feature selection — target ≥15 final features</li>
-<li>Document feature importance baseline</li>
-</ul>
-<h4 id="deliverables-3">Deliverables</h4>
-<ul>
-<li>EDA report with visualizations</li>
-<li>Correlation heatmap</li>
-<li>Feature engineering log</li>
-<li>Final feature set documentation (≥15 features)</li>
-</ul>
-<h4 id="quality-criteria-2">Quality Criteria</h4>
-<ul class="task-list">
-<li><label><input type="checkbox">All visualizations publication-ready</label></li>
-<li><label><input type="checkbox">≥15 features engineered and named</label></li>
-<li><label><input type="checkbox">No data leakage from target variable</label></li>
-<li><label><input type="checkbox">Feature-target correlations documented</label></li>
-</ul>
-</section>
-<section class="slide level2">
-
-<h3 id="wp4-preprocessing">WP4: Preprocessing</h3>
-<p><strong>Duration</strong>: 7–9 June | <strong>Status</strong>: To Do</p>
-<h4 id="tasks-3">Tasks</h4>
-<ol type="1">
-<li>Encode categorical variables (finalize encoding scheme)</li>
-<li>Scale numerical variables (standardize or normalize)</li>
-<li>Train/validation/test split (70/15/15% stratified)</li>
-<li>Document random seed for reproducibility</li>
-</ol>
-<h4 id="deliverables-4">Deliverables</h4>
-<ul>
-<li>3 split datasets (train, validation, test)</li>
-<li>Encoding mapping tables</li>
-<li>Scaling parameters (saved as R object)</li>
-<li>Data split documentation</li>
-</ul>
-<h4 id="quality-criteria-3">Quality Criteria</h4>
-<ul class="task-list">
-<li><label><input type="checkbox">No data leakage (scaling only from training set)</label></li>
-<li><label><input type="checkbox">Balanced distribution across splits</label></li>
-<li><label><input type="checkbox">Random seed documented</label></li>
-<li><label><input type="checkbox">All features properly encoded/scaled</label></li>
-</ul>
-</section>
-<section class="slide level2">
-
-<h3 id="wp5-model-development-parallel-tracks">WP5: Model Development (Parallel Tracks)</h3>
-<p><strong>Duration</strong>: 9–15 June | <strong>Status</strong>: To Do</p>
-<h4 id="wp5a-baseline-tree-models">WP5a: Baseline &amp; Tree Models</h4>
-<ul>
-<li>Baseline Linear Regression</li>
-<li>Decision Tree (hyperparameter tuning)</li>
-<li>Random Forest (grid search over parameters)</li>
-</ul>
-<h4 id="wp5b-support-vector-machine">WP5b: Support Vector Machine</h4>
-<ul>
-<li>SVM setup (kernel selection)</li>
-<li>Hyperparameter tuning (C, epsilon)</li>
-<li>Cross-validation</li>
-</ul>
-<h4 id="wp5c-k-nearest-neighbours">WP5c: k-Nearest Neighbours</h4>
-<ul>
-<li>Setup (distance metric, k selection)</li>
-<li>kNN based on: distance (lon, lat) + square metre</li>
-<li>Hyperparameter optimization</li>
-</ul>
-<h4 id="wp5d-linear-regression">WP5d: Linear Regression</h4>
-<ul>
-<li>Full feature set training</li>
-<li>Feature importance extraction</li>
-<li>Residual diagnostics</li>
-</ul>
-<h4 id="deliverables-5">Deliverables</h4>
-<ul>
-<li>Trained model objects (.RDS)</li>
-<li>Cross-validation results</li>
-<li>Validation &amp; test metrics</li>
-<li>Model configuration documentation</li>
-</ul>
-<h4 id="quality-criteria-4">Quality Criteria</h4>
-<ul class="task-list">
-<li><label><input type="checkbox">All 5 models trained and saved</label></li>
-<li><label><input type="checkbox">Cross-validation RMSE &lt; 100k (preliminary)</label></li>
-<li><label><input type="checkbox">No data leakage to validation/test</label></li>
-<li><label><input type="checkbox">Test predictions generated for all samples</label></li>
-</ul>
-</section>
-<section class="slide level2">
-
-<h3 id="wp6-model-evaluation-selection">WP6: Model Evaluation &amp; Selection</h3>
-<p><strong>Duration</strong>: 16–20 June | <strong>Status</strong>: To Do</p>
-<h4 id="tasks-4">Tasks</h4>
-<ol type="1">
-<li>Cross-validation for all 5 models (k=5 fold)</li>
-<li>Performance benchmarking (RMSE, MAE, R²)</li>
-<li>Create model comparison table and visualizations</li>
-<li>Select best model based on criteria:
-<ul>
-<li>RMSE &lt; USD 80,000</li>
-<li>R² &gt; 0.80</li>
-</ul></li>
-<li>Extract and visualize feature importance</li>
-</ol>
-<h4 id="deliverables-6">Deliverables</h4>
-<ul>
-<li>Model comparison table (CSV)</li>
-<li>Benchmarking plots (PNG/PDF)</li>
-<li>Best model selection report</li>
-<li>Feature importance ranking</li>
-<li>Final model object saved</li>
-</ul>
-<h4 id="quality-criteria-5">Quality Criteria</h4>
-<ul class="task-list">
-<li><label><input type="checkbox">All models evaluated on same test set</label></li>
-<li><label><input type="checkbox">Best model meets RMSE &lt; 80k &amp; R² &gt; 0.80 targets</label></li>
-<li><label><input type="checkbox">Feature importance interpreted</label></li>
-<li><label><input type="checkbox">Selection criteria documented</label></li>
-</ul>
-</section>
-<section class="slide level2">
-
-<h3 id="wp7-deployment-documentation">WP7: Deployment &amp; Documentation</h3>
-<p><strong>Duration</strong>: 20–24 June | <strong>Status</strong>: To Do</p>
-<h4 id="tasks-5">Tasks</h4>
-<ol type="1">
-<li>Build Shiny App (UI + server logic)</li>
-<li>Create prediction endpoint (returns estimate + confidence interval)</li>
-<li>Add feature importance visualization</li>
-<li>Final validation testing</li>
-<li>Prepare presentation slides</li>
-<li>Assemble final report</li>
-<li>Deploy to shinyapps.io or local server</li>
-</ol>
-<h4 id="deliverables-7">Deliverables</h4>
-<ul>
-<li>Deployed Shiny App</li>
-<li>App source code (app.R)</li>
-<li>Presentation slides (PDF)</li>
-<li>Final report (PDF)</li>
-<li>User guide &amp; model documentation</li>
-<li>All code on GitHub</li>
-</ul>
-<h4 id="quality-criteria-6">Quality Criteria</h4>
-<ul class="task-list">
-<li><label><input type="checkbox">Shiny App loads without errors</label></li>
-<li><label><input type="checkbox">Predictions return in &lt;5 seconds</label></li>
-<li><label><input type="checkbox">Confidence intervals displayed</label></li>
-<li><label><input type="checkbox">Presentation covers all key findings</label></li>
-<li><label><input type="checkbox">Report submitted via Moodle by deadline</label></li>
-</ul>
-</section>
-<section id="dependencies-critical-path" class="slide level2">
-<h2>Dependencies &amp; Critical Path</h2>
+<img data-src="workflow.png" class="r-stretch quarto-figure-center" id="fig-workflow"><p class="caption">
+Figure&nbsp;3: Project Development Workflow
+</p></section>
+<section id="work-package-summary" class="slide level2" style="font-size: 60%;">
+<h2>Work Package Summary</h2>
 <table class="caption-top">
+<caption>High-level work package phases and planned duration in weeks.</caption>
 <thead>
 <tr class="header">
 <th>WP</th>
-<th>Depends On</th>
-<th>Notes</th>
+<th>Phase</th>
+<th>Duration</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>WP1</td>
 <td>WP0</td>
-<td>Requires Git repo &amp; Supabase setup</td>
+<td>Project Setup</td>
+<td>13–19 May</td>
 </tr>
 <tr class="even">
-<td>WP2</td>
 <td>WP1</td>
-<td>Requires integrated dataset</td>
+<td>Data Integration</td>
+<td>20–26 May</td>
 </tr>
 <tr class="odd">
-<td>WP3</td>
 <td>WP2</td>
-<td>Requires clean dataset</td>
+<td>Data Cleaning</td>
+<td>27 May – 2 June</td>
 </tr>
 <tr class="even">
-<td>WP4</td>
 <td>WP3</td>
-<td>Requires feature set</td>
+<td>EDA &amp; Features</td>
+<td>30 May – 6 June</td>
 </tr>
 <tr class="odd">
-<td>WP5</td>
 <td>WP4</td>
-<td>Requires preprocessed data</td>
+<td>Preprocessing</td>
+<td>7–9 June</td>
 </tr>
 <tr class="even">
-<td>WP6</td>
 <td>WP5</td>
-<td>Requires all trained models</td>
+<td>Model Development</td>
+<td>9–15 June</td>
 </tr>
 <tr class="odd">
-<td>WP7</td>
 <td>WP6</td>
-<td>Requires selected best model</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Critical Path Tasks</strong>: 1. WP1: Data integration (26.05) 2. WP2: Data cleaning (02.06) 3. WP3: Feature engineering (09.06) 4. WP4: Train/test split (09.06) 5. WP5: Model training (15.06) 6. WP6: Model selection (20.06) 7. WP7: Shiny App deployment (23.06)</p>
-</section>
-<section id="key-milestones" class="slide level2">
-<h2>Key Milestones</h2>
-<table class="caption-top">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Date</th>
-<th>Event</th>
-<th>Deliverables</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>21.05.2026</strong></td>
-<td>Proposal Presentation</td>
-<td>Objectives, data dictionary, organization, development plan</td>
+<td>Model Evaluation</td>
+<td>16–20 June</td>
 </tr>
 <tr class="even">
-<td><strong>06.06.2026</strong></td>
-<td>Interim Results</td>
-<td>Data status, EDA findings, initial model results</td>
-</tr>
-<tr class="odd">
-<td><strong>18.06.2026</strong></td>
-<td>Feedback Round</td>
-<td>Review feedback, adjust if needed</td>
-</tr>
-<tr class="even">
-<td><strong>24.06.2026</strong></td>
-<td>Final Presentation</td>
-<td>Live demo + report submission via Moodle</td>
+<td>WP7</td>
+<td>Deployment</td>
+<td>20–24 June</td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="weekly-status-checklist" class="slide level2">
-<h2>Weekly Status Checklist</h2>
-<ul class="task-list">
-<li><label><input type="checkbox"><strong>Week 1 (13–19.05)</strong>: WP0 setup complete</label></li>
-<li><label><input type="checkbox"><strong>Week 2 (20–26.05)</strong>: WP1 data integration done, Proposal prepared</label></li>
-<li><label><input type="checkbox"><strong>Week 3 (27.05–02.06)</strong>: WP2 data cleaning complete, WP3 started</label></li>
-<li><label><input type="checkbox"><strong>Week 4 (03–09.06)</strong>: WP3 features complete, WP4 preprocessing ready</label></li>
-<li><label><input type="checkbox"><strong>Week 5 (10–16.06)</strong>: WP5 all 5 models trained and validated</label></li>
-<li><label><input type="checkbox"><strong>Week 6 (17–23.06)</strong>: WP6 best model selected, WP7 Shiny App deployed</label></li>
-<li><label><input type="checkbox"><strong>Week 7 (24.06)</strong>: Final presentation &amp; report submitted</label></li>
+<section id="communication-oversight" class="slide level2">
+<h2>Communication &amp; Oversight</h2>
+<p><strong>Weekly Sync</strong>:</p>
+<ul>
+<li><p>Review completed tasks</p></li>
+<li><p>Discuss blockers &amp; dependencies</p></li>
+<li><p>Update Kanban board</p></li>
+<li><p>Plan next week</p></li>
 </ul>
+<p><strong>Status Reporting</strong>: Mira provides bi-weekly status to lecturer</p>
+</section>
+<section class="slide level2">
+
 
 </section></section>
     </div>

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.8.25">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -10,9 +10,6 @@
 
 <title>1&nbsp; Project Objective – Predictive Modeling of Residential Property Prices in Pierce County</title>
 <style>
-/* Default styles provided by pandoc.
-** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -38,14 +35,15 @@ ul.task-list li input[type="checkbox"] {
 <link href="./index.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-9e3e5b9121e68b3f077afb32f2c64d95.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-27c261d06b905028a18691de25d09dde.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -99,7 +97,9 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
-    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="./index.html" class="sidebar-logo-link">
+      </a>
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Predictive Modeling of Residential Property Prices in Pierce County</a> 
     </div>
@@ -187,12 +187,10 @@ ul.task-list li input[type="checkbox"] {
    
   <ul>
   <li><a href="#background-motivation" id="toc-background-motivation" class="nav-link active" data-scroll-target="#background-motivation"><span class="header-section-number">1.1</span> Background &amp; Motivation</a></li>
-  <li><a href="#project-goal" id="toc-project-goal" class="nav-link" data-scroll-target="#project-goal"><span class="header-section-number">1.2</span> Project Goal</a>
-  <ul class="collapse">
-  <li><a href="#qualitative-objectives" id="toc-qualitative-objectives" class="nav-link" data-scroll-target="#qualitative-objectives">Qualitative Objectives</a></li>
-  </ul></li>
-  <li><a href="#quantitative-objectives" id="toc-quantitative-objectives" class="nav-link" data-scroll-target="#quantitative-objectives"><span class="header-section-number">1.3</span> Quantitative Objectives</a></li>
-  <li><a href="#deliverables-timeline" id="toc-deliverables-timeline" class="nav-link" data-scroll-target="#deliverables-timeline"><span class="header-section-number">1.4</span> Deliverables &amp; Timeline</a></li>
+  <li><a href="#project-goal" id="toc-project-goal" class="nav-link" data-scroll-target="#project-goal"><span class="header-section-number">1.2</span> Project Goal</a></li>
+  <li><a href="#qualitative-objectives" id="toc-qualitative-objectives" class="nav-link" data-scroll-target="#qualitative-objectives"><span class="header-section-number">1.3</span> Qualitative Objectives</a></li>
+  <li><a href="#quantitative-objectives" id="toc-quantitative-objectives" class="nav-link" data-scroll-target="#quantitative-objectives"><span class="header-section-number">1.4</span> Quantitative Objectives</a></li>
+  <li><a href="#deliverables-timeline" id="toc-deliverables-timeline" class="nav-link" data-scroll-target="#deliverables-timeline"><span class="header-section-number">1.5</span> Deliverables &amp; Timeline</a></li>
   </ul>
 </nav>
     </div>
@@ -224,16 +222,17 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="background-motivation" class="level2" data-number="1.1">
-<h2 data-number="1.1" class="anchored" data-anchor-id="background-motivation"><span class="header-section-number">1.1</span> Background &amp; Motivation</h2>
+<section id="background-motivation" class="level2 allowframebreaks" data-number="1.1">
+<h2 class="allowframebreaks anchored" data-number="1.1" data-anchor-id="background-motivation"><span class="header-section-number">1.1</span> Background &amp; Motivation</h2>
 <p>Estimating house prices is a classic regression problem with clear real-world importance. Housing markets are influenced by many interconnected factors, including property characteristics, location, neighborhood effects, and market trends over time. Because nearby properties often share similar values and market conditions change continuously, house-price prediction provides an excellent example for applying the complete data-science workflow covered in this course.</p>
 <p>For this project, the publicly available Assessor–Treasurer data from Pierce County is used as the main data source. The dataset contains detailed and realistic information about properties, transactions, and assessments across multiple linked tables, offering a large-scale and practical environment for data exploration, pre-processing, feature engineering, and predictive modeling.</p>
 </section>
 <section id="project-goal" class="level2" data-number="1.2">
 <h2 data-number="1.2" class="anchored" data-anchor-id="project-goal"><span class="header-section-number">1.2</span> Project Goal</h2>
 <p>Develop a machine learning system capable of predicting residential property prices using structural, spatial, economic, and neighborhood characteristics.</p>
-<section id="qualitative-objectives" class="level3">
-<h3 class="anchored" data-anchor-id="qualitative-objectives">Qualitative Objectives</h3>
+</section>
+<section id="qualitative-objectives" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="qualitative-objectives"><span class="header-section-number">1.3</span> Qualitative Objectives</h2>
 <ol type="1">
 <li><p>Build a clean housing dataset for Pierce County.</p></li>
 <li><p>Explore which factors influence house prices.</p></li>
@@ -244,9 +243,8 @@ ul.task-list li input[type="checkbox"] {
 <li><p>Create visual outputs that support decision-making.</p></li>
 </ol>
 </section>
-</section>
-<section id="quantitative-objectives" class="level2" data-number="1.3">
-<h2 data-number="1.3" class="anchored" data-anchor-id="quantitative-objectives"><span class="header-section-number">1.3</span> Quantitative Objectives</h2>
+<section id="quantitative-objectives" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="quantitative-objectives"><span class="header-section-number">1.4</span> Quantitative Objectives</h2>
 <div id="tbl-quantitative-objectives" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-quantitative-objectives-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -303,8 +301,8 @@ Table&nbsp;1.1: Quantitative project success criteria and performance targets.
 </figure>
 </div>
 </section>
-<section id="deliverables-timeline" class="level2" data-number="1.4">
-<h2 data-number="1.4" class="anchored" data-anchor-id="deliverables-timeline"><span class="header-section-number">1.4</span> Deliverables &amp; Timeline</h2>
+<section id="deliverables-timeline" class="level2" data-number="1.5">
+<h2 data-number="1.5" class="anchored" data-anchor-id="deliverables-timeline"><span class="header-section-number">1.5</span> Deliverables &amp; Timeline</h2>
 <ul>
 <li><strong>21.05.2026</strong>: Project Proposal Presentation</li>
 <li><strong>06.06.2026</strong>: Interim Results Presentation</li>

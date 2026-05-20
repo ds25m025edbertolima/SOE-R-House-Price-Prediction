@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.8.25">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -10,9 +10,6 @@
 
 <title>2&nbsp; Data Source Description &amp; Data Dictionary – Predictive Modeling of Residential Property Prices in Pierce County</title>
 <style>
-/* Default styles provided by pandoc.
-** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -38,14 +35,15 @@ ul.task-list li input[type="checkbox"] {
 <link href="./01-project-objective.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-9e3e5b9121e68b3f077afb32f2c64d95.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-27c261d06b905028a18691de25d09dde.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -103,7 +101,9 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
-    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="./index.html" class="sidebar-logo-link">
+      </a>
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Predictive Modeling of Residential Property Prices in Pierce County</a> 
     </div>
@@ -259,8 +259,8 @@ table th:nth-child(3) {
   width: 10% !important;
 }
 </style>
-<section id="overview" class="level2" data-number="2.1">
-<h2 data-number="2.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">2.1</span> Overview</h2>
+<section id="overview" class="level2 smaller" data-number="2.1">
+<h2 class="smaller anchored" data-number="2.1" data-anchor-id="overview"><span class="header-section-number">2.1</span> Overview</h2>
 <p>The Pierce County Assessor–Treasurer Data Mart is a comprehensive relational database containing detailed property assessment, taxation, appraisal, land-use, improvement, and sales transaction records maintained by Pierce County, Washington. The dataset integrates information from multiple administrative systems and organizes it into interconnected tables linked primarily through the parcel identification number, enabling consistent tracking of individual properties across taxation, valuation, ownership, and structural characteristics.</p>
 <p>The database includes information related to property accounts, land attributes, building improvements, tax assessments, exemption categories, sales history, and geographic identifiers. Together, these tables provide a multidimensional representation of residential and commercial properties and support both fiscal administration and real-estate market analysis.</p>
 <p>Here we provide a data dictionary with detailed descriptions of the available tables, attributes, data types, and relationships that form the foundation for exploratory data analysis, spatial analysis, and predictive modeling of residential property prices in Pierce County.</p>
@@ -358,9 +358,10 @@ erDiagram
 </div>
 </div>
 </div>
+<p>Entity–relationship diagram of the Pierce County Assessor–Treasurer Data Mart showing the relationships among tax, appraisal, land, improvement, taxpayer, parcel history, and sales tables. The schema integrates information from both the Tax and Assessment System and the Appraisal System using the parcel number as the central linking key.</p>
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pierce-er-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2.1: Entity–relationship diagram of the Pierce County Assessor–Treasurer Data Mart showing the relationships among tax, appraisal, land, improvement, taxpayer, parcel history, and sales tables. The schema integrates information from both the Tax and Assessment System and the Appraisal System using the parcel number as the central linking key.
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-pierce-er-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2.1
 </figcaption>
 </figure>
 </div>
