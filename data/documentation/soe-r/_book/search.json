@@ -174,7 +174,7 @@
     "href": "04-development-plan.html#work-package-summary",
     "title": "4  Development Plan Overview",
     "section": "4.2 Work Package Summary",
-    "text": "4.2 Work Package Summary\n\n\n\nTable 4.1: High-level work package phases and planned duration in weeks.\n\n\n\n\n\nWP\nPhase\nDuration\n\n\n\n\nWP0\nProject Setup\n13–19 May\n\n\nWP1\nData Integration\n20–26 May\n\n\nWP2\nData Cleaning\n27 May – 2 June\n\n\nWP3\nEDA & Features\n30 May – 6 June\n\n\nWP4\nPreprocessing\n7–9 June\n\n\nWP5\nModel Development\n9–15 June\n\n\nWP6\nModel Evaluation\n16–20 June\n\n\nWP7\nDeployment\n20–24 June",
+    "text": "4.2 Work Package Summary\n\nHigh-level work package phases and planned duration in weeks.\n\n\nWP\nPhase\nDuration\n\n\n\n\nWP0\nProject Setup\n13–19 May\n\n\nWP1\nData Integration\n20–26 May\n\n\nWP2\nData Cleaning\n27 May – 2 June\n\n\nWP3\nEDA & Features\n30 May – 6 June\n\n\nWP4\nPreprocessing\n7–9 June\n\n\nWP5\nModel Development\n9–15 June\n\n\nWP6\nModel Evaluation\n16–20 June\n\n\nWP7\nDeployment\n20–24 June",
     "crumbs": [
       "<span class='chapter-number'>4</span>  <span class='chapter-title'>Development Plan Overview</span>"
     ]
@@ -184,7 +184,7 @@
     "href": "04-development-plan.html#communication-oversight",
     "title": "4  Development Plan Overview",
     "section": "4.3 Communication & Oversight",
-    "text": "4.3 Communication & Oversight\nWeekly Sync: - Review completed tasks - Discuss blockers & dependencies - Update Kanban boar - Plan next week\nStatus Reporting: Mira provides weekly status to lecturer",
+    "text": "4.3 Communication & Oversight\nWeekly Sync:\n\nReview completed tasks\nDiscuss blockers & dependencies\nUpdate Kanban boar\nPlan next week\n\nStatus Reporting: Mira provides weekly status to lecturer",
     "crumbs": [
       "<span class='chapter-number'>4</span>  <span class='chapter-title'>Development Plan Overview</span>"
     ]

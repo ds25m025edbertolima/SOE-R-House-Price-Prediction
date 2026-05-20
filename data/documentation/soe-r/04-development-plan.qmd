@@ -21,16 +21,20 @@ The project is splinted into work packages (WP0–WP7) over 6 weeks.
 | WP6 | Model Evaluation  | 16–20 June      |
 | WP7 | Deployment        | 20–24 June      |
 
-: High-level work package phases and planned duration in weeks. {#tbl-workpackage-summary}
+: High-level work package phases and planned duration in weeks.
 
 ------------------------------------------------------------------------
 
 ## Communication & Oversight
 
-**Weekly Sync**: 
-- Review completed tasks 
-- Discuss blockers & dependencies 
-- Update Kanban boar 
+**Weekly Sync**:
+
+- Review completed tasks
+
+- Discuss blockers & dependencies
+
+- Update Kanban boar
+
 - Plan next week
 
 **Status Reporting**: Mira provides weekly status to lecturer
