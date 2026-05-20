@@ -37,6 +37,8 @@ Develop a machine learning system capable of predicting residential property pri
 | **App Performance** | Real-time Inference | Response time < 3 seconds |
 | **Data Integrity** | Table Integration | 100% of selected source tables joined |
 
+: Quantitative project success criteria and performance targets. {#tbl-quantitative-objectives}
+
 ## Deliverables & Timeline
 
 - **21.05.2026**: Project Proposal Presentation

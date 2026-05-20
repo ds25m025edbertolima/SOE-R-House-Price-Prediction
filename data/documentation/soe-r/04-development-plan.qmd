@@ -15,17 +15,23 @@ The project is splinted into work packages (WP0–WP7) over 6 weeks.
 | WP0 | Project Setup     | 13–19 May       |
 | WP1 | Data Integration  | 20–26 May       |
 | WP2 | Data Cleaning     | 27 May – 2 June |
-| WP3 | EDA & Features    | 30 May – 9 June |
+| WP3 | EDA & Features    | 30 May – 6 June |
 | WP4 | Preprocessing     | 7–9 June        |
 | WP5 | Model Development | 9–15 June       |
 | WP6 | Model Evaluation  | 16–20 June      |
 | WP7 | Deployment        | 20–24 June      |
 
+: High-level work package phases and planned duration in weeks. {#tbl-workpackage-summary}
+
 ------------------------------------------------------------------------
 
 ## Communication & Oversight
 
-**Weekly Sync**: - Review completed tasks - Discuss blockers & dependencies - Update Kanban boar - Plan next week
+**Weekly Sync**: 
+- Review completed tasks 
+- Discuss blockers & dependencies 
+- Update Kanban boar 
+- Plan next week
 
 **Status Reporting**: Mira provides weekly status to lecturer
 

@@ -9,14 +9,16 @@
 | **Gerta Hajrullahi**    | Data Analyst   |
 | **Helga Deutschmann**   | Data Analyst   |
 
+: Project team composition and assigned roles. {#tbl-team}
+
 ## Tools & Infrastructure
 
 | Component              | Detail                                      |
 |------------------------|---------------------------------------------|
-| **Language**           | R (primary)                                 |
+| **Language**           | R                                           |
 | **Database**           | Supabase (PostgreSQL)                       |
 | **Version Control**    | Git + GitHub                                |
-| **Project Management** | GitHub Projects (Kanban Board)              |
+| **Project Management** | GitHub Projects + conceptboard              |
 | **Communication**      | Group messaging + sync meetings             |
 | **Documentation**      | Quarto                                      |
 | **Data Wrangling**     | dplyr, tidyr, readr                         |
@@ -25,11 +27,13 @@
 | **Spatial Analysis**   | sf, geosphere                               |
 | **Deployment**         | Shiny, shinydashboard                       |
 
+: Technology stack and development infrastructure components. {#tbl-stack}
+
 ## Project Kanban Board
 
 The following board tracks the real-time status of all project tasks.
 
-![](tasks.png)
+![Project task tracking board showing workflow stages from backlog to completion.](tasks.png){#fig-kanban-board}
 
 ## Risk Management
 
@@ -41,3 +45,5 @@ The following board tracks the real-time status of all project tasks.
 | Temporal drift in prices (market cycles) | Include sale year/month as features; optionally restrict to recent years |
 | Skewed Sale Price distribution | Log-transform target; evaluate models on both scales |
 | Shiny App complexity | Start with minimal viable app; add features iteratively |
+
+: Identified project risks and corresponding mitigation strategies. {#tbl-risks}

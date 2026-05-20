@@ -8,7 +8,7 @@
 
 <meta name="dcterms.date" content="2026-05-11">
 
-<title>2&nbsp; Data Source Description &amp; Data Dictionary – Predictive Modeling of Residential Property Prices in Pierce County</title>
+<title>Appendix A — Appendix: Complete Data Dictionary – Predictive Modeling of Residential Property Prices in Pierce County</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -34,8 +34,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./03-project-organization.html" rel="next">
-<link href="./01-project-objective.html" rel="prev">
+<link href="./references.html" rel="next">
+<link href="./06-data-subsetting-cleaning.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -73,10 +73,6 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
-<meta name="mermaid-theme" content="neutral">
-<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
-<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
-<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 </head>
@@ -90,7 +86,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./02-data-source-description.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Data Source Description &amp; Data Dictionary</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./07-data-dictionary-appendix.html">Appendices</a></li><li class="breadcrumb-item"><a href="./07-data-dictionary-appendix.html"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Appendix: Complete Data Dictionary</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -129,7 +125,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./02-data-source-description.html" class="sidebar-item-text sidebar-link active">
+  <a href="./02-data-source-description.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Data Source Description &amp; Data Dictionary</span></span></a>
   </div>
 </li>
@@ -168,7 +164,7 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./07-data-dictionary-appendix.html" class="sidebar-item-text sidebar-link">
+  <a href="./07-data-dictionary-appendix.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Appendix: Complete Data Dictionary</span></span></a>
   </div>
 </li>
@@ -190,18 +186,26 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">2.1</span> Overview</a></li>
-  <li><a href="#relational-diagram" id="toc-relational-diagram" class="nav-link" data-scroll-target="#relational-diagram"><span class="header-section-number">2.2</span> Relational Diagram</a></li>
-  <li><a href="#table-definitions" id="toc-table-definitions" class="nav-link" data-scroll-target="#table-definitions"><span class="header-section-number">2.3</span> Table Definitions</a></li>
+  <li><a href="#full-field-level-definitions" id="toc-full-field-level-definitions" class="nav-link active" data-scroll-target="#full-field-level-definitions"><span class="header-section-number">A.1</span> Full Field-Level Definitions</a></li>
+  <li><a href="#tax-account" id="toc-tax-account" class="nav-link" data-scroll-target="#tax-account"><span class="header-section-number">A.2</span> Tax Account</a></li>
+  <li><a href="#appraisal-account" id="toc-appraisal-account" class="nav-link" data-scroll-target="#appraisal-account"><span class="header-section-number">A.3</span> Appraisal Account</a></li>
+  <li><a href="#improvement" id="toc-improvement" class="nav-link" data-scroll-target="#improvement"><span class="header-section-number">A.4</span> Improvement</a></li>
+  <li><a href="#improvement-built-as" id="toc-improvement-built-as" class="nav-link" data-scroll-target="#improvement-built-as"><span class="header-section-number">A.5</span> Improvement Built-As</a></li>
+  <li><a href="#improvement-detail" id="toc-improvement-detail" class="nav-link" data-scroll-target="#improvement-detail"><span class="header-section-number">A.6</span> Improvement Detail</a></li>
+  <li><a href="#land-attribute" id="toc-land-attribute" class="nav-link" data-scroll-target="#land-attribute"><span class="header-section-number">A.7</span> Land Attribute</a></li>
+  <li><a href="#sale" id="toc-sale" class="nav-link" data-scroll-target="#sale"><span class="header-section-number">A.8</span> Sale</a></li>
+  <li><a href="#segmerge" id="toc-segmerge" class="nav-link" data-scroll-target="#segmerge"><span class="header-section-number">A.9</span> Seg/Merge</a></li>
+  <li><a href="#taxpayer" id="toc-taxpayer" class="nav-link" data-scroll-target="#taxpayer"><span class="header-section-number">A.10</span> Taxpayer</a></li>
+  <li><a href="#tax-description" id="toc-tax-description" class="nav-link" data-scroll-target="#tax-description"><span class="header-section-number">A.11</span> Tax Description</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./07-data-dictionary-appendix.html">Appendices</a></li><li class="breadcrumb-item"><a href="./07-data-dictionary-appendix.html"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Appendix: Complete Data Dictionary</span></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Data Source Description &amp; Data Dictionary</span></h1>
+<h1 class="title">Appendix A — Appendix: Complete Data Dictionary</h1>
 </div>
 
 
@@ -259,126 +263,21 @@ table th:nth-child(3) {
   width: 10% !important;
 }
 </style>
-<section id="overview" class="level2" data-number="2.1">
-<h2 data-number="2.1" class="anchored" data-anchor-id="overview"><span class="header-section-number">2.1</span> Overview</h2>
-<p>The Pierce County Assessor–Treasurer Data Mart is a comprehensive relational database containing detailed property assessment, taxation, appraisal, land-use, improvement, and sales transaction records maintained by Pierce County, Washington. The dataset integrates information from multiple administrative systems and organizes it into interconnected tables linked primarily through the parcel identification number, enabling consistent tracking of individual properties across taxation, valuation, ownership, and structural characteristics.</p>
-<p>The database includes information related to property accounts, land attributes, building improvements, tax assessments, exemption categories, sales history, and geographic identifiers. Together, these tables provide a multidimensional representation of residential and commercial properties and support both fiscal administration and real-estate market analysis.</p>
-<p>Here we provide a data dictionary with detailed descriptions of the available tables, attributes, data types, and relationships that form the foundation for exploratory data analysis, spatial analysis, and predictive modeling of residential property prices in Pierce County.</p>
+<section id="full-field-level-definitions" class="level2" data-number="A.1">
+<h2 data-number="A.1" class="anchored" data-anchor-id="full-field-level-definitions"><span class="header-section-number">A.1</span> Full Field-Level Definitions</h2>
+<p>This appendix contains the complete field-level data dictionary for all nine tables in the Pierce County Assessor-Treasurer Data Mart. These detailed descriptions should be consulted as reference during data integration, feature engineering, and validation.</p>
+<p><strong>Source</strong>: Pierce County Assessor-Treasurer Office https://online.co.pierce.wa.us/cfapps/atr/datamart/metadata/</p>
 <hr>
 </section>
-<section id="relational-diagram" class="level2" data-number="2.2">
-<h2 data-number="2.2" class="anchored" data-anchor-id="relational-diagram"><span class="header-section-number">2.2</span> Relational Diagram</h2>
-<p>The data mart uses a relational schema with the following structure:</p>
-<div id="fig-pierce-er" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-pierce-er-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell" data-layout-align="default">
-<div class="cell-output-display">
-<div>
-<p></p><figure class="figure"><p></p>
-<div>
-<pre class="mermaid mermaid-js">---
-config:
-  theme: 'neutral'
----
-erDiagram
-
-    TAX_ACCOUNT {
-        string parcel_number PK
-    }
-
-    APPRAISAL_ACCOUNT {
-        string parcel_number PK
-    }
-
-    IMPROVEMENT {
-        string parcel_number PK
-        string building_id PK
-    }
-
-    IMPROVEMENT_BUILTAS {
-        string parcel_number PK
-        string building_id PK
-        string built_as_number PK
-    }
-
-    IMPROVEMENT_DETAIL {
-        string parcel_number PK
-        string building_id PK
-        string detail_type PK
-    }
-
-    LAND_ATTRIBUTE {
-        string parcel_number PK
-        string attribute PK
-    }
-
-    TAX_DESCRIPTION {
-        string parcel_number PK
-        string line_number PK
-        string tax_description_line
-    }
-
-    TAXPAYER {
-        string parcel_number PK
-    }
-
-    SEG_MERGE {
-        string seg_merge_number PK
-        string parcel_number PK
-    }
-
-    SALE {
-        string etn PK
-        string parcel_number FK
-    }
-
-    %% Relationships
-
-    TAX_ACCOUNT ||--|| APPRAISAL_ACCOUNT : "parcel_number"
-
-    APPRAISAL_ACCOUNT ||--o{ IMPROVEMENT : "has buildings"
-
-    IMPROVEMENT ||--|{ IMPROVEMENT_BUILTAS : "built-as types"
-
-    IMPROVEMENT ||--o{ IMPROVEMENT_DETAIL : "details"
-
-    APPRAISAL_ACCOUNT ||--o{ LAND_ATTRIBUTE : "land attributes"
-
-    TAX_ACCOUNT ||--|{ TAX_DESCRIPTION : "tax descriptions"
-
-    TAX_ACCOUNT ||--|| TAXPAYER : "taxpayer"
-
-    TAX_ACCOUNT ||--o{ SEG_MERGE : "parcel history"
-
-    APPRAISAL_ACCOUNT ||--o{ SALE : "sales"
-</pre>
-</div>
-<p></p></figure><p></p>
-</div>
-</div>
-</div>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pierce-er-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2.1: Entity–relationship diagram of the Pierce County Assessor–Treasurer Data Mart showing the relationships among tax, appraisal, land, improvement, taxpayer, parcel history, and sales tables. The schema integrates information from both the Tax and Assessment System and the Appraisal System using the parcel number as the central linking key.
-</figcaption>
-</figure>
-</div>
-<hr>
-</section>
-<section id="table-definitions" class="level2" data-number="2.3">
-<h2 data-number="2.3" class="anchored" data-anchor-id="table-definitions"><span class="header-section-number">2.3</span> Table Definitions</h2>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">Tax Account</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Appraisal Account</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false" href="">Improvement</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-4" role="tab" aria-controls="tabset-1-4" aria-selected="false" href="">Improvement Built-As</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-5-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-5" role="tab" aria-controls="tabset-1-5" aria-selected="false" href="">Improvement Detail</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-6-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-6" role="tab" aria-controls="tabset-1-6" aria-selected="false" href="">Land Attribute</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-7-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-7" role="tab" aria-controls="tabset-1-7" aria-selected="false" href="">Sale</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-8-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-8" role="tab" aria-controls="tabset-1-8" aria-selected="false" href="">Seg/Merge</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-9-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-9" role="tab" aria-controls="tabset-1-9" aria-selected="false" href="">Taxpayer</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-10-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-10" role="tab" aria-controls="tabset-1-10" aria-selected="false" href="">Tax Description</a></li></ul>
-<div class="tab-content">
-<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<p>Tracks current tax and assessment account information for each property.</p>
-<div id="tbl-data-dictionary" class="quarto-float quarto-figure quarto-figure-center anchored">
+<section id="tax-account" class="level2" data-number="A.2">
+<h2 data-number="A.2" class="anchored" data-anchor-id="tax-account"><span class="header-section-number">A.2</span> Tax Account</h2>
+<p>Comprehensive tax and assessment account information for each property.</p>
+<div id="tbl-app-tax-account" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-data-dictionary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptions for all tables.
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-app-tax-account-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;A.1: Tax Account table - tax and assessment account information.
 </figcaption>
-<div aria-describedby="tbl-data-dictionary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div aria-describedby="tbl-app-tax-account-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
 <col style="width: 27%">
@@ -568,9 +467,17 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 </div>
 </figure>
 </div>
-</div>
-<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<hr>
+</section>
+<section id="appraisal-account" class="level2" data-number="A.3">
+<h2 data-number="A.3" class="anchored" data-anchor-id="appraisal-account"><span class="header-section-number">A.3</span> Appraisal Account</h2>
 <p>Detailed property appraisal data with characteristics and valuations.</p>
+<div id="tbl-app-appraisal-account" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-app-appraisal-account-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;A.2: Appraisal Account table - property appraisal data with characteristics.
+</figcaption>
+<div aria-describedby="tbl-app-appraisal-account-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
 <col style="width: 27%">
@@ -615,7 +522,7 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td>Land Economic Area</td>
 <td>Text</td>
 <td>30</td>
-<td>Also known as LEA, ties parcels to land valuation models. For Commercial: identifies land use model by PI year. For Residential: location code identifying appraisal area, sector and subsector. For Res Com Condos: relates directly to account land value</td>
+<td>Ties parcels to land valuation models; identifies land use model by PI year or appraisal area/sector/subsector</td>
 </tr>
 <tr class="even">
 <td>Buildings</td>
@@ -627,7 +534,7 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td>Group Account Number</td>
 <td>Text</td>
 <td>30</td>
-<td>Identifies and ties all parcels qualifying as one economic unit (contiguous assessment). Also identifies all parcels in a condominium project</td>
+<td>Identifies all parcels as one economic unit or condominium project</td>
 </tr>
 <tr class="even">
 <td>Land Gross Acres</td>
@@ -657,31 +564,31 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td>Land Gross Front Feet</td>
 <td>Decimal</td>
 <td>15.4</td>
-<td>For commercial parcels: front feet of the site facing the arterial. For residential: front feet of the lot facing the address side. For waterfront: effective waterfront length of individual lot or combination of lots under single ownership</td>
+<td>Front feet of site facing arterial (commercial), address side (residential), or waterfront length</td>
 </tr>
 <tr class="odd">
 <td>Land Width</td>
 <td>Integer</td>
 <td></td>
-<td>Residential Use Only. Equal to the Net Effective Waterfront Front Feet of the individual parcel, or using Group Account allocation method, then the sum of Net Effective Waterfront Front Feet for the group</td>
+<td>Net Effective Waterfront Front Feet of individual parcel (Residential Use Only)</td>
 </tr>
 <tr class="even">
 <td>Land Depth</td>
 <td>Integer</td>
 <td></td>
-<td>Residential Use Only. Equal to the Net Effective Depth of the individual waterfront parcel, or using Group Account allocation method, then the sum of Net Effective Depths for the waterfront group. Measured from the top of the bank (where bulkhead begins) to the inland property line</td>
+<td>Net Effective Depth from top of bank to inland property line (Residential Use Only)</td>
 </tr>
 <tr class="odd">
 <td>Submerged Area Square Feet</td>
 <td>Integer</td>
 <td></td>
-<td>Area of a parcel that is submerged. Not included in the Gross or Net Square Feet</td>
+<td>Area of a parcel that is submerged; not included in Gross or Net Square Feet</td>
 </tr>
 <tr class="even">
 <td>Appraisal Date</td>
 <td>Date</td>
 <td></td>
-<td>Indicates the most recent date an appraiser physically observed the property and/or made changes to the record</td>
+<td>Most recent date an appraiser physically observed the property and/or made changes</td>
 </tr>
 <tr class="odd">
 <td>Waterfront Type</td>
@@ -693,49 +600,60 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td>View Quality</td>
 <td>Text</td>
 <td>30</td>
-<td>Assigned to reflect the market appeal of the overall view available from the dwelling or property</td>
+<td>Market appeal rating of overall view available from dwelling or property</td>
 </tr>
 <tr class="odd">
 <td>Utility Electric</td>
 <td>Text</td>
 <td>30</td>
-<td>Identifies if power is installed, available or is not available on the property</td>
+<td>Identifies if power is installed, available, or not available on the property</td>
 </tr>
 <tr class="even">
 <td>Utility Sewer</td>
 <td>Text</td>
 <td>30</td>
-<td>Identifies if sewer/septic is installed, available or not available if the property does not support an on site sewage disposal system (no perc)</td>
+<td>Identifies if sewer/septic is installed, available, or not available</td>
 </tr>
 <tr class="odd">
 <td>Utility Water</td>
 <td>Text</td>
 <td>30</td>
-<td>Identifies if water is installed, available or is not available</td>
+<td>Identifies if water is installed, available, or not available</td>
 </tr>
 <tr class="even">
 <td>Street Type</td>
 <td>Text</td>
 <td>30</td>
-<td>Identifies if the access street is paved or unpaved. If blank, the parcel could be a reference parcel or a mobile home assessed as personal property</td>
+<td>Identifies if access street is paved or unpaved</td>
 </tr>
 <tr class="odd">
 <td>Latitude</td>
 <td>Decimal</td>
 <td>10.5</td>
-<td>The latitude of the parcel centroid. Some parcels may not have latitude/longitude coordinates (building-only, mineral rights and reference parcels, as well as others not represented in the GIS system)</td>
+<td>Latitude of parcel centroid (some parcels may not have coordinates)</td>
 </tr>
 <tr class="even">
 <td>Longitude</td>
 <td>Decimal</td>
 <td>10.5</td>
-<td>The longitude of the parcel centroid</td>
+<td>Longitude of parcel centroid</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
+</figure>
+</div>
+<hr>
+</section>
+<section id="improvement" class="level2" data-number="A.4">
+<h2 data-number="A.4" class="anchored" data-anchor-id="improvement"><span class="header-section-number">A.4</span> Improvement</h2>
 <p>Detailed building improvement data linked to appraisal accounts.</p>
+<div id="tbl-app-improvement" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-app-improvement-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;A.3: Improvement table - building improvement data linked to appraisal accounts.
+</figcaption>
+<div aria-describedby="tbl-app-improvement-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
 <col style="width: 27%">
@@ -762,43 +680,54 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td><strong>Building ID</strong></td>
 <td>Text</td>
 <td>5</td>
-<td>Unique identifier for each improvement record on a parcel. Not all improvements are on a separate record and may not always be in sequence</td>
+<td>Unique identifier for each improvement record on a parcel</td>
 </tr>
 <tr class="odd">
 <td>Property Type</td>
 <td>Text</td>
 <td>15</td>
-<td>Links buildings to proper cost and depreciation tables. Options include: Commercial, Duplex, Industrial, Mobile Home, Multiple Unit, Out Building, Residential, Townhouse, Triplex</td>
+<td>Links buildings to cost and depreciation tables: Commercial, Duplex, Industrial, Mobile Home, Multiple Unit, Out Building, Residential, Townhouse, Triplex</td>
 </tr>
 <tr class="even">
 <td>Neighborhood</td>
 <td>Text</td>
 <td>10</td>
-<td>Represents boundaries for land subject to similar social, environmental, economic and governmental forces. Boundaries are typically located within a geographic area defined by natural, man-made, or political boundaries. Residential Neighborhoods and LEA’s are the same. Commercial Neighborhoods define the location of the property while Commercial LEA’s define the use of the property</td>
+<td>Boundaries for land subject to similar social, environmental, economic, and governmental forces</td>
 </tr>
 <tr class="odd">
 <td>Neighborhood Extension</td>
 <td>Text</td>
 <td>10</td>
-<td>Based on property type: Commercial - represents the primary occupancy or use of the property. Residential - not used, therefore they are set to zero. Mobile/Manufactured Homes - based upon the underlying land ownership. All Mobile/Manufactured homes located on land owned by the Mobile/Manufactured home owner are coded with the Neighborhood Extension 0. Exception - Mobile/Manufactured homes located within a park and owned by the park owner, will carry the same Neighborhood Extension as the park. Mobile Homes in a park have a neighborhood extension of: PL 1 (P = Park, L = Leased); P2, P3, P4, etc</td>
+<td>Based on property type: primary occupancy (Commercial), zero (Residential), or park designation (Mobile Homes)</td>
 </tr>
 <tr class="even">
 <td>Square Feet</td>
 <td>Integer</td>
 <td></td>
-<td>Sum of the square feet for the ‘built as’ types identified for the building. Each building may have one or more ‘built as’ type (see IMPROVEMENT BUILTAS table), though usually only one. The exceptions are ‘built as’ # 124 and 126 (Add on only Res &amp; Com) or any type of Storage Tank, where it represents the count of those ‘built as’ as opposed to the sum of their square feet</td>
+<td>Sum of square feet for ‘built as’ types (may represent count for Storage Tank types)</td>
 </tr>
 <tr class="odd">
 <td>Net Square Feet</td>
 <td>Integer</td>
 <td></td>
-<td>Used primarily to calculate income on commercial properties, where it typically represents the sum of the net rentable area(s). This number may be representative of one or more buildings. If part of a Group Account, these buildings may be located on more than one parcel. For Residential it is equal to the built as square feet or zero (0)</td>
+<td>Sum of net rentable area(s) for commercial; equal to built-as square feet or zero for residential</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div id="tabset-1-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-4-tab">
+</figure>
+</div>
+<hr>
+</section>
+<section id="improvement-built-as" class="level2" data-number="A.5">
+<h2 data-number="A.5" class="anchored" data-anchor-id="improvement-built-as"><span class="header-section-number">A.5</span> Improvement Built-As</h2>
 <p>Detailed specifications for building construction styles and features.</p>
+<div id="tbl-app-builtas" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-app-builtas-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;A.4: Improvement Built-As table - building construction styles and features.
+</figcaption>
+<div aria-describedby="tbl-app-builtas-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
 <col style="width: 27%">
@@ -831,25 +760,25 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td><strong>Built-As Number</strong></td>
 <td>Integer</td>
 <td></td>
-<td>Unique number identifying each Built-As on an improvement. Sequential number assigned by the system starting with the largest Built-As being number 1</td>
+<td>Sequential number starting with largest Built-As being number 1</td>
 </tr>
 <tr class="even">
 <td>Built-As ID</td>
 <td>Integer</td>
 <td></td>
-<td>Number associated with the description of the purpose or style of construction of the building</td>
+<td>Number associated with the description of the purpose or style of construction</td>
 </tr>
 <tr class="odd">
 <td>Built-As Description</td>
 <td>Text</td>
 <td>255</td>
-<td>Original purpose for and/or style of construction of the building. The Built As is associated with the Marshall and Swift cost and depreciation tables</td>
+<td>Original purpose/style of construction; associated with Marshall and Swift cost and depreciation tables</td>
 </tr>
 <tr class="even">
 <td>Built-As Square Feet</td>
 <td>Integer</td>
 <td></td>
-<td>Sum of the square feet for the ‘built as’ types identified for the building. Each building may have one or more ‘built as’ type, though usually only one. The exceptions are ‘built as’ # 124 and 126 (Add on only Res &amp; Com) or any type of Storage Tank</td>
+<td>Sum of square feet for the ‘built as’ types identified for the building</td>
 </tr>
 <tr class="odd">
 <td>HVAC</td>
@@ -861,37 +790,37 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td>HVAC Description</td>
 <td>Text</td>
 <td>30</td>
-<td>Text description associated with the predominant heating source for the built-as structure (Forced Air, Electric Baseboard, Steam, etc)</td>
+<td>Text description of heating source (Forced Air, Electric Baseboard, Steam, etc)</td>
 </tr>
 <tr class="odd">
 <td>Exterior</td>
 <td>Text</td>
 <td>25</td>
-<td>Predominant type of construction materials used for the exterior siding on Residential Buildings</td>
+<td>Predominant type of construction materials used for exterior siding (Residential Buildings)</td>
 </tr>
 <tr class="even">
 <td>Interior</td>
 <td>Text</td>
 <td>15</td>
-<td>Predominant type of materials used on the interior walls (Sheetrock or Paneling). Collected for Residential and Mobile Homes only</td>
+<td>Predominant type of interior wall materials (Sheetrock or Paneling; Residential and Mobile Homes only)</td>
 </tr>
 <tr class="odd">
 <td>Stories</td>
 <td>Decimal</td>
 <td>13.2</td>
-<td>Number of floors/building levels above grade. Stories do not include attic or basement areas</td>
+<td>Number of floors/building levels above grade (excluding attic or basement)</td>
 </tr>
 <tr class="even">
 <td>Story Height</td>
 <td>Integer</td>
 <td></td>
-<td>Based on property type: Commercial - determined by taking an average of the overall ceiling heights of all floors for the Blt As. Residential - determined by the majority of the story height for the first floor (main). Story height is automatically rounded by the system (The system rounds up for .5 and higher and rounds down for anything below .5)</td>
+<td>Average ceiling heights (Commercial) or majority story height for first floor (Residential)</td>
 </tr>
 <tr class="odd">
 <td>Sprinkler Square Feet</td>
 <td>Integer</td>
 <td></td>
-<td>Total square footage covered by a sprinkler system. Sprinkler SF does not always equal the built as square footage</td>
+<td>Total square footage covered by a sprinkler system</td>
 </tr>
 <tr class="even">
 <td>Roof Cover</td>
@@ -903,55 +832,55 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td>Bedrooms</td>
 <td>Integer</td>
 <td></td>
-<td>Number of bedrooms listed for a residential property (Collected for informational purposes only)</td>
+<td>Number of bedrooms listed for residential property</td>
 </tr>
 <tr class="even">
 <td>Bathrooms</td>
 <td>Decimal</td>
 <td>7.2</td>
-<td>Number of baths listed for a residential property. The number is listed as a decimal, i.e.&nbsp;2.75 = two full and one three-quarter baths. A tub/sink/toilet combination (plus any additional fixtures) is considered 1.0 bath. A shower/sink/toilet combination (plus any additional fixtures) is 0.75 bath. A sink/toilet combination is .5 bath</td>
+<td>Number of baths listed as decimal (e.g., 2.75 = two full + one three-quarter)</td>
 </tr>
 <tr class="odd">
 <td>Units</td>
 <td>Integer</td>
 <td></td>
-<td>Number of separate units within the building. For Commercial properties, Units may be combined to generate an income approach for the economic unit on building one</td>
+<td>Number of separate units within the building</td>
 </tr>
 <tr class="even">
 <td>Class Code</td>
 <td>Text</td>
 <td>20</td>
-<td>Code for one of five basic cost groups by type of framing (supporting beams and columns), walls, floors and roof structures, and fireproofing. Typically Commercial Buildings</td>
+<td>Code for one of five basic cost groups by type of framing, walls, floors, roof, and fireproofing</td>
 </tr>
 <tr class="odd">
 <td>Class Description</td>
 <td>Text</td>
 <td>50</td>
-<td>Text description for one of five basic cost groups by type of framing (supporting beams and columns), walls, floors and roof structures, and fireproofing. Typically Commercial Buildings</td>
+<td>Text description for cost group classification</td>
 </tr>
 <tr class="even">
 <td>Year Built</td>
 <td>Integer</td>
 <td></td>
-<td>Year the building was built, as stated by the building permit or a historical record</td>
+<td>Year the building was built per building permit or historical record</td>
 </tr>
 <tr class="odd">
 <td>Year Remodeled</td>
 <td>Integer</td>
 <td></td>
-<td>Year in which improvements are made to the existing structure that extend the life of the structure</td>
+<td>Year improvements were made extending the life of the structure</td>
 </tr>
 <tr class="even">
 <td>Adjusted Year Built</td>
 <td>Integer</td>
 <td></td>
-<td>If greater than the Year Built, it indicates improvements have been made to the original property over and above normal maintenance which would effectively reduce the age of the building</td>
+<td>Greater than Year Built if improvements reduce the effective age of the building</td>
 </tr>
 <tr class="odd">
 <td>Physical Age</td>
 <td>Integer</td>
 <td></td>
-<td>Tax year less the adjusted year built equals the physical age of the built as</td>
+<td>Tax year less adjusted year built</td>
 </tr>
 <tr class="even">
 <td>Built-As Length</td>
@@ -974,8 +903,19 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 </tbody>
 </table>
 </div>
-<div id="tabset-1-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-5-tab">
+</figure>
+</div>
+<hr>
+</section>
+<section id="improvement-detail" class="level2" data-number="A.6">
+<h2 data-number="A.6" class="anchored" data-anchor-id="improvement-detail"><span class="header-section-number">A.6</span> Improvement Detail</h2>
 <p>Additional specific improvement characteristics and features.</p>
+<div id="tbl-app-detail" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-app-detail-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;A.5: Improvement Detail table - building characteristics and features.
+</figcaption>
+<div aria-describedby="tbl-app-detail-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
 <col style="width: 27%">
@@ -1008,25 +948,36 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td><strong>Detail Type</strong></td>
 <td>Text</td>
 <td>10</td>
-<td>Category that specific improvement characteristics are coded under. Options include: Add On, Appliance, Balcony, Basement, Carport, Elevator, Fixture, Garage, Mezzanine, Porch, Rough In, Storage. The Add On type allows the appraiser to assign a quality different from the main structure for the characteristics within this field</td>
+<td>Category: Add On, Appliance, Balcony, Basement, Carport, Elevator, Fixture, Garage, Mezzanine, Porch, Rough In, Storage</td>
 </tr>
 <tr class="even">
 <td>Detail Description</td>
 <td>Text</td>
 <td>50</td>
-<td>Brief explanation of the improvement characteristic (Fireplace, PreFab/Stoves, Laundry Facility, Type of Porch (Cvrd Wd Deck), Type of Bath (Bath 2 Fixture))</td>
+<td>Brief explanation of the improvement characteristic (Fireplace, Laundry Facility, Type of Porch, Type of Bath, etc)</td>
 </tr>
 <tr class="odd">
 <td>Units</td>
 <td>Decimal</td>
 <td>15.4</td>
-<td>Component parts of the building characteristics. The units indicate either the square footage of the structure or a count of each component. Examples: Appliance, Allowance, 1 (count) or Porch, Open Slab, 337 (sf), or Fixture – Bath 3 Fixtures – 2 (count)</td>
+<td>Component parts indicating either square footage of the structure or count of each component</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div id="tabset-1-6" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-6-tab">
+</figure>
+</div>
+<hr>
+</section>
+<section id="land-attribute" class="level2" data-number="A.7">
+<h2 data-number="A.7" class="anchored" data-anchor-id="land-attribute"><span class="header-section-number">A.7</span> Land Attribute</h2>
 <p>Land-specific attributes and characteristics affecting valuation.</p>
+<div id="tbl-app-land" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-app-land-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;A.6: Land Attribute table - land-specific characteristics affecting valuation.
+</figcaption>
+<div aria-describedby="tbl-app-land-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
 <col style="width: 27%">
@@ -1053,19 +1004,30 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td><strong>Attribute</strong></td>
 <td>Text</td>
 <td>30</td>
-<td>Describes the category that a land attribute is assigned to: Residential (R), Commercial (C) or Res Com Condo (X) and the subcategory, such as Amenities, Economic, Functional, Neighborhood, Utilities, etc</td>
+<td>Category: Residential (R), Commercial (C), or Res Com Condo (X) with subcategory</td>
 </tr>
 <tr class="odd">
 <td>Attribute Description</td>
 <td>Text</td>
 <td>30</td>
-<td>Further defines the land attribute. Land attributes may or may not contribute to value (Examples of attributes: View Avg, NBHD Gated, WF Bank Low, water available etc)</td>
+<td>Further defines the land attribute (View Avg, NBHD Gated, WF Bank Low, water available, etc)</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div id="tabset-1-7" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-7-tab">
+</figure>
+</div>
+<hr>
+</section>
+<section id="sale" class="level2" data-number="A.8">
+<h2 data-number="A.8" class="anchored" data-anchor-id="sale"><span class="header-section-number">A.8</span> Sale</h2>
 <p>Historical property sales transaction data.</p>
+<div id="tbl-app-sale" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-app-sale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;A.7: Sale table - historical property sales transaction data.
+</figcaption>
+<div aria-describedby="tbl-app-sale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
 <col style="width: 27%">
@@ -1086,7 +1048,7 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td><strong>ETN</strong></td>
 <td>Text</td>
 <td>11</td>
-<td>Recording number issued by the Auditor’s Office when a property transaction is recorded. Excise tax must be paid before the document of conveyance can be recorded or the mobile home title transferred</td>
+<td>Recording number issued by the Auditor’s Office when property transaction is recorded</td>
 </tr>
 <tr class="even">
 <td>Parcel Count</td>
@@ -1116,55 +1078,66 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td>Deed Type</td>
 <td>Text</td>
 <td>40</td>
-<td>Type of document which conveyed an interest in or legal title to the property</td>
+<td>Type of document conveying interest in or legal title to the property</td>
 </tr>
 <tr class="odd">
 <td>Grantor</td>
 <td>Text</td>
 <td>80</td>
-<td>Individual(s) or company conveying ownership or interest in the property described on the deed</td>
+<td>Individual(s) or company conveying ownership or interest in the property</td>
 </tr>
 <tr class="even">
 <td>Grantee</td>
 <td>Text</td>
 <td>80</td>
-<td>Individual(s) or company purchasing ownership or interest in the property described on the deed</td>
+<td>Individual(s) or company purchasing ownership or interest in the property</td>
 </tr>
 <tr class="odd">
 <td>Valid/Invalid</td>
 <td>Text</td>
 <td>7</td>
-<td>Used to code the validity of a sale for appraisal purposes. A sale in the open market between two unrelated parties, each of whom is reasonably knowledgeable of market conditions and under no undue pressure to buy or sell would be considered a valid transaction. However, a sale can be a valid transaction but if the conditions of the sale fit one of the 27 deletion categories identified in the State Ratio RCW, the sale would be coded invalid for Assessor purposes (sale between relatives, estate sale, percent interest, etc)</td>
+<td>Code for validity of a sale for appraisal purposes per State Ratio RCW</td>
 </tr>
 <tr class="even">
 <td>Confirmed/Unconfirmed</td>
 <td>Text</td>
 <td>11</td>
-<td>Identifies if the property characteristics at the time of the sale and/or circumstances of the sale were verified by Assessor-Treasurer staff</td>
+<td>Whether property characteristics and sale circumstances were verified by Assessor-Treasurer staff</td>
 </tr>
 <tr class="odd">
 <td>Exclude Reason</td>
 <td>Text</td>
 <td>30</td>
-<td>State required description of why a sales transaction must be excluded from sales studies. Examples include non-arms length sales transactions such as “Family different last names”, sale transactions with undue pressure such as “Estate sale” and “Forced Sale Trans in Lieu Fcl”, and sales where the property characteristics have changed since the sale, “Improved after sale”</td>
+<td>State required description of why a sales transaction must be excluded from sales studies</td>
 </tr>
 <tr class="even">
 <td>Improved/Vacant</td>
 <td>Text</td>
 <td>8</td>
-<td>If any parcel in the sale has any building value it is coded as improved. Vacant is vacant land with no building value</td>
+<td>Coded as improved if any parcel has building value; vacant for land with no building value</td>
 </tr>
 <tr class="odd">
 <td>Appraisal Account Type</td>
 <td>Text</td>
 <td>15</td>
-<td>How a parcel is classified (Com Condo, Com Leasehold, Com Multi Unit, Commercial, Industrial, Mobile Home, Reference, Res Com Condo, Res Leasehold, Residential, Trended Invest)</td>
+<td>Parcel classification (Com Condo, Com Leasehold, Commercial, Industrial, Residential, etc)</td>
 </tr>
 </tbody>
 </table>
 </div>
-<div id="tabset-1-8" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-8-tab">
+</figure>
+</div>
+<hr>
+</section>
+<section id="segmerge" class="level2" data-number="A.9">
+<h2 data-number="A.9" class="anchored" data-anchor-id="segmerge"><span class="header-section-number">A.9</span> Seg/Merge</h2>
 <p>Property segregation and merger transaction history.</p>
+<div id="tbl-app-segmerge" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-app-segmerge-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;A.8: Seg/Merge table - property segregation and merger transaction history.
+</figcaption>
+<div aria-describedby="tbl-app-segmerge-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
 <col style="width: 27%">
@@ -1191,7 +1164,7 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td>Parent/Child Indicator</td>
 <td>Text</td>
 <td>1</td>
-<td>P - Parent Parcel - inactivated parcel being replaced by the new child parcel. There may be zero, one or more parent parcels involved with each segregation. In some cases, a parent parcel may remain active after the segregation. C - Child Parcel - a new parcel created as a result of the seg. There are one or more child(ren) parcels involved with each segregation</td>
+<td>P = Parent Parcel (inactivated); C = Child Parcel (newly created from segregation)</td>
 </tr>
 <tr class="odd">
 <td><strong>Parcel Number</strong></td>
@@ -1203,7 +1176,7 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 <td>Continued Indicator</td>
 <td>Text</td>
 <td>1</td>
-<td>Y - the parcel is still active after the segregation; N - the parcel is no longer active after the segregation</td>
+<td>Y = parcel still active after segregation; N = parcel no longer active</td>
 </tr>
 <tr class="odd">
 <td>Completed Date</td>
@@ -1220,8 +1193,19 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 </tbody>
 </table>
 </div>
-<div id="tabset-1-9" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-9-tab">
+</figure>
+</div>
+<hr>
+</section>
+<section id="taxpayer" class="level2" data-number="A.10">
+<h2 data-number="A.10" class="anchored" data-anchor-id="taxpayer"><span class="header-section-number">A.10</span> Taxpayer</h2>
 <p>Property owner information (subject to privacy restrictions).</p>
+<div id="tbl-app-taxpayer" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-app-taxpayer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;A.9: Taxpayer table - property owner information (privacy restricted).
+</figcaption>
+<div aria-describedby="tbl-app-taxpayer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
 <col style="width: 27%">
@@ -1247,8 +1231,19 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 </tbody>
 </table>
 </div>
-<div id="tabset-1-10" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-10-tab">
+</figure>
+</div>
+<hr>
+</section>
+<section id="tax-description" class="level2" data-number="A.11">
+<h2 data-number="A.11" class="anchored" data-anchor-id="tax-description"><span class="header-section-number">A.11</span> Tax Description</h2>
 <p>Detailed tax coding and descriptions for parcels.</p>
+<div id="tbl-app-tax-description" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-app-tax-description-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;A.10: Tax Description table - tax coding and descriptions for parcels.
+</figcaption>
+<div aria-describedby="tbl-app-tax-description-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
 <col style="width: 27%">
@@ -1286,7 +1281,7 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
 </tbody>
 </table>
 </div>
-</div>
+</figure>
 </div>
 
 
@@ -1695,13 +1690,13 @@ Table&nbsp;2.1: Pierce County data dictionary - field definitions and descriptio
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./01-project-objective.html" class="pagination-link" aria-label="Project Objective">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Project Objective</span></span>
+      <a href="./06-data-subsetting-cleaning.html" class="pagination-link" aria-label="Variable selection and Data Cleaning">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Variable selection and Data Cleaning</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./03-project-organization.html" class="pagination-link" aria-label="Project Organization &amp; Task Allocation">
-        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Project Organization &amp; Task Allocation</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./references.html" class="pagination-link" aria-label="References">
+        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

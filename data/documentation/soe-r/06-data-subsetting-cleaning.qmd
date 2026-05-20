@@ -36,8 +36,10 @@ dbIsValid(con)
 ## Subset the Data
 
 After mapping the data out and looking at the variable description, we limit the
-potentially used features. These features should be ones, that a homeowner likely 
+potentially used features. These features should be ones, that a homeowner likely
 knows about their house.
+
+### Land and Location Attributes
 
 Restrict the features to:
 - land square feet
@@ -47,7 +49,11 @@ Restrict the features to:
 - water availability
 - street type
 - coordinates (longitude, latitude)
+
 ```{r}
+#| label: tbl-appraisal-features
+#| tbl-cap: "Selected appraisal account features: land and location attributes"
+
 df_1 <- dbGetQuery(con, '
   SELECT parcel_no, appraisal_account_type, buildings, land_net_squarefeet, waterfront_type, view_quality,
   utility_electric, utility_water, street_type, latitude, longitude
@@ -56,6 +62,7 @@ df_1 <- dbGetQuery(con, '
 ')
 ```
 
+### Property Characteristics
 
 We get property specifics:
 - condition
@@ -65,29 +72,44 @@ We get property specifics:
 - units
 - year built
 - year remodeled
+
 ```{r}
+#| label: tbl-improvement-features
+#| tbl-cap: "Selected improvement features: building characteristics and construction details"
+
 df_2 <- dbGetQuery(con, "
   SELECT i.parcel_no, i.building_id, i.property_type, i.condition,
          b.stories, b.bedrooms, b.bathrooms, b.units, b.year_built, b.year_remodeled
   FROM \"IMPROVEMENT\" i
-  LEFT JOIN \"IMPROVEMENT_BUILT_AS\" b 
-    ON i.parcel_no = b.parcel_no 
+  LEFT JOIN \"IMPROVEMENT_BUILT_AS\" b
+    ON i.parcel_no = b.parcel_no
     AND i.building_id = b.building_id
   WHERE i.property_type = 'Residential'
 ")
 ```
 
-We get the current property value.
+### Property Valuation
+
+We get the current property value:
+
 ```{r}
+#| label: tbl-valuation-feature
+#| tbl-cap: "Market value from tax account table (target variable)"
+
 df_3 <- dbGetQuery(con, '
   SELECT parcel_no, total_market_value_current_year
   FROM "TAX_ACCOUNT"
 ')
 ```
 
-we join the data together.
+### Data Integration
+
+We join the data together from all three source subsets:
 
 ```{r}
+#| label: tbl-integrated-dataset
+#| tbl-cap: "Integrated dataset combining land, improvement, and valuation features"
+
 df_all <- df_1 %>%
   left_join(df_2, by = "parcel_no") %>%
   left_join(df_3, by = "parcel_no")
@@ -112,7 +134,11 @@ df_all <- df_all %>%
 ```
 
 Then we look at the missing values and treat them one-by-one.
+
 ```{r}
+#| label: tbl-missing-values-initial
+#| tbl-cap: "Initial assessment of missing values across all features"
+
 colSums(is.na(df_all))
 ```
 
@@ -189,10 +215,17 @@ df_all <- df_all %>%
 ```
 
 We have now the complete dataset with the preselected features.
+
 ```{r}
+#| label: tbl-missing-values-final
+#| tbl-cap: "Final verification of missing values after cleaning (all zeros indicate complete data)"
+
 colSums(is.na(df_all))
 ```
-A few post checks we should still aplly.
+
+### Data Quality Validation
+
+A few post checks we should still apply.
 
 ```{r}
 unique(df_all$utility_electric)
@@ -208,7 +241,11 @@ unique(df_all$street_type)
 ```
 
 Check coordinate range.
+
 ```{r}
+#| label: tbl-coordinate-range
+#| tbl-cap: "Geographic bounding box of properties in the dataset"
+
 df_all %>%
   summarise(
     min_lat = min(latitude, na.rm = TRUE),
@@ -251,7 +288,11 @@ df_all <- df_all %>%
 ```
 
 The year remodeled being 0 means no remodeling has been recorded on the house.
+
 ```{r}
+#| label: tbl-year-range
+#| tbl-cap: "Range of construction and renovation years (0 = no remodeling recorded)"
+
 df_all %>%
   summarise(
     min_built     = min(year_built, na.rm = TRUE),
@@ -269,7 +310,11 @@ impossible_dates <- df_all %>%
 nrow(impossible_dates)
 ```
 Check the valuation range.
+
 ```{r}
+#| label: tbl-valuation-range
+#| tbl-cap: "Property valuation range in current year market values (in USD)"
+
 df_all %>%
   summarise(
     min_value     = min(total_market_value_current_year, na.rm = TRUE),

@@ -1,0 +1,276 @@
+# Appendix: Complete Data Dictionary {.appendix}
+
+```{=html}
+<style>
+table {
+  width: 100% !important;
+}
+table colgroup col:nth-child(1) {
+  width: 25% !important;
+}
+table colgroup col:nth-child(2) {
+  width: 10% !important;
+}
+table colgroup col:nth-child(3) {
+  width: 10% !important;
+}
+table colgroup col:nth-child(4) {
+  width: 45% !important;
+}
+table td:nth-child(4),
+table th:nth-child(4) {
+  width: 45% !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+table td:nth-child(1),
+table th:nth-child(1) {
+  width: 25% !important;
+}
+table td:nth-child(2),
+table th:nth-child(2) {
+  width: 10% !important;
+}
+table td:nth-child(3),
+table th:nth-child(3) {
+  width: 10% !important;
+}
+</style>
+```
+
+## Full Field-Level Definitions
+
+This appendix contains the complete field-level data dictionary for all nine
+tables in the Pierce County Assessor-Treasurer Data Mart. These detailed
+descriptions should be consulted as reference during data integration, feature
+engineering, and validation.
+
+**Source**: Pierce County Assessor-Treasurer Office
+https://online.co.pierce.wa.us/cfapps/atr/datamart/metadata/
+
+---
+
+## Tax Account
+
+Comprehensive tax and assessment account information for each property.
+
+| Field Name | Type | Size | Description |
+|-----------------------|---------|---------|-------------------------------------------|
+| **Parcel Number** | Text | 10 | Unique 10 digit number assigned to each property |
+| Account Type | Text | 5 | REAL - Real Property; STRUC - Structures; PERS - Personal Property; MOBIL - Mobile Home |
+| Property Type | Text | 5 | ASIMP - Administrative Seg Improvement; LNDIM - Land and Improvements; MBLHM - Mobile Home; RRLEA - Railroad Leases; SAPP - State Assessed Personal Property; SARP - State Assessed Real Property; STRUC - Leased Land and/or Structure |
+| Site Address | Text | 50 | Physical location address of the property. May be different than mailing address. "XXX" indicates estimated address using GIS |
+| Use Code | Text | 5 | 4-digit numeric code for present highest and best use of the property |
+| Use Description | Text | 50 | Text description of the numeric use code |
+| Tax Year - Prior | Integer | | Tax year for which all prior year values apply |
+| Tax Code Area - Prior Year | Text | 10 | Code describing geographical area and specific combination of taxing districts. Subject to annual change |
+| Exemption Type - Prior Year | Text | 40 | Type of exemption, if any, applied to the property |
+| Current Use Code - Prior Year | Text | 5 | AGRI - Agricultural; CT - Current Use Timber; FORDG - Forest Designated; OPBRS - Open Space PBRS; OPEN - Open Space |
+| Land Value - Prior Year | Integer | | Total fair market value of land, as determined by appraisal process |
+| Improvement Value - Prior Year | Integer | | Total fair market value of improvements (buildings, structures), as determined by appraisal process |
+| Total Market Value - Prior Year | Integer | | Total fair market value of land and improvements, as determined by appraisal process |
+| Taxable Value - Prior Year | Integer | | Market value of the property, minus any exemptions granted |
+| Tax Year - Current | Integer | | Tax year for which all current year values apply |
+| Tax Code Area - Current Year | Text | 10 | Code describing geographical area and specific combination of taxing districts |
+| Exemption Type - Current Year | Text | 40 | Type of exemption, if any, applied to the property |
+| Current Use Code - Current Year | Text | 5 | AGRI - Agricultural; CT - Current Use Timber; FORDG - Forest Designated; OPBRS - Open Space PBRS; OPEN - Open Space |
+| Land Value - Current Year | Integer | | Total fair market value of land for the parcel |
+| Improvement Value - Current Year | Integer | | Total fair market value of improvements (buildings, structures) for the parcel |
+| Total Market Value - Current Year | Integer | | Total fair market value of land and improvements for the parcel |
+| Taxable Value - Current Year | Integer | | Market value of the property, minus any exemptions granted |
+| Range | Text | 10 | Range |
+| Township | Text | 10 | Township |
+| Section | Text | 20 | Section |
+| Quarter Section | Text | 20 | Quarter |
+| Subdivision Name | Text | 50 | Subdivision name |
+| Located On Parcel | Text | 10 | Real property parcel number on which this improvement-only parcel is located (Personal Property, Mobile Homes, Leasehold Structures) |
+
+: Tax Account table - tax and assessment account information. {#tbl-app-tax-account}
+
+---
+
+## Appraisal Account
+
+Detailed property appraisal data with characteristics and valuations.
+
+| Field Name | Type | Size | Description |
+|-----------------------|---------|---------|-------------------------------------------|
+| **Parcel Number** | Text | 10 | Unique 10 digit number assigned to each property |
+| Appraisal Account Type | Text | 15 | Com Condo, Com Leasehold, Com Multi Unit, Commercial, Industrial, Mobile Home, Reference, Res Com Condo, Res Leasehold, Residential, Trended Invest |
+| Business Name | Text | 50 | Main business name on the parcel, or space number for mobile/manufactured home in a park |
+| Value Area ID | Text | 10 | Identifies the Physical Inspection cycle for each parcel (PI1 to PI6) |
+| Land Economic Area | Text | 30 | Ties parcels to land valuation models; identifies land use model by PI year or appraisal area/sector/subsector |
+| Buildings | Integer | | Represents the number of improvements (buildings) located on a parcel |
+| Group Account Number | Text | 30 | Identifies all parcels as one economic unit or condominium project |
+| Land Gross Acres | Decimal | 15.4 | Total acres that make up the economic unit which could include multiple parcels |
+| Land Net Acres | Decimal | 15.4 | Size of the individual parcel in acres |
+| Land Gross Square Feet | Decimal | 15.4 | Total square feet that make up the economic unit which could include multiple parcels |
+| Land Net Square Feet | Decimal | 15.4 | Size of the individual parcel in square feet |
+| Land Gross Front Feet | Decimal | 15.4 | Front feet of site facing arterial (commercial), address side (residential), or waterfront length |
+| Land Width | Integer | | Net Effective Waterfront Front Feet of individual parcel (Residential Use Only) |
+| Land Depth | Integer | | Net Effective Depth from top of bank to inland property line (Residential Use Only) |
+| Submerged Area Square Feet | Integer | | Area of a parcel that is submerged; not included in Gross or Net Square Feet |
+| Appraisal Date | Date | | Most recent date an appraiser physically observed the property and/or made changes |
+| Waterfront Type | Text | 30 | Describes the type of waterfront the property adjoins or has legal access to |
+| View Quality | Text | 30 | Market appeal rating of overall view available from dwelling or property |
+| Utility Electric | Text | 30 | Identifies if power is installed, available, or not available on the property |
+| Utility Sewer | Text | 30 | Identifies if sewer/septic is installed, available, or not available |
+| Utility Water | Text | 30 | Identifies if water is installed, available, or not available |
+| Street Type | Text | 30 | Identifies if access street is paved or unpaved |
+| Latitude | Decimal | 10.5 | Latitude of parcel centroid (some parcels may not have coordinates) |
+| Longitude | Decimal | 10.5 | Longitude of parcel centroid |
+
+: Appraisal Account table - property appraisal data with characteristics. {#tbl-app-appraisal-account}
+
+---
+
+## Improvement
+
+Detailed building improvement data linked to appraisal accounts.
+
+| Field Name | Type | Size | Description |
+|-----------------------|---------|---------|-------------------------------------------|
+| **Parcel Number** | Text | 10 | Unique 10 digit number assigned to each property |
+| **Building ID** | Text | 5 | Unique identifier for each improvement record on a parcel |
+| Property Type | Text | 15 | Links buildings to cost and depreciation tables: Commercial, Duplex, Industrial, Mobile Home, Multiple Unit, Out Building, Residential, Townhouse, Triplex |
+| Neighborhood | Text | 10 | Boundaries for land subject to similar social, environmental, economic, and governmental forces |
+| Neighborhood Extension | Text | 10 | Based on property type: primary occupancy (Commercial), zero (Residential), or park designation (Mobile Homes) |
+| Square Feet | Integer | | Sum of square feet for 'built as' types (may represent count for Storage Tank types) |
+| Net Square Feet | Integer | | Sum of net rentable area(s) for commercial; equal to built-as square feet or zero for residential |
+
+: Improvement table - building improvement data linked to appraisal accounts. {#tbl-app-improvement}
+
+---
+
+## Improvement Built-As
+
+Detailed specifications for building construction styles and features.
+
+| Field Name | Type | Size | Description |
+|-----------------------|---------|---------|-------------------------------------------|
+| **Parcel Number** | Text | 10 | Unique 10 digit number assigned to each property |
+| **Building ID** | Text | 5 | Unique identifier for each improvement record on a parcel |
+| **Built-As Number** | Integer | | Sequential number starting with largest Built-As being number 1 |
+| Built-As ID | Integer | | Number associated with the description of the purpose or style of construction |
+| Built-As Description | Text | 255 | Original purpose/style of construction; associated with Marshall and Swift cost and depreciation tables |
+| Built-As Square Feet | Integer | | Sum of square feet for the 'built as' types identified for the building |
+| HVAC | Integer | | Code associated with the predominant heating source for the built-as structure |
+| HVAC Description | Text | 30 | Text description of heating source (Forced Air, Electric Baseboard, Steam, etc) |
+| Exterior | Text | 25 | Predominant type of construction materials used for exterior siding (Residential Buildings) |
+| Interior | Text | 15 | Predominant type of interior wall materials (Sheetrock or Paneling; Residential and Mobile Homes only) |
+| Stories | Decimal | 13.2 | Number of floors/building levels above grade (excluding attic or basement) |
+| Story Height | Integer | | Average ceiling heights (Commercial) or majority story height for first floor (Residential) |
+| Sprinkler Square Feet | Integer | | Total square footage covered by a sprinkler system |
+| Roof Cover | Text | 20 | Material used for the roof (Composition Shingles, Wood Shake, Concrete Tile, etc) |
+| Bedrooms | Integer | | Number of bedrooms listed for residential property |
+| Bathrooms | Decimal | 7.2 | Number of baths listed as decimal (e.g., 2.75 = two full + one three-quarter) |
+| Units | Integer | | Number of separate units within the building |
+| Class Code | Text | 20 | Code for one of five basic cost groups by type of framing, walls, floors, roof, and fireproofing |
+| Class Description | Text | 50 | Text description for cost group classification |
+| Year Built | Integer | | Year the building was built per building permit or historical record |
+| Year Remodeled | Integer | | Year improvements were made extending the life of the structure |
+| Adjusted Year Built | Integer | | Greater than Year Built if improvements reduce the effective age of the building |
+| Physical Age | Integer | | Tax year less adjusted year built |
+| Built-As Length | Integer | | Length of the mobile/manufactured home |
+| Built-As Width | Integer | | Width of the mobile/manufactured home |
+| Mobile Home Model | Text | 50 | Model of the mobile/manufactured home |
+
+: Improvement Built-As table - building construction styles and features. {#tbl-app-builtas}
+
+---
+
+## Improvement Detail
+
+Additional specific improvement characteristics and features.
+
+| Field Name | Type | Size | Description |
+|-----------------------|---------|---------|-------------------------------------------|
+| **Parcel Number** | Text | 10 | Unique 10 digit number assigned to each property |
+| **Building ID** | Text | 5 | Unique identifier for each improvement record on a parcel |
+| **Detail Type** | Text | 10 | Category: Add On, Appliance, Balcony, Basement, Carport, Elevator, Fixture, Garage, Mezzanine, Porch, Rough In, Storage |
+| Detail Description | Text | 50 | Brief explanation of the improvement characteristic (Fireplace, Laundry Facility, Type of Porch, Type of Bath, etc) |
+| Units | Decimal | 15.4 | Component parts indicating either square footage of the structure or count of each component |
+
+: Improvement Detail table - building characteristics and features. {#tbl-app-detail}
+
+---
+
+## Land Attribute
+
+Land-specific attributes and characteristics affecting valuation.
+
+| Field Name | Type | Size | Description |
+|-----------------------|---------|---------|-------------------------------------------|
+| **Parcel Number** | Text | 10 | Unique 10 digit number assigned to each property |
+| **Attribute** | Text | 30 | Category: Residential (R), Commercial (C), or Res Com Condo (X) with subcategory |
+| Attribute Description | Text | 30 | Further defines the land attribute (View Avg, NBHD Gated, WF Bank Low, water available, etc) |
+
+: Land Attribute table - land-specific characteristics affecting valuation. {#tbl-app-land}
+
+---
+
+## Sale
+
+Historical property sales transaction data.
+
+| Field Name | Type | Size | Description |
+|-----------------------|---------|---------|-------------------------------------------|
+| **ETN** | Text | 11 | Recording number issued by the Auditor's Office when property transaction is recorded |
+| Parcel Count | Integer | | Number of parcels associated with a sale |
+| Parcel Number | Text | 10 | Unique 10 digit number assigned to each property |
+| Sale Date | Date | | Date the legal document (deed) was executed |
+| Sale Price | Decimal | 15.2 | Dollar amount recorded on the ETN |
+| Deed Type | Text | 40 | Type of document conveying interest in or legal title to the property |
+| Grantor | Text | 80 | Individual(s) or company conveying ownership or interest in the property |
+| Grantee | Text | 80 | Individual(s) or company purchasing ownership or interest in the property |
+| Valid/Invalid | Text | 7 | Code for validity of a sale for appraisal purposes per State Ratio RCW |
+| Confirmed/Unconfirmed | Text | 11 | Whether property characteristics and sale circumstances were verified by Assessor-Treasurer staff |
+| Exclude Reason | Text | 30 | State required description of why a sales transaction must be excluded from sales studies |
+| Improved/Vacant | Text | 8 | Coded as improved if any parcel has building value; vacant for land with no building value |
+| Appraisal Account Type | Text | 15 | Parcel classification (Com Condo, Com Leasehold, Commercial, Industrial, Residential, etc) |
+
+: Sale table - historical property sales transaction data. {#tbl-app-sale}
+
+---
+
+## Seg/Merge
+
+Property segregation and merger transaction history.
+
+| Field Name | Type | Size | Description |
+|-----------------------|---------|---------|-------------------------------------------|
+| **Seg/Merge Number** | Text | 12 | Unique number assigned to each segregation |
+| Parent/Child Indicator | Text | 1 | P = Parent Parcel (inactivated); C = Child Parcel (newly created from segregation) |
+| **Parcel Number** | Text | 10 | Unique 10 digit number assigned to each property |
+| Continued Indicator | Text | 1 | Y = parcel still active after segregation; N = parcel no longer active |
+| Completed Date | Date | | Date that the segregation was completed |
+| Tax Year | Text | 4 | Tax year of the segregation |
+
+: Seg/Merge table - property segregation and merger transaction history. {#tbl-app-segmerge}
+
+---
+
+## Taxpayer
+
+Property owner information (subject to privacy restrictions).
+
+| Field Name | Type | Size | Description |
+|-----------------------|---------|---------|-------------------------------------------|
+| **Parcel Number** | Text | 10 | Unique 10 digit number assigned to each property |
+
+
+: Taxpayer table - property owner information (privacy restricted). {#tbl-app-taxpayer}
+
+---
+
+## Tax Description
+
+Detailed tax coding and descriptions for parcels.
+
+| Field Name | Type | Size | Description |
+|-----------------------|---------|---------|-------------------------------------------|
+| **Parcel Number** | Text | 10 | Unique 10 digit number assigned to each property |
+| **Line Number** | Integer | | Sequential number identifying each line of a tax description |
+| Tax Description Line | Text | 200 | Tax description text |
+
+: Tax Description table - tax coding and descriptions for parcels. {#tbl-app-tax-description}

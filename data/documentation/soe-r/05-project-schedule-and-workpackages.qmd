@@ -8,7 +8,15 @@
 
 The following chart outlines the project timeline, milestones, and critical path.
 
+::: {.content-visible when-format="html"}
+
+::: {#fig-gantt-timeline}
+
 ```{mermaid}
+---
+config:
+  theme: 'neutral'
+---
 gantt
     title House Price Prediction Timeline
     dateFormat YYYY-MM-DD
@@ -23,15 +31,23 @@ gantt
     Project Setup      :done, wp0, 2026-05-13, 7d
     Data Integration   :crit, wp1, 2026-05-20, 7d
     Data Cleaning      :crit, wp2, 2026-05-27, 7d
-    EDA & Features     :wp3, 2026-05-30, 10d
+    EDA & Features     :wp3, 2026-05-30, 9d
     Preprocessing      :crit, wp4, 2026-06-07, 3d
     Model Development  :wp5, 2026-06-09, 7d
     Model Evaluation   :crit, wp6, 2026-06-16, 5d
     Deployment         :crit, wp7, 2026-06-20, 5d
 ```
 
+: Timeline showing all project phases, milestones, and critical path tasks from May 13 to June 24, 2026. {#fig-gantt-timeline}
+:::
+
+:::
+
+
 ::: {.content-visible when-format="pdf"}
-![Project Gantt Chart (Static Version)](gantt.png){#fig-gantt-static}
+
+![Project Gantt Chart showing all work packages and critical path tasks.](gantt.png){#fig-gantt-timeline}
+
 :::
 
 ------------------------------------------------------------------------
@@ -44,21 +60,24 @@ gantt
 
 #### Tasks
 
-- Define team roles and responsibilities
-- Create Git repository (private, shared with lecturer)
-- Set up Supabase database connection
-- Initialize Kanban board (Backlog/To Do/Doing/Testing/Done)
-- Configure R development environment
+1.  Define team roles and responsibilities
+2.  Create Git repository (private, shared with lecturer)
+3.  Set up Supabase database connection
+4.  Initialize Kanban board (Backlog/To Do/Doing/Testing/Done)
+5.  Configure R development environment
 
 #### Deliverables
 
-✓ GitHub repository ✓ Supabase connection ✓ Kanban board ✓ Team charter document
+- GitHub repository
+- Supabase connection
+- Kanban board
+- Team charter document
 
 ------------------------------------------------------------------------
 
 ### WP1: Data Integration
 
-**Duration**: 20–26 May \| **Status**: To Do
+**Duration**: 20–26 May \| **Status**: Partially complete
 
 #### Tasks
 
@@ -72,7 +91,7 @@ gantt
 
 - Integrated dataset (.RData)
 - Table mapping diagram
-- Data dictionary (updated)
+- Data dictionary
 - Validation report with row counts
 
 #### Quality Criteria
@@ -294,6 +313,8 @@ gantt
 | WP6 | WP5        | Requires all trained models        |
 | WP7 | WP6        | Requires selected best model       |
 
+: Work package interdependencies and blocking relationships defining the critical path. {#tbl-dependencies}
+
 **Critical Path Tasks**: 1. WP1: Data integration (26.05) 2. WP2: Data cleaning (02.06) 3. WP3: Feature engineering (09.06) 4. WP4: Train/test split (09.06) 5. WP5: Model training (15.06) 6. WP6: Model selection (20.06) 7. WP7: Shiny App deployment (23.06)
 
 ------------------------------------------------------------------------
@@ -307,11 +328,13 @@ gantt
 | **18.06.2026** | Feedback Round | Review feedback, adjust if needed |
 | **24.06.2026** | Final Presentation | Live demo + report submission via Moodle |
 
+: Project milestones, scheduled events, and corresponding deliverables. {#tbl-milestones}
+
 ------------------------------------------------------------------------
 
 ## Weekly Status Checklist
 
-- [ ] **Week 1 (13–19.05)**: WP0 setup complete
+- [x] **Week 1 (13–19.05)**: WP0 setup complete
 - [ ] **Week 2 (20–26.05)**: WP1 data integration done, Proposal prepared
 - [ ] **Week 3 (27.05–02.06)**: WP2 data cleaning complete, WP3 started
 - [ ] **Week 4 (03–09.06)**: WP3 features complete, WP4 preprocessing ready

@@ -13,7 +13,7 @@ The project aims to build a robust machine learning pipeline to estimate housing
 
 ## Document Status
 
-This version corresponds to the **Pr1oject Proposal (Report 1)**.
+This version corresponds to the **Project Proposal (Report 1)**.
 
 - [x] Project Objectives (Qualitative & Quantitative)
 - [x] Data Source Description & Dictionary
