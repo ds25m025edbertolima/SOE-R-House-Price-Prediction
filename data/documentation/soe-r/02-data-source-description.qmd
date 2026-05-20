@@ -146,15 +146,6 @@ Entity–relationship diagram of the Pierce County Assessor–Treasurer Data Mar
 
 :::
 
-
-::: {.content-visible when-format="pdf"}
-### Key Architecture Summary
-
-The Pierce County data uses a central **Parcel Number** as the primary identifier, with one Tax Account and one Appraisal Account per parcel. Each parcel can have multiple improvements (buildings), detailed land attributes, sales transactions, and segregation/merger records.
-
-**Core Relationships**: - Tax Account → Appraisal Account (1:1 via Parcel Number) - Appraisal Account → Improvements (1:many via Parcel Number and Building ID) - Improvements → Built-As & Details (1:many via Building ID) - Parcels → Sales & Seg/Merge (1:many historical transactions)
-:::
-
 ------------------------------------------------------------------------
 
 ::: {.content-visible when-format="pdf"}
