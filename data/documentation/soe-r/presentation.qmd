@@ -8,6 +8,7 @@ format:
     theme: simple
     slide-number: true
     transition: slide
+    embed-resources: true
 ---
 
 {{< include 01-project-objective.qmd >}}
