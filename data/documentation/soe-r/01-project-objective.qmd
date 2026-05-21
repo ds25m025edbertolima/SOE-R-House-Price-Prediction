@@ -32,7 +32,7 @@ Develop a machine learning system capable of predicting residential property pri
 
 | Objective | Metric | Target |
 |:----------|:-------|:-------|
-| **Model Accuracy** | Root Mean Square Error (RMSE) | < USD 75,000 |
+| **Model Accuracy** | Root Mean Square Error (RMSE) | 80% within 15% from actual price|
 | **Explanatory Power** | Coefficient of Determination (R²) | > 0.85 |
 | **Model Diversity** | Algorithm Benchmarking | ≥ 4 distinct algorithms |
 | **Feature Richness** | Engineered Predictors | ≥ 20 model-ready features |
