@@ -49,16 +49,20 @@ vignettes/*.pdf
 # Project files
 .quarto/
 _freeze/
-
+.claude/
 # Environment variables
 .env
 .env.local
+
 
 # Data files - exclude large data
 data/source/**
 !data/source/.gitkeep
 !data/source/.gitignore
 scratch/
+
+# Archive folder - for old/unused files
+#99-archive/
 
 # Python
 __pycache__/

@@ -1,0 +1,639 @@
+---
+title: "Pierce County Assessor-Treasurer Data Dictionary"
+subtitle: "House Price Prediction - Data Reference Guide"
+author: "Solution Engineering Project"
+date: "2026-05-10"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    code-fold: false
+    number-sections: true
+    theme: cosmo
+    highlight-style: github
+    embed-resources: true
+  pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+    fontsize: 11pt
+---
+
+# Introduction
+
+This document provides a comprehensive data dictionary for the Pierce County Assessor-Treasurer dataset used in the House Price Prediction project. The dataset contains detailed property assessment and appraisal information for over 400,000 properties in Pierce County, Washington.
+
+## Dataset Overview
+
+- **Source**: Pierce County Assessor-Treasurer Office
+- **Region**: Pierce County, Washington, USA
+- **Total Properties**: ~400,000 parcels
+- **Features**: 50+ attributes per property
+- **Historical Coverage**: 10+ years of sales transactions
+- **Update Frequency**: Annual (tax year basis)
+- **Access**: Public records (freely available)
+
+---
+
+# 1. Tax Account Table {#tax-account}
+
+**Description**: Tracks current tax and assessment account information for each property. Contains valuation data for both prior and current tax years.
+
+**Primary Key**: `parcel_number`
+
+**Record Count**: ~400,000 records
+
+## Field Definitions
+
+| Field Name | Data Type | Length | Description |
+|---|---|---|---|
+| **parcel_number** | Text | 10 | Unique 10-digit identifier assigned to each property. Used to link all other tables. |
+| account_type | Text | 5 | Classification of property account. Values: REAL (Real Property), STRUC (Structures), PERS (Personal Property), MOBIL (Mobile Home). |
+| property_type | Text | 5 | Type of property asset. Values: ASIMP (Administrative Seg Improvement), LNDIM (Land and Improvements), MBLHM (Mobile Home), RRLEA (Railroad Leases), SAPP (State Assessed Personal Property), SARP (State Assessed Real Property), STRUC (Leased Land and/or Structure). |
+| site_address | Text | 50 | Physical location address of the property. May differ from mailing address. "XXX" indicates GIS-estimated address. |
+| use_code | Text | 5 | 4-digit numeric code indicating present highest and best use of property for appraisal purposes. |
+| use_description | Text | 50 | Text description of the numeric use code. Examples: Residential, Commercial, Agricultural, etc. |
+| tax_year_prior | Integer | | Tax year for which all prior year values apply (e.g., 2023). |
+| tax_code_area_prior_year | Text | 10 | Geographic code describing taxing district combination. Subject to annual changes due to bond, levy, incorporation changes. |
+| exemption_type_prior_year | Text | 40 | Type of exemption, if any, applied in prior tax year. Examples: Senior exemption, disability, church property, etc. |
+| current_use_code_prior_year | Text | 5 | Coded use type in prior year. Values: AGRI (Agricultural), CT (Current Use Timber), FORDG (Forest Designated), OPBRS (Open Space PBRS), OPEN (Open Space). |
+| land_value_prior_year | Integer | | Total fair market value of land only (excluding improvements) for prior tax year, as determined by appraisal process. |
+| improvement_value_prior_year | Integer | | Total fair market value of all improvements/buildings for prior tax year, determined by appraisal process. |
+| total_market_value_prior_year | Integer | | Total fair market value (land + improvements) for prior tax year before exemptions. |
+| taxable_value_prior_year | Integer | | Total market value minus exemptions granted for prior tax year. This is the value used for tax calculation. |
+| tax_year_current | Integer | | Current tax year for which all current year values apply (e.g., 2024). |
+| tax_code_area_current_year | Text | 10 | Geographic code describing current year taxing district combination. |
+| exemption_type_current_year | Text | 40 | Type of exemption, if any, applied in current tax year. |
+| current_use_code_current_year | Text | 5 | Coded use type in current year. Same values as prior year field. |
+| land_value_current_year | Integer | | Total fair market value of land for current tax year. Used for price prediction models. |
+| improvement_value_current_year | Integer | | Total fair market value of improvements for current tax year. |
+| total_market_value_current_year | Integer | | Total fair market value for current tax year (PRIMARY PREDICTION TARGET). |
+| taxable_value_current_year | Integer | | Current year taxable value after exemptions. |
+| range_code | Text | 10 | Geographic range designation (Township-Range-Section system). |
+| township | Text | 10 | Township designation in Public Land Survey System. |
+| section_code | Text | 20 | Section designation in PLSS grid. |
+| quarter_section | Text | 20 | Quarter-section designation (NE, NW, SE, SW, etc.). |
+| subdivision_name | Text | 50 | Name of subdivision, if property is within a recorded subdivision. |
+| located_on_parcel | Text | 10 | For improvement-only parcels: the real property parcel number on which located. |
+
+---
+
+# 2. Appraisal Account Table {#appraisal-account}
+
+**Description**: Detailed property appraisal data containing physical characteristics, land features, and valuation information. Represents professional appraiser assessment of property.
+
+**Primary Key**: `parcel_number` (one-to-one relationship with tax_account)
+
+**Foreign Key**: `parcel_number` references tax_account
+
+**Record Count**: ~400,000 records
+
+## Field Definitions
+
+| Field Name | Data Type | Length | Description |
+|---|---|---|---|
+| **parcel_number** | Text | 10 | Unique identifier. References tax_account. Links to improvement, land_attribute, and sale tables. |
+| appraisal_account_type | Text | 15 | Classification of property for appraisal purposes. 15 types: Com Condo, Com Leasehold, Com Multi Unit, Commercial, Industrial, Mobile Home, Reference, Res Com Condo, Res Leasehold, Residential, Trended Invest. **IMPORTANT FOR PRICE PREDICTION**: Residential vs Commercial distinction. |
+| business_name | Text | 50 | Main business name on the parcel, or space number for mobile/manufactured home in a park. Often blank for residential. |
+| value_area_id | Text | 10 | Physical inspection cycle identifier (PI1 to PI6). Indicates when property was last physically inspected. Used to assess appraisal recency. |
+| land_economic_area | Text | 30 | Also known as LEA. Ties parcels to land valuation models. For Commercial: identifies land use model by PI year. For Residential: location code identifying appraisal area, sector, subsector. For Res Com Condos: relates to account land value. **KEY LOCATION FEATURE**. |
+| buildings | Integer | | Number of building improvements located on the parcel. Critical feature: 0 = vacant land, 1+ = improved property. |
+| group_account_number | Text | 30 | For group accounts: identifies all parcels constituting one economic unit (contiguous assessment). For condominiums: identifies all units in project. |
+| land_gross_acres | Decimal | 15.4 | Total acres of economic unit (may include multiple parcels). Used for large properties and commercial analysis. |
+| land_net_acres | Decimal | 15.4 | Net acreage of individual parcel only. **PRIMARY LAND SIZE METRIC** for single-parcel properties. Range: 0.01 to 100+ acres. |
+| land_gross_square_feet | Decimal | 15.4 | Total square feet of economic unit. Gross measure including non-usable areas. |
+| land_net_square_feet | Decimal | 15.4 | Net square feet of individual parcel. **CRITICAL FEATURE** for price prediction. Typical range: 2,000 to 50,000 sq ft for residential. |
+| land_gross_front_feet | Decimal | 15.4 | For commercial: front feet facing arterial street. For residential: front feet facing address street. For waterfront: effective waterfront length. Affects commercial value significantly. |
+| land_width | Integer | | Residential use only. Equal to net effective waterfront front feet. Used for waterfront properties. |
+| land_depth | Integer | | Residential use only. Net effective depth from bulkhead to inland property line. Used for waterfront properties. Measured from top of bank. |
+| submerged_area_square_feet | Integer | | Area of parcel that is submerged. Not included in gross or net square feet. Indicates waterfront property. |
+| appraisal_date | Date | | Most recent date appraiser physically observed property and/or made record changes. **DATA RECENCY INDICATOR**: Older dates suggest stale appraisals. Format: YYYY-MM-DD. |
+| waterfront_type | Text | 30 | Describes type of waterfront property adjoins or has legal access to. Values: Lake, Puget Sound, River, Creek, None, etc. **SIGNIFICANT PRICE PREMIUM FEATURE**. |
+| view_quality | Text | 30 | Market appeal of view from dwelling/property. Values: None, Fair, Good, Excellent. **QUALITATIVE PRICE DRIVER**. |
+| utility_electric | Text | 30 | Identifies if electric power is installed, available, or not available on property. Essential utility. Values: Available, Not Available, Installed. |
+| utility_sewer | Text | 30 | Sewer/septic system availability. Values: Available, Not Available, Septic system, Shared septic. Critical for residential value. |
+| utility_water | Text | 30 | Water availability. Values: Available, Not Available, Well water, City water. |
+| street_type | Text | 30 | Identifies if access street is paved or unpaved. Affects property access and value. Blank for reference parcels or mobile homes. |
+| latitude | Decimal | 10.5 | Latitude of parcel centroid (decimal degrees). **GEOGRAPHIC FEATURE** for spatial analysis. Missing for ~5-10% (building-only, mineral rights, reference parcels). Range: 47.0 to 47.9 for Pierce County. |
+| longitude | Decimal | 10.5 | Longitude of parcel centroid (decimal degrees). **GEOGRAPHIC FEATURE**. Range: -122.0 to -121.0 for Pierce County. |
+
+---
+
+# 3. Improvement Table {#improvement}
+
+**Description**: Building-level improvement data. Multiple improvements can exist on a single parcel. Contains property type classification and space metrics.
+
+**Primary Key**: `(parcel_number, building_id)`
+
+**Foreign Key**: `parcel_number` references appraisal_account
+
+**Record Count**: ~500,000+ records (1.2x property count due to multiple improvements)
+
+## Field Definitions
+
+| Field Name | Data Type | Length | Description |
+|---|---|---|---|
+| **parcel_number** | Text | 10 | Unique parcel identifier. Links to appraisal_account and tax_account. |
+| **building_id** | Text | 5 | Unique identifier for each improvement record on a parcel. Sequential, not always continuous. Indicates which building when multiple exist. |
+| property_type | Text | 15 | Classification of the building type. Values: Commercial, Duplex, Industrial, Mobile Home, Multiple Unit, Out Building, Residential, Townhouse, Triplex. **KEY CATEGORICAL FEATURE** for price prediction. |
+| neighborhood | Text | 10 | Neighborhood code representing boundaries of similar social, environmental, economic, governmental forces. For Residential: same as LEA. For Commercial: defines property location. **STRONG PRICE PREDICTOR**: Neighborhood premium/discount. |
+| neighborhood_extension | Text | 10 | Sub-classification within neighborhood. For Commercial: primary occupancy/use. For Residential: set to zero. For Mobile Homes: land ownership indicator (0 = owner-owned, 1-4 = park-leased). |
+| square_feet | Integer | | Sum of square feet for all 'built-as' types on building. **CRITICAL SIZE FEATURE** for price prediction. Typical residential range: 800 to 5,000 sq ft. Typical commercial: 5,000+ sq ft. |
+| net_square_feet | Integer | | For commercial: sum of net rentable area(s). For residential: equals built_as_square_feet or zero. Used for income calculation on commercial properties. |
+
+---
+
+# 4. Improvement Built-As Table {#improvement-builtas}
+
+**Description**: Detailed construction specifications for buildings. Records the original construction style/purpose and building characteristics. One primary record per building, additional records for additions/modifications.
+
+**Primary Key**: `(parcel_number, building_id, builtas_number)`
+
+**Foreign Key**: `(parcel_number, building_id)` references improvement
+
+**Record Count**: ~500,000+ records
+
+## Field Definitions
+
+| Field Name | Data Type | Length | Description |
+|---|---|---|---|
+| **parcel_number** | Text | 10 | Parcel identifier. |
+| **building_id** | Text | 5 | Building identifier on parcel. |
+| **builtas_number** | Integer | | Sequential number identifying each built-as record. Largest built-as is number 1. Indicates primary vs. additions. |
+| builtas_id | Integer | | Numeric code for construction purpose/style. Links to Marshall and Swift cost tables. Used in appraisal valuation. |
+| builtas_description | Text | 255 | Text description of construction purpose/style. Examples: "1 Story Residential", "2 Story Residential with Basement", "Office Building", "Warehouse". |
+| builtas_square_feet | Integer | | Square feet for this specific built-as type. Sum equals building square_feet. |
+| hvac | Integer | | Code for predominant heating source. Values: 1=Forced Air, 2=Baseboard, 3=Steam, 4=Radiant, etc. **BUILDING SYSTEMS FEATURE**. |
+| hvac_description | Text | 30 | Text description of heating system. Examples: Forced Air Gas, Electric Baseboard, Steam Boiler, Radiant Heat. Affects operating costs and comfort (price component). |
+| exterior | Text | 25 | Predominant exterior material on residential buildings. Values: Wood Siding, Vinyl, Brick, Stucco, Cement Board, Log, Metal. **CONDITION/QUALITY FEATURE**. |
+| interior | Text | 15 | Predominant interior wall material (collected for residential and mobile homes only). Values: Drywall/Sheetrock, Paneling, Plaster. Indicates age/renovation status. |
+| stories | Decimal | 13.2 | Number of floors above grade. Does not include attic or basement. **IMPORTANT**: 1 story vs 2 story is price differentiator. Values: 1.0, 1.5, 2.0, 2.5, 3.0, etc. |
+| story_height | Integer | | Building ceiling height in feet for first floor. Indicates space quality. Commercial: average of all floors. Residential: majority floor height. Typical: 8-10 feet residential, 12-14 feet commercial. |
+| sprinkler_square_feet | Integer | | Total square footage covered by sprinkler system. Zero if no sprinklers. Fire safety feature affecting commercial valuation. |
+| roof_cover | Text | 20 | Roofing material. Values: Composition Shingles, Wood Shake, Concrete Tile, Slate, Metal, Rubber/EPDM. **CONDITION/DURABILITY FEATURE**: Newer materials (asphalt shingles 20-year, metal 40+ year) affect replacement cost. |
+| bedrooms | Integer | | Number of bedrooms in residential property. **PRIMARY FEATURE** for residential valuation. Typical: 2-4 bedrooms. Collected for informational purposes. |
+| bathrooms | Decimal | 7.2 | Number of bathrooms (decimal format). **PRIMARY FEATURE** for residential valuation. Calculation: Full bath=1.0, 3/4 bath=0.75, 1/2 bath=0.5, 1/4 bath=0.25. Examples: 2.5 = 2 full + 1 half bath. Range: 0.5 to 5.0+. |
+| units | Integer | | Number of separate units within building. 1 = single-family, 2 = duplex, 3+ = multi-unit. **PROPERTY TYPE INDICATOR**. Affects valuation approach (per-unit vs. whole building). |
+| class_code | Text | 20 | Cost class for commercial buildings. Codes for framing (wood, steel, concrete), walls, floors, roof, fireproofing. Affects construction cost estimates. |
+| class_description | Text | 50 | Text description of building class. Used primarily for commercial valuation. |
+| year_built | Integer | | Year building was constructed (actual). Based on permit or historical records. **CRITICAL AGE FEATURE** for depreciation. Format: YYYY (e.g., 1985, 2010, 2023). |
+| year_remodeled | Integer | | Year major improvements/renovations completed. Extends building life expectancy. Impacts depreciation calculation. Zero if no remodel recorded. |
+| adjusted_year_built | Integer | | If > year_built: indicates major improvements made beyond normal maintenance (roof, HVAC, electrical, plumbing, structural). Reduces effective age. Formula: physical_age = current_year - adjusted_year_built. **CONDITION INDICATOR**. |
+| physical_age | Integer | | Calculated field: current_year - adjusted_year_built. Represents effective age for depreciation. Critical for price prediction. Typical: 0-80+ years. |
+| builtas_length | Integer | | Length of mobile/manufactured home in feet. Used for mobile home valuation. Typical: 50-80 feet. |
+| builtas_width | Integer | | Width of mobile/manufactured home in feet. Typical: 12-16 feet. |
+| mobile_home_model | Text | 50 | Model name/number of mobile home. Used for market comparables research. |
+
+---
+
+# 5. Improvement Detail Table {#improvement-detail}
+
+**Description**: Specific improvement features and amenities. Captures details not covered in main improvement record (garages, porches, fireplaces, etc.).
+
+**Primary Key**: `(parcel_number, building_id, detail_type)`
+
+**Foreign Key**: `(parcel_number, building_id)` references improvement
+
+**Record Count**: 200,000+ records (features vary by property)
+
+## Field Definitions
+
+| Field Name | Data Type | Length | Description |
+|---|---|---|---|
+| **parcel_number** | Text | 10 | Parcel identifier. |
+| **building_id** | Text | 5 | Building identifier. |
+| **detail_type** | Text | 10 | Category of improvement feature. Values: Add On, Appliance, Balcony, Basement, Carport, Elevator, Fixture, Garage, Mezzanine, Porch, Rough In, Storage. **AMENITY CLASSIFIER**. |
+| detail_description | Text | 50 | Specific description of feature. Examples: "Fireplace (wood)", "Garage (2-car attached)", "Deck (wood 12x16)", "Finished Basement", "3 Fixtures Bath". |
+| units | Decimal | 15.4 | Quantity of feature. Either count (for discrete items) or square footage (for spaces). Examples: "Fireplace: 1 count", "Garage: 520 sf", "Porch: 200 sf". **FEATURE VALUE CONTRIBUTION**. |
+
+## Common Detail Types & Examples
+
+| Detail Type | Examples | Typical Units |
+|---|---|---|
+| Garage | 1-car, 2-car, 3-car attached/detached | Square footage or count |
+| Deck/Porch | Wood, composite, covered, uncovered | Square footage |
+| Basement | Finished, unfinished, partial | Square footage |
+| Fireplace | Wood, gas, electric | Count |
+| Appliances | Built-in microwave, range hood | Count or allowance |
+| Bathroom Fixtures | Fixture count varies | Count or allowance |
+| Storage | Built-in shelving, pantry | Count or allowance |
+
+---
+
+# 6. Land Attribute Table {#land-attribute}
+
+**Description**: Land-specific characteristics and special attributes affecting property valuation. Qualitative features that may or may not contribute to value.
+
+**Primary Key**: `(parcel_number, attribute)`
+
+**Foreign Key**: `parcel_number` references appraisal_account
+
+**Record Count**: 100,000+ records (multiple attributes per property)
+
+## Field Definitions
+
+| Field Name | Data Type | Length | Description |
+|---|---|---|---|
+| **parcel_number** | Text | 10 | Parcel identifier. |
+| **attribute** | Text | 30 | Attribute category. Format: Property Type (R/C/X) + Category. Examples: "R-Neighborhood", "C-Economic", "R-Amenities", "X-Functional". **CATEGORICAL FEATURE**. |
+| attribute_description | Text | 30 | Specific attribute value. Examples: "View Average", "NBHD Gated", "WF Bank Low", "Water Available", "Hillside Lot", "Corner Lot". |
+
+## Attribute Categories
+
+- **Residential (R)**: Neighborhood, Amenities, Functional, Economic, Utilities
+- **Commercial (C)**: Economic, Functional, Neighborhood, Utilities
+- **Res Com Condo (X)**: Combined residential/commercial attributes
+
+## Common Attributes
+
+| Attribute | Examples | Impact |
+|---|---|---|
+| Waterfront | WF Bank Low, WF View, WF Deeded | Premium feature |
+| Gated Community | NBHD Gated, Secured Entry | Security premium |
+| Corner Lot | Corner Lot, Irregular | Location premium/discount |
+| View | View Excellent, View Average, View None | View premium (20-40% impact) |
+| Slope | Steep, Gentle, Level | Buildability factor |
+| Access | Deeded Beach Access, Common Area | Functional feature |
+
+---
+
+# 7. Sale Table {#sale}
+
+**Description**: Historical property sales transactions recorded with county auditor. **CRITICAL TABLE** for model training - contains actual market prices.
+
+**Primary Key**: `etn` (Excise Tax Number)
+
+**Foreign Key**: `parcel_number` references tax_account
+
+**Record Count**: ~50,000 annual transactions; 500,000+ in last 10 years
+
+## Field Definitions
+
+| Field Name | Data Type | Length | Description |
+|---|---|---|---|
+| **etn** | Text | 11 | Excise Tax Number. Unique transaction ID issued by county auditor when deed recorded. Format: 11-character recording number. Links to county deed recording. **TRANSACTION IDENTIFIER**. |
+| parcel_count | Integer | | Number of parcels involved in single transaction. Usually 1, can be >1 for bulk sales. |
+| parcel_number | Text | 10 | Parcel number(s) involved in sale. Links to tax_account and appraisal_account. May be multiple parcels per transaction. |
+| sale_date | Date | | Date legal document (deed) was executed (YYYY-MM-DD). **TRANSACTION TIMING FEATURE**. Used to filter recent market data and analyze trends. Format: YYYY-MM-DD. |
+| sale_price | Decimal | 15.2 | Dollar amount recorded on ETN. **PRIMARY PREDICTION TARGET VARIABLE** or feature for model training. Range: $10,000 to $10,000,000+ for Pierce County. |
+| deed_type | Text | 40 | Type of document conveying interest/legal title. Values: Warranty Deed, Quit Claim, Grant Deed, Trustee's Deed, etc. Indicates transaction formality. |
+| grantor | Text | 80 | Seller: Individual(s) or company conveying ownership/interest in property. May be truncated for multi-party transactions. |
+| grantee | Text | 80 | Buyer: Individual(s) or company purchasing ownership/interest in property. |
+| valid_invalid | Text | 7 | **CRITICAL FOR MODEL TRAINING**: Codes validity of sale for appraisal purposes. Values: "Valid" (open market, unrelated parties, no pressure), "Invalid" (family transfer, estate sale, forced sale, < 1% interest, etc.). **IMPORTANT**: Filter to "Valid" only for accurate models. Approximately 70-80% of recorded sales are "Valid". |
+| confirmed_unconfirmed | Text | 11 | Whether property characteristics and transaction circumstances verified by assessor staff. Values: "Confirmed" (staff verified), "Unconfirmed" (not verified). Indicates data confidence level. |
+| exclude_reason | Text | 30 | If invalid: reason for exclusion from appraisal sales studies. Examples: "Family different last names", "Estate sale", "Forced Sale Trans in Lieu Fcl", "Improved after sale", "1% Interest", "Non-arms length". Helps identify problematic transactions. |
+| improved_vacant | Text | 8 | Property improvement status at sale. Values: "Improved" (has building value), "Vacant" (vacant land, no building). Distinguishes between land and improved property sales. |
+| appraisal_account_type | Text | 15 | Property classification at time of sale. Same values as appraisal_account.appraisal_account_type. Indicates if residential, commercial, etc. |
+
+## Critical Notes for Price Prediction
+
+- **Filter for Valid Sales Only**: Remove ~20-30% marked "Invalid"
+- **Use Recent Data**: Last 5-10 years most relevant to current market
+- **Adjust for Inflation**: Historical prices should be inflation-adjusted
+- **Consider Seasonality**: Sales patterns vary by season
+- **Data Lag**: Sales recorded 1-2 weeks after closing
+
+---
+
+# 8. Seg/Merge Table {#seg-merge}
+
+**Description**: Property segregation and merger history. Tracks when parcels are split (segregated) or combined (merged). Important for understanding parcel history and long-term ownership patterns.
+
+**Primary Key**: `segmerge_number`
+
+**Foreign Key**: `parcel_number` references tax_account
+
+**Record Count**: 50,000+ transactions
+
+## Field Definitions
+
+| Field Name | Data Type | Length | Description |
+|---|---|---|---|
+| **segmerge_number** | Text | 12 | Unique number assigned to segregation event. Identifies the transaction. |
+| parent_child_indicator | Text | 1 | Relationship indicator. Values: "P" (Parent - inactivated parcel being replaced), "C" (Child - new parcel created from segregation). Can be multiple parents or children per segregation. |
+| **parcel_number** | Text | 10 | Parcel involved. May reference parent parcel (being split) or child parcel (newly created). |
+| continued_indicator | Text | 1 | Post-segregation status. Values: "Y" (parcel still active after segregation), "N" (parcel inactivated). Parent parcels often marked "N" when split into children. |
+| completed_date | Date | | Date segregation was completed. Format: YYYY-MM-DD. Indicates when split became official. |
+| tax_year | Text | 4 | Tax year of segregation. Example: "2023". Used to track timeline. |
+
+## Usage for Price Prediction
+
+- Track property history (same parcel through multiple transactions)
+- Identify new development parcels (recently segregated)
+- Detect land consolidation (mergers for investment/development)
+- Account for parcel number changes in longitudinal analysis
+
+---
+
+# 9. Taxpayer Table {#taxpayer}
+
+**Description**: Property owner/taxpayer information. **PRIVACY RESTRICTED** - Limited availability per Washington RCW.
+
+**Primary Key**: `parcel_number`
+
+**Foreign Key**: `parcel_number` references tax_account
+
+**Record Count**: ~400,000 records (restricted)
+
+**IMPORTANT**: This table is subject to privacy restrictions per RCW 42.56.070(9). Taxpayer names and mailing addresses are not publicly available without formal records request justification.
+
+## Field Definitions
+
+| Field Name | Data Type | Length | Description |
+|---|---|---|---|
+| **parcel_number** | Text | 10 | Parcel identifier. |
+| taxpayer_name | Text | 150 | Name of property owner/taxpayer. **RESTRICTED** - Privacy protected. |
+| mailing_address | Text | 100 | Mailing address. **RESTRICTED** - Privacy protected. |
+| city | Text | 50 | City for mailing. **RESTRICTED**. |
+| state | Text | 2 | State for mailing. **RESTRICTED**. |
+| zip_code | Text | 10 | ZIP code for mailing. **RESTRICTED**. |
+| phone_number | Text | 15 | Contact phone. **RESTRICTED**. |
+
+**Note**: For this project, taxpayer information is not needed. Focus on property characteristics and market data instead.
+
+---
+
+# 10. Tax Description Table {#tax-description}
+
+**Description**: Detailed tax coding and legal descriptions for parcels. Provides text-based property description used in tax assessments.
+
+**Primary Key**: `(parcel_number, line_number)`
+
+**Foreign Key**: `parcel_number` references tax_account
+
+**Record Count**: 500,000+ records (multiple lines per parcel)
+
+## Field Definitions
+
+| Field Name | Data Type | Length | Description |
+|---|---|---|---|
+| **parcel_number** | Text | 10 | Parcel identifier. |
+| **line_number** | Integer | | Sequential line number within tax description (1, 2, 3, ...). Multiple lines comprise complete description. |
+| tax_description_line | Text | 200 | Text of tax description for this line. Legal language describing property location, bounds, and characteristics. Examples: "Lot 5, Block 2, Woodland Park Addition", "All of Section 1, Township 22N, Range 4E" (partial). |
+
+## Usage
+
+- Reconstruct full legal property description
+- Identify lot/block subdivision memberships
+- Track zoning boundaries
+- Support legal/title work
+
+---
+
+# Data Quality Summary {#data-quality}
+
+## Coverage by Table
+
+| Table | Records | Completeness | Key Issues |
+|---|---|---|---|
+| tax_account | ~400K | 100% | All active parcels |
+| appraisal_account | ~400K | 98%+ | 2% missing some fields |
+| improvement | ~500K+ | 95%+ | Multiple per parcel |
+| improvement_builtas | ~500K+ | 95%+ | Variable by property type |
+| improvement_detail | ~200K | 70% | Only for featured properties |
+| land_attribute | ~100K | 50% | Only for properties with special attributes |
+| sale | ~50K/year | 100% | All recorded transactions |
+| seg_merge | ~50K hist | 100% | Historical events |
+| taxpayer | ~400K | 0% | Privacy restricted |
+| tax_description | ~500K | 90% | Most parcels have |
+
+## Missing Data Patterns
+
+### Geographic Coordinates (5-10% missing)
+- Reference parcels (non-taxable)
+- Mineral rights properties
+- Special-use parcels
+- Building-only improvements on others' land
+
+### Building Details (varies by property type)
+- Vacant land: no improvement data
+- Mobile homes: some fields inapplicable
+- Commercial: residential-specific fields blank
+- Special properties: minimal improvement records
+
+### Sales Data (20-30% filtered as Invalid)
+- Family transfers
+- Estate sales
+- Forced sales/foreclosures
+- Inter-company transactions
+- Sales with undue pressure
+- Percent interest sales
+
+## Data Types
+
+| Type | Count | Examples |
+|---|---|---|
+| Text/Varchar | 35+ | parcel_number, property_type, address |
+| Integer | 20+ | buildings, bedrooms, bathrooms, square_feet |
+| Decimal | 10+ | land_acres, land_square_feet, latitude, longitude |
+| Date | 8 | sale_date, appraisal_date, completed_date |
+
+---
+
+# Recommended Field Selection for Price Prediction {#field-selection}
+
+## Primary Features (Highest Predictive Power)
+
+```
+From Appraisal Account:
+- total_market_value_current_year (TARGET for supervised learning)
+- land_net_square_feet (primary land size)
+- latitude, longitude (location)
+- waterfront_type (qualitative location)
+- view_quality (qualitative location)
+
+From Improvement:
+- buildings (count of improvements)
+- property_type (categorical: Residential, Commercial, etc.)
+- neighborhood (strong price predictor)
+- square_feet (building size)
+
+From Improvement Built-As:
+- year_built, adjusted_year_built (age)
+- physical_age (calculated age)
+- bedrooms, bathrooms (residential features)
+- stories (building size indicator)
+- exterior, roof_cover (condition)
+
+From Sale:
+- sale_price (actual market prices)
+- sale_date (temporal feature)
+- valid_invalid (filter for quality sales)
+
+From Land Attribute:
+- attribute, attribute_description (special features)
+```
+
+## Secondary Features (Moderate Predictive Power)
+
+- utility_electric, utility_sewer, utility_water
+- hvac_description (building systems)
+- hvac (heating type)
+- improvement_value_current_year (construction cost proxy)
+- group_account_number (multi-parcel indicator)
+- street_type (access quality)
+- appraisal_account_type (property classification)
+
+## Derived/Engineered Features
+
+```
+Create from raw data:
+- price_per_sqft = total_market_value / land_net_square_feet
+- price_per_buildsqft = total_market_value / building_square_feet
+- land_value_ratio = land_value / total_market_value
+- improvement_value_ratio = improvement_value / total_market_value
+- effective_age = adjusted_year_built - current_year
+- property_age_category = binned(adjusted_year_built)
+- is_waterfront = (waterfront_type != "None")
+- has_excellent_view = (view_quality == "Excellent")
+- improvement_premium = improvement_value - baseline_cost
+```
+
+---
+
+# Key Statistics & Ranges {#statistics}
+
+## Property Values (Current Year)
+
+| Metric | Min | Max | Median | Mean |
+|---|---|---|---|---|
+| Land Value | $0 | $5M+ | $150K | $250K |
+| Improvement Value | $0 | $8M+ | $250K | $400K |
+| Total Market Value | $10K | $12M+ | $400K | $550K |
+| Taxable Value | $5K | $10M+ | $350K | $475K |
+
+## Property Sizes
+
+| Metric | Min | Max | Typical |
+|---|---|---|---|
+| Land Net Acres | 0.01 | 50+ | 0.15 (residential) |
+| Land Net Sq Ft | 1,000 | 2,000,000+ | 6,500 (residential) |
+| Building Sq Ft | 100 | 100,000+ | 1,800 (residential) |
+| Price per Sq Ft | $10 | $500+ | $150-200 |
+
+## Building Characteristics
+
+| Feature | Range | Typical |
+|---|---|---|
+| Year Built | 1880-2024 | 1990 |
+| Age (years) | 0-140 | 30 |
+| Bedrooms | 0-8 | 3 |
+| Bathrooms | 0-6 | 1.75 |
+| Stories | 1.0-4.0 | 1.5 |
+| Garages | 0-3 | 1-2 |
+
+---
+
+# Data Access & Update Schedule {#access}
+
+## Source Location
+- **Website**: https://www.piercecountywa.gov/736/Data-Downloads
+- **Format**: CSV files (downloadable)
+- **License**: Public records (unrestricted use)
+- **Cost**: Free
+
+## Update Schedule
+- **Frequency**: Annual (tax year basis)
+- **Sales Data**: Continuous (updated weekly/monthly)
+- **Appraisal Data**: Rotating inspection cycles (PI1-PI6)
+- **Tax Values**: Annual (based on assessor valuations)
+
+## Contact
+- **Pierce County Assessor-Treasurer Office**
+- **Website**: https://www.piercecountywa.gov/
+- **Records Request**: Pierce County Public Records Request Center
+- **Phone**: (253) 798-7000
+
+---
+
+# Appendix: Data Mart Entity-Relationship Diagram {#appendix-erd}
+
+```
+┌─────────────────────┐
+│   Tax Account       │
+├─────────────────────┤
+│ *parcel_number      │
+│ account_type        │
+│ property_type       │
+│ site_address        │
+│ land_value_*        │
+│ improvement_value_* │
+│ total_market_value_*│
+│ taxable_value_*     │
+└──────────┬──────────┘
+           │ 1:1
+           │
+           ├──────────┬──────────┬─────────────┐
+           │          │          │             │
+      1:1  ↓    1:∞   ↓   1:∞    ↓      1:∞    ↓
+┌──────────────────────┐  ┌────────────────┐  ┌──────────────┐
+│ Appraisal Account    │  │ Sale           │  │ Seg/Merge    │
+├──────────────────────┤  ├────────────────┤  ├──────────────┤
+│ *parcel_number       │  │ *etn           │  │ *segmerge_*  │
+│ appraisal_acct_type  │  │ parcel_number →│  │ parent_child │
+│ buildings            │  │ sale_date      │  │ parcel_number→
+│ land_net_acres       │  │ sale_price     │  │ continued_*  │
+│ land_net_sqft        │  │ deed_type      │  │ completed_*  │
+│ latitude, longitude  │  │ valid_invalid  │  └──────────────┘
+│ waterfront_type      │  │ improved_vacant│
+│ view_quality         │  └────────────────┘
+│ utilities            │
+└──────────┬───────────┘
+           │
+      1:∞  ├────────────────────────────┐
+           ↓                            ↓
+┌────────────────────┐      ┌─────────────────────┐
+│ Improvement        │      │ Land Attribute      │
+├────────────────────┤      ├─────────────────────┤
+│ *parcel_number     │      │ *parcel_number      │
+│ *building_id       │      │ *attribute          │
+│ property_type      │      │ attribute_*         │
+│ neighborhood       │      └─────────────────────┘
+│ square_feet        │
+│ net_square_feet    │
+└──────────┬─────────┘
+           │
+      1:∞  ├────────────────────────────┐
+           ↓                            ↓
+┌──────────────────────────┐  ┌──────────────────────┐
+│ Improvement Built-As     │  │ Improvement Detail   │
+├──────────────────────────┤  ├──────────────────────┤
+│ *parcel_number           │  │ *parcel_number       │
+│ *building_id             │  │ *building_id         │
+│ *builtas_number          │  │ *detail_type         │
+│ builtas_description      │  │ detail_description   │
+│ square_feet              │  │ units                │
+│ hvac, hvac_description   │  └──────────────────────┘
+│ exterior, interior       │
+│ stories, story_height    │
+│ year_built, remodeled    │
+│ bedrooms, bathrooms      │
+│ units (# of units)       │
+└──────────────────────────┘
+```
+
+---
+
+# References & Resources {#references}
+
+## Data Documentation
+- Pierce County Assessor-Treasurer Data Mart: Table Relationships and Primary Keys
+- Washington State RCW 42.56.070(9) - Privacy Requirements
+- Pierce County Assessment Methods and Standards
+
+## Related Documents
+- PIERCE_COUNTY_DATA_MART.md - Complete data mart documentation
+- PIERCE_COUNTY_SCHEMA.sql - SQL schema for implementation
+- DATA_SOURCE_DESCRIPTION.md - Data source overview
+
+## External Resources
+- Pierce County Official Website: https://www.piercecountywa.gov/
+- Washington State Department of Revenue: https://dor.wa.gov/
+- Real Estate Standards: IAAO (International Association of Assessing Officers)
+
+---
+
+**Document Generated**: 2026-05-10
+**Data Dictionary Version**: 1.0
+**Project**: House Price Prediction - Solution Engineering
+**Source**: Pierce County Assessor-Treasurer Data Mart
