@@ -1,0 +1,417 @@
+```{r}
+library(DBI)
+library(RPostgres)
+
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = Sys.getenv("SUPABASE_DB"),
+  host = Sys.getenv("SUPABASE_HOST"),
+  port = as.integer(Sys.getenv("SUPABASE_PORT")),
+  user = Sys.getenv("SUPABASE_USER"),
+  password = Sys.getenv("SUPABASE_PASSWORD")
+)
+dbListTables(con)
+dbGetQuery(con, "select now();")
+dbDisconnect(con)
+```
+
+# Resources
+
+```{r}
+library(readr)
+library(dplyr)
+
+```
+
+# Datasources 
+
+The following section presents a detailed review of each data source, focusing on the information it contains, its structure, and its potential relevance for the analysis.
+
+
+## Sales Table
+
+The **Sale** table contains information about recorded property transactions, including when a sale occurred, the recorded sale price, and the parcels involved in the transaction.  
+It also includes fields that help evaluate whether a sale is valid, verified, or excluded from official sales analysis.
+
+```{r}
+sale_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/sale.txt",delim = "|")
+colnames(sale_df) <- c(
+  "etn",                    # (PK) used to identify a sale transaction; may repeat if one recorded sale includes multiple parcels 
+  "parcel_count",           # nr of parcels associated with a sale
+  "parcel_number",          # (PK) unique 10 digit nr assigned to each property 
+  "sale_date",              # date the legal document was executed
+  "sale_price",             # dollar amount recorded on the ETN
+  "deep_type",              # tells what legal document was used to transfer or record ownership/interest in the property
+  "grantor",                # people/company giving/transferring ownership rights (seller)
+  "grantee",                # people/company getting ownership rights (buyer)
+  "valid_invalid",          # valid sale represents a normal market value; invalid sale is a sale that may not reflect the true market value of the property (gifts, sales between relatives etc.)
+  "confirmed_unconfirmed",  # shows if the property details and sale circumstances were correct/verifies at the time of sale
+  "exclude_reason",         # explains why a sale was excluded from official sales analysis, such as family transfers, forced sales, estate sales, or property changes after the sale
+  "improved_vacant",        # shows whether the sale includes a parcel with building value, or whether it is vacant land with no building value
+  "appraisal_account_type"  # describes how the parcel is classified
+)
+```
+
+
+## Appraisal Account
+```{r}
+appraisal_account_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/appraisal_account.txt",delim = "|")
+colnames(appraisal_account_df) <- c(
+  "parcel_number",              # (PK) unique 10 digit number assigned to each property
+  "appraisal_account_type",     # describes how a parcel is classified
+  "business_name",              # main business name on the parcel or space number for a mobile/manufactured home in a park
+  "value_area_id",              # identifies the physical inspection cycle for each parcel
+  "land_economic_area",         # code that ties parcels to land valuation models or appraisal location areas
+  "buildings",                  # number of improvements/buildings located on a parcel
+  "group_account_number",       # ties parcels qualifying for valuation as one economic unit or condominium project
+  "land_gross_acres",           # total acres that make up the economic unit, which may include multiple parcels
+  "land_net_acres",             # size of the individual parcel in acres
+  "land_gross_square_feet",     # total square feet that make up the economic unit, which may include multiple parcels
+  "land_net_square_feet",       # size of the individual parcel in square feet
+  "land_gross_front_feet",      # front feet of the site, lot, or effective waterfront length depending on parcel type
+  "land_width",                 # residential use only; effective waterfront front feet for the parcel or group
+  "land_depth",                 # residential use only; effective waterfront depth for the parcel or group
+  "submerged_area_square_feet", # area of a parcel that is submerged and not included in gross or net square feet
+  "appraisal_date",             # most recent date an appraiser observed the property or changed the record
+  "waterfront_type",            # describes the type of waterfront the property adjoins or has legal access to
+  "view_quality",               # reflects the market appeal of the overall view available from the dwelling or property
+  "utility_electric",           # identifies whether power is installed, available, or not available on the property
+  "utility_sewer",              # identifies whether sewer/septic is installed, available, not available, or unsupported
+  "utility_water",              # identifies whether water is installed, available, or not available
+  "street_type",                # identifies whether the access street is paved or unpaved
+  "latitude",                   # latitude of the parcel centroid
+  "longitude"                   # longitude of the parcel centroid
+)
+```
+
+## Improvement
+```{r}
+improvement_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/improvement.txt",delim = "|")
+colnames(improvement_df) <- c(
+  "parcel_number",                    # (PK) unique 10 digit number assigned to each property
+  "building_id",                      # (PK) unique identifier for each improvement record on a parcel
+  "property_type",                    # links the building to the proper cost and depreciation tables
+  "neighborhood",                     # area with similar social, environmental, economic, and governmental characteristics
+  "neighborhood_extension",           # additional neighborhood/use classification based on property type
+  "square_feet",                      # total square feet for the built-as types identified for the building
+  "net_square_feet",                  # net rentable area for commercial properties; for residential, usually built-as square feet or zero
+  "percent_complete",                 # construction completion percentage; completed structures are listed as 100%
+  "condition",                        # overall depreciation, maintenance, and upkeep condition of the structure
+  "quality",                          # quality of materials, workmanship, architectural attractiveness, and functional design
+  "primary_occupancy_code",           # numeric code describing how the improvement is primarily occupied
+  "primary_occupancy_description",    # text description of the primary occupancy code
+  "mobile_home_serial_number",        # serial number listed on the mobile home title
+  "mobile_home_total_length",         # mobile home length in feet from the title or appraiser inspection
+  "mobile_home_make",                 # make of the mobile home
+  "attic_finished_square_feet",       # finished living area in the attic
+  "basement_square_feet",             # total square footage of the basement
+  "basement_finished_square_feet",    # finished square footage of the basement
+  "carport_square_feet",              # total square footage of all carports
+  "balcony_square_feet",              # total square footage of all balcony areas
+  "porch_square_feet",                # total square footage associated with all porches
+  "attached_garage_square_feet",      # total square footage of attached or built-in garages
+  "detached_garage_square_feet",      # total square footage of detached garages
+  "fireplaces",                       # total count of fireplaces or prefab stoves
+  "basement_garage_door"              # indicates whether basement garage doors are single or double
+)
+```
+
+## Improvement Builtas
+```{r}
+improvement_builtas_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/improvement_builtas.txt",delim = "|")
+colnames(improvement_builtas_df) <- c(
+  "parcel_number",              # (PK) unique 10 digit number assigned to each property
+  "building_id",                # (PK) unique identifier for each improvement record on a parcel
+  "built_as_number",            # (PK) sequential number identifying each built-as record on an improvement
+  "built_as_id",                # number associated with the purpose or construction style of the building
+  "built_as_description",       # original purpose or construction style of the building
+  "built_as_square_feet",       # square feet for the built-as type identified for the building
+  "hvac",                       # code associated with the predominant heating source
+  "hvac_description",           # text description of the predominant heating source
+  "exterior",                   # predominant exterior siding/construction material
+  "interior",                   # predominant interior wall material
+  "stories",                    # number of floors/building levels above grade, excluding attic and basement areas
+  "story_height",               # average or main story height depending on property type
+  "sprinkler_square_feet",      # total square footage covered by a sprinkler system
+  "roof_cover",                 # material used for the roof
+  "bedrooms",                   # number of bedrooms listed for a residential property
+  "bathrooms",                  # number of bathrooms listed as a decimal
+  "units",                      # number of separate units within the building
+  "class_code",                 # cost group code based on framing, walls, floors, roof structure, and fireproofing
+  "class_description",          # text description of the cost group/class code
+  "year_built",                 # year the building was built
+  "year_remodeled",             # year improvements were made to extend the life of the structure
+  "adjusted_year_built",        # adjusted year built reflecting major improvements beyond normal maintenance
+  "physical_age",               # tax year minus adjusted year built
+  "built_as_length",            # length of the mobile/manufactured home
+  "built_as_width",             # width of the mobile/manufactured home
+  "mobile_home_model"           # model of the mobile/manufactured home
+)
+```
+
+## Improvement Detail
+```{r}
+improvement_detail_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/improvement_detail.txt",delim = "|")
+colnames(improvement_detail_df) <- c(
+  "parcel_number",        # (PK) unique 10 digit number assigned to each property
+  "building_id",          # (PK) unique identifier for each improvement record on a parcel
+  "detail_type",          # (PK) category under which specific improvement characteristics are coded
+  "detail_description",   # (PK) brief explanation of the improvement characteristic
+  "units"                 # square footage or count of the building characteristic/component
+)
+```
+
+## Land Attribute
+```{r}
+land_attribute_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/land_attribute.txt",delim = "|")
+colnames(land_attribute_df) <- c(
+  "parcel_number",           # (PK) unique 10 digit number assigned to each property
+  "attribute",               # (PK) category assigned to the land attribute, such as residential, commercial, amenities, economic, functional, neighborhood, or utilities
+  "attribute_description"    # (PK) further description of the land attribute, such as view, gated neighborhood, waterfront, or utility availability
+)
+```
+
+## Seg Merge
+```{r}
+seg_merge_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/seg_merge.txt",delim = "|")
+colnames(seg_merge_df) <- c(
+  "seg_merge_number",        # (PK) unique number assigned to each segregation
+  "parent_child_indicator",  # identifies whether the parcel is a parent parcel being replaced or a child parcel newly created by the segregation
+  "parcel_number",           # (PK) unique 10 digit number assigned to each property
+  "continued_indicator",     # indicates whether the parcel is still active after the segregation
+  "completed_date",          # date when the segregation was completed
+  "tax_year"                 # tax year of the segregation
+)
+```
+
+## Tax Account
+```{r}
+tax_account_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/tax_account.txt",delim = "|")
+colnames(tax_account_df) <- c(
+  "parcel_number",                    # (PK) unique 10 digit number assigned to each property
+  "account_type",                     # account type, such as real property, structures, personal property, or mobile home
+  "property_type",                    # property type classification used for tax/account purposes
+  "site_address",                     # physical location address of the property
+  "use_code",                         # numeric code associated with the present highest and best use of the property
+  "use_description",                  # text description of the use code
+  "tax_year_prior",                   # tax year for which prior year values apply
+  "tax_code_area_prior_year",         # prior year tax code area describing geographic area and taxing districts
+  "exemption_type_prior_year",        # exemption type applied to the property in the prior year, if any
+  "current_use_code_prior_year",      # prior year current use code, such as agricultural, timber, forest, or open space
+  "land_value_prior_year",            # prior year fair market value of land
+  "improvement_value_prior_year",     # prior year fair market value of improvements/buildings
+  "total_market_value_prior_year",    # prior year total fair market value of land and improvements
+  "taxable_value_prior_year",         # prior year taxable value after exemptions
+  "tax_year_current",                 # tax year for which current year values apply
+  "tax_code_area_current_year",       # current year tax code area describing geographic area and taxing districts
+  "exemption_type_current_year",      # exemption type applied to the property in the current year, if any
+  "current_use_code_current_year",    # current year current use code, such as agricultural, timber, forest, or open space
+  "land_value_current_year",          # current year fair market value of land
+  "improvement_value_current_year",   # current year fair market value of improvements/buildings
+  "total_market_value_current_year",  # current year total fair market value of land and improvements
+  "taxable_value_current_year",       # current year taxable value after exemptions
+  "range",                            # range identifier
+  "township",                         # township identifier
+  "section",                          # section identifier
+  "quarter_section",                  # quarter section identifier
+  "subdivision_name",                 # subdivision name
+  "located_on_parcel"                 # real property parcel number where an improvement-only parcel is located
+)
+```
+
+# Data Quality Checks
+
+Basic data quality checks were performed for each data source. These checks included the number of rows and columns, duplicate records, missing values, unique values per column, and detected data types. The purpose of these checks was to understand the structure, completeness, and potential quality issues of each table before joining or further analyzing the data.
+
+```{r}
+# function for data quality checks for each of the dataframes
+data_quality_check <- function(df, table_name) {
+  data.frame(
+    table_name = table_name,
+    rows = nrow(df),
+    columns = ncol(df),
+    duplicate_rows = sum(duplicated(df)),
+    total_missing_values = sum(is.na(df) | df == "", na.rm = TRUE),
+    columns_with_missing_values = sum(colSums(is.na(df) | df == "", na.rm = TRUE) > 0),
+    stringsAsFactors = FALSE
+  )
+}
+
+# list of the dataframes above
+metadata_dfs <- list(
+  sale = sale_df,
+  appraisal_account = appraisal_account_df,
+  improvement = improvement_df,
+  improvement_builtas = improvement_builtas_df,
+  improvement_detail = improvement_detail_df,
+  land_attribute = land_attribute_df,
+  seg_merge = seg_merge_df,
+  tax_account = tax_account_df
+)
+```
+
+Summary table for all dataframes.
+```{r}
+quality_summary <- bind_rows(
+  lapply(names(metadata_dfs), function(name) {
+    data_quality_check(metadata_dfs[[name]], name)
+  })
+)
+
+quality_summary
+```
+
+## Missing values
+```{r}
+# function for missing values in each column
+missing_by_column <- function(df, table_name) {
+  
+  data.frame(
+    table_name = table_name,
+    column_name = names(df),
+    missing_count = sapply(df, function(x) sum(is.na(x) | x == "", na.rm = TRUE)),
+    missing_percent = round(
+      sapply(df, function(x) mean(is.na(x) | x == "", na.rm = TRUE)) * 100,
+      2
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+```
+
+Missing values by column for each table.
+```{r}
+missing_summary <- bind_rows(
+  lapply(names(metadata_dfs), function(name) {
+    missing_by_column(metadata_dfs[[name]], name)
+  })
+)
+
+missing_summary %>%
+  filter(missing_count > 0) %>%
+  arrange(table_name, desc(missing_percent))
+```
+
+Check whether the main identifier, parcel_number, repeats in each table.
+```{r}
+parcel_duplicate_summary <- bind_rows(
+  lapply(names(metadata_dfs), function(name) {
+    df <- metadata_dfs[[name]]
+    
+    if ("parcel_number" %in% names(df)) {
+      data.frame(
+        table_name = name,
+        rows = nrow(df),
+        unique_parcels = n_distinct(df$parcel_number),
+        repeated_parcel_rows = nrow(df) - n_distinct(df$parcel_number)
+      )
+    }
+  })
+)
+
+parcel_duplicate_summary
+```
+
+## Duplicates
+
+```{r}
+duplicate_summary <- bind_rows(
+  lapply(names(metadata_dfs), function(name) {
+    data.frame(
+      table_name = name,
+      duplicate_rows = sum(duplicated(metadata_dfs[[name]]))
+    )
+  })
+)
+
+duplicate_summary
+```
+
+
+## Unique Values 
+```{r}
+unique_values_by_column <- function(df, table_name) {
+  
+  data.frame(
+    table_name = table_name,
+    column_name = names(df),
+    unique_values = sapply(df, function(x) length(unique(x))),
+    stringsAsFactors = FALSE
+  )
+}
+
+unique_summary <- bind_rows(
+  lapply(names(metadata_dfs), function(name) {
+    unique_values_by_column(metadata_dfs[[name]], name)
+  })
+)
+
+unique_summary
+```
+
+```{r}
+unique_summary %>%
+  arrange(desc(unique_values))
+```
+
+# Subsetting
+
+## Sale
+
+For this analysis, only sales that are marked as **confirmed** and **valid** will be considered. This ensures that the analysis focuses on transactions that were verified and are more likely to represent normal market value.
+
+```{r}
+sale_analysis <- sale_df %>%
+  filter(
+    valid_invalid == 1,
+    confirmed_unconfirmed == 1,
+    is.na(exclude_reason) | exclude_reason == ""
+  )
+```
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```

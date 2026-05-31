@@ -104,3 +104,5 @@ env/
 
 /.quarto/
 **/*.quarto_ipynb
+
+/datasources/quarto-1.9.38-linux-amd64.deb
