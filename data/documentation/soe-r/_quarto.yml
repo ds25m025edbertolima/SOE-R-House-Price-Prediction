@@ -41,7 +41,7 @@ format:
     number-depth: 2
     mermaid:
       theme: neutral
-
+    embed-resources: true
   pdf:
     documentclass: scrreprt
     number-sections: true
