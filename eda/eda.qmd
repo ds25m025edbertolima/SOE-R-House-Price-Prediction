@@ -1,40 +1,40 @@
-```{r}
-library(DBI)
-library(RPostgres)
 
-con <- dbConnect(
-  RPostgres::Postgres(),
-  dbname = Sys.getenv("SUPABASE_DB"),
-  host = Sys.getenv("SUPABASE_HOST"),
-  port = as.integer(Sys.getenv("SUPABASE_PORT")),
-  user = Sys.getenv("SUPABASE_USER"),
-  password = Sys.getenv("SUPABASE_PASSWORD")
-)
-dbListTables(con)
-dbGetQuery(con, "select now();")
-dbDisconnect(con)
-```
+# 1. Project Overview
 
-# Resources
+This project focuses on preparing property and sales data for a house price prediction analysis. The goal is to create a clean and meaningful dataset that can later be used for exploratory data analysis, feature selection, and predictive modeling.
+
+The analysis combines several property-related data sources, including sales transactions, appraisal account information, property improvements, building characteristics, land attributes, parcel history, and tax account information.
+
+# 2. Setup and Required Libraries
+
+This section loads the R packages required for data loading, data manipulation, text processing, categorical association analysis, correlation analysis, and data reshaping.
 
 ```{r}
 library(readr)
 library(dplyr)
+library(stringr)
+library(rcompanion)
+library(corrplot)
+library(tidyr)
+library(ggplot2)
+library(patchwork)
+library(lubridate)
+library(gridExtra)
 
 ```
 
-# Datasources 
+# 3. Data Sources
 
 The following section presents a detailed review of each data source, focusing on the information it contains, its structure, and its potential relevance for the analysis.
 
+Each original text file is loaded separately and assigned meaningful column names based on the official data documentation. Since the raw files do not contain column headers, assigning column names is an important first step before any analysis can be performed.
 
-## Sales Table
+## 3.1 Sales Table
 
-The **Sale** table contains information about recorded property transactions, including when a sale occurred, the recorded sale price, and the parcels involved in the transaction.  
-It also includes fields that help evaluate whether a sale is valid, verified, or excluded from official sales analysis.
+The **Sale** table contains information about recorded property transactions, including when a sale occurred, the recorded sale price, and the parcels involved in the transaction. It also includes fields that help evaluate whether a sale is valid, verified, or excluded from official sales analysis.
 
 ```{r}
-sale_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/sale.txt",delim = "|")
+sale_df <- read_delim("C:/Users/Gerta Hajrullahi/Desktop/MDS/SS26/Solution Eng/Project/datasources/sale.txt",delim = "|")
 colnames(sale_df) <- c(
   "etn",                    # (PK) used to identify a sale transaction; may repeat if one recorded sale includes multiple parcels 
   "parcel_count",           # nr of parcels associated with a sale
@@ -52,10 +52,14 @@ colnames(sale_df) <- c(
 )
 ```
 
+## 3.2 Appraisal Account Table
 
-## Appraisal Account
+The **Appraisal Account** table contains parcel-level appraisal information, including parcel classification, land size, utility availability, street access, appraisal date, and location coordinates.
+
+This table provides important parcel characteristics that may help explain differences in property prices.
+
 ```{r}
-appraisal_account_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/appraisal_account.txt",delim = "|")
+appraisal_account_df <- read_delim("C:/Users/Gerta Hajrullahi/Desktop/MDS/SS26/Solution Eng/Project/datasources/appraisal_account.txt",delim = "|")
 colnames(appraisal_account_df) <- c(
   "parcel_number",              # (PK) unique 10 digit number assigned to each property
   "appraisal_account_type",     # describes how a parcel is classified
@@ -84,9 +88,14 @@ colnames(appraisal_account_df) <- c(
 )
 ```
 
-## Improvement
+## 3.3 Improvement Table
+
+The **Improvement** table contains information about buildings or improvements located on a parcel.
+
+It includes property type, neighborhood, building size, condition, quality, occupancy type, porch area, garage area, and fireplace information. These features are useful because building characteristics are often strongly related to property value.
+
 ```{r}
-improvement_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/improvement.txt",delim = "|")
+improvement_df <- read_delim("C:/Users/Gerta Hajrullahi/Desktop/MDS/SS26/Solution Eng/Project/datasources/improvement.txt",delim = "|")
 colnames(improvement_df) <- c(
   "parcel_number",                    # (PK) unique 10 digit number assigned to each property
   "building_id",                      # (PK) unique identifier for each improvement record on a parcel
@@ -116,9 +125,14 @@ colnames(improvement_df) <- c(
 )
 ```
 
-## Improvement Builtas
+## 3.4 Improvement Built-As Table
+
+The **Improvement Built-As** table describes the original purpose, construction style, and structural characteristics of buildings.
+
+It includes information such as HVAC type, exterior and interior materials, number of stories, roof cover, bedrooms, bathrooms, units, year built, and year remodeled. These variables help describe the physical characteristics of the property.
+
 ```{r}
-improvement_builtas_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/improvement_builtas.txt",delim = "|")
+improvement_builtas_df <- read_delim("C:/Users/Gerta Hajrullahi/Desktop/MDS/SS26/Solution Eng/Project/datasources/improvement_builtas.txt",delim = "|")
 colnames(improvement_builtas_df) <- c(
   "parcel_number",              # (PK) unique 10 digit number assigned to each property
   "building_id",                # (PK) unique identifier for each improvement record on a parcel
@@ -149,9 +163,14 @@ colnames(improvement_builtas_df) <- c(
 )
 ```
 
-## Improvement Detail
+## 3.5 Improvement Detail Table
+
+The **Improvement Detail** table contains detailed building characteristics, such as bathrooms, garages, decks, pools, fireplaces, storage, parking, waterfront features, and finished spaces.
+
+Because this table contains very detailed text descriptions, it is later used to create simplified boolean features that indicate whether certain property amenities are present.
+
 ```{r}
-improvement_detail_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/improvement_detail.txt",delim = "|")
+improvement_detail_df <- read_delim("C:/Users/Gerta Hajrullahi/Desktop/MDS/SS26/Solution Eng/Project/datasources/improvement_detail.txt",delim = "|")
 colnames(improvement_detail_df) <- c(
   "parcel_number",        # (PK) unique 10 digit number assigned to each property
   "building_id",          # (PK) unique identifier for each improvement record on a parcel
@@ -161,9 +180,14 @@ colnames(improvement_detail_df) <- c(
 )
 ```
 
-## Land Attribute
+## 3.6 Land Attribute Table
+
+The **Land Attribute** table contains descriptive land-related attributes.
+
+These attributes may describe features such as views, waterfront access, neighborhood characteristics, utilities, or other land-related conditions. Some of this information may contribute to property value, depending on the type of attribute.
+
 ```{r}
-land_attribute_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/land_attribute.txt",delim = "|")
+land_attribute_df <- read_delim("C:/Users/Gerta Hajrullahi/Desktop/MDS/SS26/Solution Eng/Project/datasources/land_attribute.txt",delim = "|")
 colnames(land_attribute_df) <- c(
   "parcel_number",           # (PK) unique 10 digit number assigned to each property
   "attribute",               # (PK) category assigned to the land attribute, such as residential, commercial, amenities, economic, functional, neighborhood, or utilities
@@ -171,9 +195,14 @@ colnames(land_attribute_df) <- c(
 )
 ```
 
-## Seg Merge
+## 3.7 Seg Merge Table
+
+The **Seg Merge** table contains information about parcel segregation and merge history.
+
+This table helps identify whether a parcel was split, merged, or changed over time. Most of this information is administrative, but it is reviewed to understand whether it may be relevant for the analysis.
+
 ```{r}
-seg_merge_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/seg_merge.txt",delim = "|")
+seg_merge_df <- read_delim("C:/Users/Gerta Hajrullahi/Desktop/MDS/SS26/Solution Eng/Project/datasources/seg_merge.txt",delim = "|")
 colnames(seg_merge_df) <- c(
   "seg_merge_number",        # (PK) unique number assigned to each segregation
   "parent_child_indicator",  # identifies whether the parcel is a parent parcel being replaced or a child parcel newly created by the segregation
@@ -184,9 +213,14 @@ colnames(seg_merge_df) <- c(
 )
 ```
 
-## Tax Account
+## 3.8 Tax Account Table
+
+The **Tax Account** table contains tax-related information, including account type, property type, use description, tax year, assessed land value, assessed improvement value, total market value, and taxable value.
+
+Some of these values are useful for understanding the property, while others may be removed later to avoid value leakage in predictive modeling.
+
 ```{r}
-tax_account_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/tax_account.txt",delim = "|")
+tax_account_df <- read_delim("C:/Users/Gerta Hajrullahi/Desktop/MDS/SS26/Solution Eng/Project/datasources/tax_account.txt",delim = "|")
 colnames(tax_account_df) <- c(
   "parcel_number",                    # (PK) unique 10 digit number assigned to each property
   "account_type",                     # account type, such as real property, structures, personal property, or mobile home
@@ -219,20 +253,35 @@ colnames(tax_account_df) <- c(
 )
 ```
 
-# Data Quality Checks
+# 4. Data Quality Checks
 
-Basic data quality checks were performed for each data source. These checks included the number of rows and columns, duplicate records, missing values, unique values per column, and detected data types. The purpose of these checks was to understand the structure, completeness, and potential quality issues of each table before joining or further analyzing the data.
+Before joining or analyzing the data, basic data quality checks are performed for each data source.
+
+The purpose of this step is to understand the structure, completeness, and potential quality issues of each table. The checks include the number of rows, number of columns, duplicate rows, total missing values, and number of columns with missing values.
 
 ```{r}
 # function for data quality checks for each of the dataframes
 data_quality_check <- function(df, table_name) {
+  missing_by_col <- sapply(df, function(x) {
+    
+    x_char <- as.character(x)
+    
+    sum(
+      is.na(x) |
+        is.na(x_char) |
+        x_char == "" |
+        x_char == "NA" |
+        x_char == " "
+    )
+  })
+  
   data.frame(
     table_name = table_name,
     rows = nrow(df),
     columns = ncol(df),
     duplicate_rows = sum(duplicated(df)),
-    total_missing_values = sum(is.na(df) | df == "", na.rm = TRUE),
-    columns_with_missing_values = sum(colSums(is.na(df) | df == "", na.rm = TRUE) > 0),
+    total_missing_values = sum(missing_by_col),
+    columns_with_missing_values = sum(missing_by_col > 0),
     stringsAsFactors = FALSE
   )
 }
@@ -250,7 +299,10 @@ metadata_dfs <- list(
 )
 ```
 
-Summary table for all dataframes.
+## 4.1 Data Quality Summary
+
+A summary table is created for all data sources. This gives a high-level overview of the size and quality of each table.
+
 ```{r}
 quality_summary <- bind_rows(
   lapply(names(metadata_dfs), function(name) {
@@ -261,38 +313,14 @@ quality_summary <- bind_rows(
 quality_summary
 ```
 
-## Missing values
-```{r}
-# function for missing values in each column
-missing_by_column <- function(df, table_name) {
-  
-  data.frame(
-    table_name = table_name,
-    column_name = names(df),
-    missing_count = sapply(df, function(x) sum(is.na(x) | x == "", na.rm = TRUE)),
-    missing_percent = round(
-      sapply(df, function(x) mean(is.na(x) | x == "", na.rm = TRUE)) * 100,
-      2
-    ),
-    stringsAsFactors = FALSE
-  )
-}
-```
+From the summary table we can see that there are no duplicates in each of the tables. Columns with missing values will be further inspected.
 
-Missing values by column for each table.
-```{r}
-missing_summary <- bind_rows(
-  lapply(names(metadata_dfs), function(name) {
-    missing_by_column(metadata_dfs[[name]], name)
-  })
-)
+## 4.2 Parcel Number Check
 
-missing_summary %>%
-  filter(missing_count > 0) %>%
-  arrange(table_name, desc(missing_percent))
-```
+The parcel number is the main identifier used to connect the different data sources.
 
-Check whether the main identifier, parcel_number, repeats in each table.
+This step checks whether `parcel_number` is repeated in each table. Understanding this is important because repeated parcel numbers can create one-to-many or many-to-many relationships during joins.
+
 ```{r}
 parcel_duplicate_summary <- bind_rows(
   lapply(names(metadata_dfs), function(name) {
@@ -312,9 +340,110 @@ parcel_duplicate_summary <- bind_rows(
 parcel_duplicate_summary
 ```
 
-## Duplicates
+Tables appraisal_account and tax_account do not have repeated parcel numbers. This will be further investigated if this will cause a problem with joining the datasets.
+
+## 4.3 Missing Values by Column
+
+After the overall missing value summary, missing values are inspected at the column level.
+
+This helps identify columns with very high missingness. Columns with a high percentage of missing values are reviewed and may be excluded from the analysis if they are unlikely to provide reliable information.
 
 ```{r}
+# function for missing values in each column
+missing_by_column <- function(df, table_name) {
+  
+  data.frame(
+    table_name = table_name,
+    column_name = names(df),
+    missing_count = sapply(df, function(x) sum(is.na(x) | x == "", na.rm = TRUE)),
+    missing_percent = round(
+      sapply(df, function(x) mean(is.na(x) | x == "", na.rm = TRUE)) * 100,
+      2
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+```
+
+```{r}
+missing_summary <- bind_rows(
+  lapply(names(metadata_dfs), function(name) {
+    missing_by_column(metadata_dfs[[name]], name)
+  })
+)
+
+missing_summary %>%
+  filter(missing_count > 0) %>%
+  arrange(table_name, desc(missing_percent))
+```
+
+# 5. Column Selection Based on Missing Values
+
+Columns with a very high percentage of missing values are removed from selected tables.
+
+The goal of this step is to reduce noise and remove variables that are unlikely to be useful for modeling or interpretation due to lack of data.
+
+## 5.1 Appraisal Account Cleaning
+
+From the table above we can see that for appraisal_account columns waterfront_type, view_quality, group_account_number, business_name and submerged_area_square_feet have a high percentage of missing values (over 80%). This is why these columns will not be considered for the analysis.
+
+```{r}
+appraisal_account_analysis <- appraisal_account_df %>%
+  select(-waterfront_type, -view_quality, -group_account_number, -submerged_area_square_feet, -business_name)
+
+head(appraisal_account_analysis,2)
+```
+
+## 5.2 Improvement Cleaning
+
+For table improvement columns carport_square_feet, balcony_square_feet, basement_garage_door, attic_finished_square_feet, detached_garage_square_feet, mobile_home_total_length, mobile_home_make, mobile_home_serial_number, basement_finished_square_feet and basement_square_feet have a high percentage of missing values (over 80%). These columns will not be considered for the analysis.
+
+```{r}
+improvement_analysis <- improvement_df %>%
+  select(-carport_square_feet, -balcony_square_feet, -basement_garage_door, -attic_finished_square_feet, -detached_garage_square_feet, -mobile_home_total_length, -mobile_home_make, -mobile_home_serial_number, -basement_finished_square_feet, -basement_square_feet)
+
+head(improvement_analysis,2)
+```
+
+## 5.3 Improvement Built-As Cleaning
+
+For table improvement_builtas columns hvac, mobile_home_model, class_code and class_description have a high percentage of missing values (over 80%). These columns will not be considered for the analysis.
+
+```{r}
+improvement_builtas_analysis <- improvement_builtas_df %>%
+  select(-hvac, -mobile_home_model, -class_code, -class_description)
+head(improvement_builtas_analysis,2)
+```
+
+## 5.4 Tax Account Cleaning
+
+For table tax_account columns current_use_code_prior_year, current_use_code_current_year, located_on_parcel, exemption_type_current_year and exemption_type_prior_year have a high percentage of missing values (over 80%). These columns will not be considered for the analysis.
+
+```{r}
+tax_account_analysis <- tax_account_df %>%
+  select(-current_use_code_prior_year, -current_use_code_current_year, -located_on_parcel, -exemption_type_current_year, -exemption_type_prior_year)
+head(tax_account_analysis,2)
+```
+
+# 6. Duplicate Checks
+
+After removing high-missing columns, duplicate checks are repeated on the cleaned data sources.
+
+This confirms whether duplicate rows exist in any of the tables before joining them together.
+
+```{r}
+# list of the dataframes without the excluded columns
+metadata_dfs <- list(
+  sale = sale_df,
+  appraisal_account = appraisal_account_analysis,
+  improvement = improvement_analysis,
+  improvement_builtas = improvement_builtas_analysis,
+  improvement_detail = improvement_detail_df,
+  land_attribute = land_attribute_df,
+  seg_merge = seg_merge_df,
+  tax_account = tax_account_analysis
+)
+
 duplicate_summary <- bind_rows(
   lapply(names(metadata_dfs), function(name) {
     data.frame(
@@ -327,91 +456,2550 @@ duplicate_summary <- bind_rows(
 duplicate_summary
 ```
 
+There are no duplicates in any of the tables.
 
-## Unique Values 
-```{r}
-unique_values_by_column <- function(df, table_name) {
-  
-  data.frame(
-    table_name = table_name,
-    column_name = names(df),
-    unique_values = sapply(df, function(x) length(unique(x))),
-    stringsAsFactors = FALSE
-  )
-}
+# 7. Sales Filtering
 
-unique_summary <- bind_rows(
-  lapply(names(metadata_dfs), function(name) {
-    unique_values_by_column(metadata_dfs[[name]], name)
-  })
-)
+The Sale table is filtered to include only sales that are considered valid and confirmed.
 
-unique_summary
-```
-
-```{r}
-unique_summary %>%
-  arrange(desc(unique_values))
-```
-
-# Subsetting
-
-## Sale
-
-For this analysis, only sales that are marked as **confirmed** and **valid** will be considered. This ensures that the analysis focuses on transactions that were verified and are more likely to represent normal market value.
+For this analysis, only sales that are marked as valid, confirmed, have no exclusion reason, and have a positive sale price are kept. This helps ensure that the target variable reflects normal market transactions as much as possible.
 
 ```{r}
 sale_analysis <- sale_df %>%
   filter(
     valid_invalid == 1,
     confirmed_unconfirmed == 1,
-    is.na(exclude_reason) | exclude_reason == ""
+    is.na(exclude_reason) | exclude_reason == "",
+    !is.na(sale_price),
+    sale_price > 0
   )
 ```
+
+# 8. Joining the Data Sources
+
+The cleaned data sources are joined into one analysis dataset.
+
+The Sale table is used as the base table because it contains the target variable, `sale_price`. Other tables are joined using `parcel_number` and, where applicable, `building_id`.
+
+Because some tables contain multiple records per parcel or building, the join may create repeated rows. This is expected based on the structure of the data.
+
 ```{r}
+joined_df <- sale_analysis %>%
+  left_join(
+    appraisal_account_analysis,
+    by = "parcel_number",
+    suffix = c("_sale", "_appraisal")
+  ) %>%
+  left_join(
+    improvement_analysis,
+    by = "parcel_number",
+    suffix = c("", "_improvement")
+  ) %>%
+  left_join(
+    improvement_builtas_analysis,
+    by = c("parcel_number", "building_id"),
+    suffix = c("", "_builtas")
+  ) %>%
+  left_join(
+    improvement_detail_df,
+    by = c("parcel_number", "building_id"),
+    suffix = c("", "_detail")
+  ) %>%
+  left_join(
+    land_attribute_df,
+    by = "parcel_number",
+    suffix = c("", "_land")
+  ) %>%
+  left_join(
+    seg_merge_df,
+    by = "parcel_number",
+    suffix = c("", "_segmerge")
+  ) %>%
+  left_join(
+    tax_account_analysis,
+    by = "parcel_number",
+    suffix = c("", "_tax")
+  )
+
+head(joined_df, 2)
+```
+
+```{r}
+nrow(joined_df)
+```
+
+# 9. Unique Value Analysis
+
+After joining the tables, the number of unique values is checked for each column.
+
+This step helps identify columns with only one unique value, identifier-like columns, columns with very high cardinality, text columns that may need grouping, and variables that may not be useful for predictive modeling.
+
+```{r}
+unique_summary_joined <- data.frame(
+  column_name = names(joined_df),
+  unique_values = sapply(joined_df, function(x) n_distinct(x, na.rm = TRUE)),
+  stringsAsFactors = FALSE
+)
+
+unique_summary_joined %>%
+  arrange(desc(unique_values))
+```
+
+Columns with only one unique value will be identified, as they do not provide any variability for analysis and can be excluded from the analysis.
+
+```{r}
+cols_to_remove <- unique_summary_joined %>%
+  filter(unique_values <= 1) %>%
+  pull(column_name)
+
+joined_df <- joined_df %>%
+  select(-all_of(cols_to_remove))
+```
+
+# 10. Removing Identifier and Irrelevant Columns
+
+Identifier columns and text labels that are not useful for prediction are removed.
+
+Examples include transaction IDs, parcel IDs, building IDs, owner names, address-related fields, and administrative codes.
+
+```{r}
+columns_to_remove <- c(
+  # IDs
+  "etn", 
+  "parcel_number", 
+  "built_as_id",
+  "building_id",
+  "built_as_number",
+  "primary_occupancy_code",
+  "use_code",
+  "tax_code_area_prior_year",
+  "tax_code_area_current_year",
+  "range",
+  "township",
+  "section",
+  "quarter_section",
+  "site_address",
+  
+  # labeled columns
+  "grantor",
+  "grantee",
+  "subdivision_name",
+  "value_area_id",
+  "land_economic_area",
+  "neighborhood_extension",
+  "property_type_tax",
+  "attribute",
+  "attribute_description",
+  "built_as_description"
+)
+
+joined_df <- joined_df %>%
+  select(-all_of(columns_to_remove))
+```
+
+```{r}
+names(joined_df)
+```
+
+# 11. Feature Engineering
+
+Feature engineering is performed to simplify complex categorical variables and create more meaningful features for analysis.
+
+Several detailed text variables are grouped into broader categories to make them easier to interpret and more useful for modeling.
+
+## 11.1 Utility and Street Access Grouping
+
+Utility and street access variables are simplified into broader groups.
+
+This includes electric, sewer, water, and street access information. Grouping these values helps reduce category complexity while preserving important information about property usability and accessibility.
+
+```{r}
+
+joined_df <- joined_df %>%
+  mutate(
+    
+    utility_sewer = case_when(
+      utility_sewer %in% c("SEWER/SEPTIC INSTALLED","SEWER AVAILABLE","SEWER/SEPTIC AVAIL") ~ "Sewer/Septic Available or Installed",
+      utility_sewer %in% c("SEWER/SEPTIC NO","SEWER/SEPTIC NO PERC") ~ "No Sewer/Septic",
+      TRUE ~ NA_character_
+    ),
+    
+    utility_water = case_when(
+      utility_water %in% c("WATER INSTALLED", "WATER AVAILABLE") ~ "Water Available or Installed",
+      utility_water == "WATER NO" ~ "No Water",
+      TRUE ~ NA_character_
+    ),
+    
+    street_type = case_when(
+      street_type == "PAVED" ~ "Road Access",
+      street_type %in% c("STREET UNPAVED", "STREET NO ROAD") ~ "Limited or No Road Access",
+      TRUE ~ NA_character_
+    ),
+    
+    utility_electric = case_when(
+      utility_electric %in% c("POWER INSTALLED", "POWER AVAILABLE") ~ "Power Available or Installed",
+      utility_electric == "POWER NO - COMMENT" ~ "No Power",
+      TRUE ~ NA_character_
+    ),
+    
+    primary_occupancy_clean = str_trim(primary_occupancy_description),
+    primary_occupancy_group = case_when(
+      is.na(primary_occupancy_clean) ~ NA_character_,
+      str_detect(primary_occupancy_clean, regex("Single Family|Townhouse|Condo|Duplex|Triplex|Apartment|Apt|Residential|Studio Loft|Cabin", ignore_case = TRUE)) ~ "Residential",
+      str_detect(primary_occupancy_clean, regex("Mobile|Manufactured|MH Park|Title Elim MH", ignore_case = TRUE)) ~ "Mobile Home",
+      str_detect(primary_occupancy_clean, regex("Office|Bank|Medical|Geriatric|Hospital|Government|School|Education|Religious|Church|Fellowship", ignore_case = TRUE)) ~ "Institutional/Office/Services",
+      str_detect(primary_occupancy_clean, regex("Retail|Restaurant|Fast Food|C-Store|Gas|Store|Bar|Tavern|Hotel|Motel|Casino|Snack Bar|Auto Dealer|Dealership|Car Wash|Mini Lube|Automotive", ignore_case = TRUE)) ~ "Commercial/Retail/Hospitality",
+      str_detect(primary_occupancy_clean, regex("Warehouse|Storage|Industrial|Manufacturing|Hangar|Hanger|Flex|Garage|Quonset|Utility|Fuel Tank|Water Tank|Material|Shelter", ignore_case = TRUE)) ~ "Industrial/Storage/Utility",
+      str_detect(primary_occupancy_clean, regex("Agricultural|Barn|Stable|Horse|Poultry|Kennel", ignore_case = TRUE)) ~ "Agricultural/Outbuilding",
+      str_detect(primary_occupancy_clean, regex("Parking|Marina|Boat|RV Park|Recreational|Pool|Tennis|Clubhouse", ignore_case = TRUE)) ~ "Recreational/Parking/Other",
+      str_detect(primary_occupancy_clean, regex("Addon Only|Imps on", ignore_case = TRUE)) ~ "Improvement Only",
+      TRUE ~ "Other"
+    ),
+    
+    hvac_description_clean = str_trim(hvac_description),
+    hvac_group = case_when(
+      is.na(hvac_description) ~ NA_character_,
+      hvac_description_clean %in% c("Forced Air","Warm and Cool Air Zone","Floor/Wall Furnace","Floor Wall Furnace") ~ "Forced air or furnace",
+      hvac_description_clean %in% c("Electric","Electric Baseboard","Electric Wall","Space Heater") ~ "Electric heat", 
+      hvac_description_clean %in% c("Heat Pump","Heat Pump Individual Unit") ~ "Heat pump",
+      hvac_description_clean %in% c("Hot Water","Hot Water Baseboard","Hot Water Radiant","Hot Chilled Water","Radiant","Steam","Steam w/o Boiler") ~ "Water, steam, or radiant heat",
+      hvac_description_clean %in% c("Package Unit","Complete HVAC","Ventilation") ~ "Full HVAC or ventilation",
+      hvac_description_clean %in% c("None","No Heat") ~ "No heating",
+      TRUE ~ "Other"
+    )
+  )
+```
+
+## 11.2 Improvement Detail Feature Extraction
+
+The `detail_description` field contains specific characteristics of the improvements. By identifying key terms, new binary features are created to indicate the presence of certain amenities or property features.
+
+```{r}
+joined_df <- joined_df %>%
+  mutate(
+    detail_description_clean = detail_description,
+    has_bath_detail = str_detect(detail_description_clean, regex("Bath|Toilet|Shower|Sink|Fixture|Wet Bar|Laundry|Water Heater", ignore_case = TRUE)),
+    has_garage_or_carport_detail = str_detect(detail_description_clean, regex("Garage|Carport", ignore_case = TRUE)),
+    has_deck_or_porch_detail = str_detect(detail_description_clean, regex("Deck|Porch|Balcony|Entry|Open Slab|Concrete Slab", ignore_case = TRUE)),
+    has_pool_or_spa_detail = str_detect(detail_description_clean, regex("Pool|Hot Tub|Spa|Sauna|Tennis", ignore_case = TRUE)),
+    has_fireplace_detail = str_detect(detail_description_clean, regex("Fireplace|PreFab|Pre-Fab|Stove", ignore_case = TRUE)),
+    has_storage_detail = str_detect(detail_description_clean, regex("Storage|Shed|Freezer|Cooler|Warehouse|Material|Equipment", ignore_case = TRUE)),
+    has_waterfront_detail = str_detect(detail_description_clean, regex("Dock|Marina|Boat|Floats|Bulkhead|Pilings", ignore_case = TRUE)),
+    has_parking_detail = str_detect(detail_description_clean, regex("Parking", ignore_case = TRUE)),
+    has_finished_space_detail = str_detect(detail_description_clean, regex("Finished|Attic|Basement|Bsmnt|Office|Loft|Solar Room", ignore_case = TRUE))
+  )
+
+joined_df <- joined_df %>%
+  mutate(
+    detail_group = case_when(
+      has_bath_detail ~ "Plumbing or bath feature",
+      has_garage_or_carport_detail ~ "Garage or carport",
+      has_deck_or_porch_detail ~ "Outdoor living feature",
+      has_pool_or_spa_detail ~ "Leisure amenity",
+      has_fireplace_detail ~ "Fireplace or stove",
+      has_storage_detail ~ "Storage feature",
+      has_waterfront_detail ~ "Waterfront feature",
+      has_parking_detail ~ "Parking feature",
+      has_finished_space_detail ~ "Finished extra space",
+      is.na(detail_description_clean) ~ NA_character_,
+      TRUE ~ "Other"
+    )
+  )
+```
+
+## 11.3 Use Description Grouping
+
+The `use_description` field is grouped into broader categories. This creates a simplified `use_group` variable that helps distinguish residential, multi-unit housing, commercial, industrial, vacant land, public/community, and other use types.
+
+```{r}
+joined_df <- joined_df %>%
+  mutate(
+    use_description_clean = str_trim(use_description),
+    
+    use_group = case_when(
+      is.na(use_description_clean) ~ NA_character_,
+      
+      str_detect(use_description_clean, regex(
+        "SINGLE FAMILY|SFR|OTHER RESIDENTIAL|MOBILE|MFG HOME|MH TITLE|RM BOARDING HOUSE|RES INDIAN",
+        ignore_case = TRUE
+      )) ~ "Residential",
+      
+      str_detect(use_description_clean, regex(
+        "DUPLEX|TRIPLEX|FOURPLEX|MULTI FAM|APT|CONDO|SUBSIDIZED|RETIREMENT HOME|NURSING|GROUP QTRS|MH PARK",
+        ignore_case = TRUE
+      )) ~ "Multi-unit housing",
+      
+      str_detect(use_description_clean, regex(
+        "VACANT|VAC LND|VAC LAND|COMM VAC LAND|UNDEVELOPED|OTHER UNDEVEL|NOT A BLDG SITE|MAJOR PROBLEM|NO PERK",
+        ignore_case = TRUE
+      )) ~ "Vacant land",
+      
+      str_detect(use_description_clean, regex(
+        "RETAIL|STORE|MARKET|MART|RESTAURANT|FAST FOOD|TAVERN|BAR|HOTEL|MOTEL|CASINO|ESPRESSO|SALON|SPA|DISCOUNT|FURNISHINGS|APPAREL|FOOD RETAIL|SHOPPING|BIG BOX",
+        ignore_case = TRUE
+      )) ~ "Commercial",
+      
+      str_detect(use_description_clean, regex(
+        "OFFICE|BANK|CREDIT UNION|MEDICAL|DENTAL|VETERINARIAN|PROFESSIONAL|BUSINESS SERVICES|POSTAL|INSURANCE|REAL ESTATE|FINANCE",
+        ignore_case = TRUE
+      )) ~ "Office and services",
+      
+      str_detect(use_description_clean, regex(
+        "WAREHOUSE|STORAGE|MFG|MANUFACTURING|INDUSTRIAL|IND VAC|FAB METAL|LUMBER|WOOD MFG|FOOD MFG|CHEMICAL|PETRO|PAPER|PRINTING|MINING|QUARRY",
+        ignore_case = TRUE
+      )) ~ "Industrial or storage",
+      
+      str_detect(use_description_clean, regex(
+        "AUTO|CAR WASH|GAS STATION|FUELING|VEHICLE|RV SALES|USED CAR|MINI LUBE|REPAIR SERVICES",
+        ignore_case = TRUE
+      )) ~ "Vehicle related",
+      
+      str_detect(use_description_clean, regex(
+        "SCHOOL|UNIVERSITY|COLLEGE|EDUCATIONAL|RELIGIOUS|CHURCH|GOVERNMENT|FIRE STATION|PRISON|CEMETERIES|PUBLIC ASSEMBLY",
+        ignore_case = TRUE
+      )) ~ "Public and community services",
+      
+      str_detect(use_description_clean, regex(
+        "PARK|REC|GOLF|MARINA|BOAT|RESORT|CAMP|THEATER|CULTURAL|FISHING",
+        ignore_case = TRUE
+      )) ~ "Leisure amenities",
+      
+      str_detect(use_description_clean, regex(
+        "AGRI|FARM|FOREST|HORTICULTURAL|CULTIVATED|GREENBELT|OPEN SPACE|TIMBER|WETLAND",
+        ignore_case = TRUE
+      )) ~ "Agriculture or open space",
+      
+      str_detect(use_description_clean, regex(
+        "UTILITY|UTILITIES|WELL|WATER|DRAIN|COMMUNICATION|RIGHT OF WAY|TRANSPORT|TRANSIT|RAIL|AIRCRAFT|STREET",
+        ignore_case = TRUE
+      )) ~ "Utility or transportation",
+      
+      str_detect(use_description_clean, regex(
+        "MINERAL RIGHTS|TIDELANDS|WATER AREAS|TRANSFERRED DEVELOPMENT RIGHTS|FLOODWAY",
+        ignore_case = TRUE
+      )) ~ "Land rights or special land",
+      
+      TRUE ~ "Other"
+    )
+  )
+```
+
+# 12. Data Type Conversion
+
+Date columns are converted into proper date format.
+
+This is important because date variables can later be used to analyze time-based patterns, such as changes in sale prices across years or periods.
+
+```{r}
+joined_df$sale_date <- as.Date(
+  joined_df$sale_date,
+  format = "%m/%d/%Y"
+)
+
+joined_df$appraisal_date <- as.Date(
+  joined_df$appraisal_date,
+  format = "%m/%d/%Y"
+)
+```
+
+# 13. Categorical Redundancy Review Using Cramér's V
+
+Cramér’s V is used to examine relationships between categorical variables.
+
+This helps identify categorical features that may contain overlapping or redundant information. Highly related categorical variables are reviewed, and some are removed to reduce redundancy.
+
+```{r}
+# Select categorical columns
+cramers_vars <- c(
+  "deep_type",
+  "improved_vacant",
+  "appraisal_account_type_sale",
+  "appraisal_account_type_appraisal",
+  "utility_electric",
+  "utility_sewer",
+  "utility_water",
+  "street_type",
+  "property_type",
+  "condition",
+  "quality",
+  "primary_occupancy_group",
+  "hvac_group",
+  "detail_group",
+  "use_group",
+  "account_type",
+  "parent_child_indicator",
+  "continued_indicator"
+)
+
+categorical_df <- joined_df %>%
+  select(any_of(cramers_vars))
+
+# Function to calculate Cramer's V safely
+cramers_v <- function(x, y) {
+  tbl <- table(x, y)
+  
+  if (nrow(tbl) < 2 || ncol(tbl) < 2) {
+    return(NA)
+  }
+  
+  cramerV(tbl)
+}
+
+# Create empty matrix
+cat_vars <- names(categorical_df)
+
+cramers_matrix <- matrix(
+  NA,
+  nrow = length(cat_vars),
+  ncol = length(cat_vars),
+  dimnames = list(cat_vars, cat_vars)
+)
+
+# Fill matrix
+for (i in seq_along(cat_vars)) {
+  for (j in seq_along(cat_vars)) {
+    cramers_matrix[i, j] <- cramers_v(
+      categorical_df[[cat_vars[i]]],
+      categorical_df[[cat_vars[j]]]
+    )
+  }
+}
+
+# Plot heatmap
+corrplot(
+  cramers_matrix,
+  method = "color",
+  type = "upper",
+  tl.cex = 0.7,
+  tl.col = "black",
+  na.label = " "
+)
+```
+
+Correlated categorical features are removed.
+
+```{r}
+cols_to_exclude <- c(
+  # already used for filtering / not useful as model features
+  "valid_invalid",
+  "confirmed_unconfirmed",
+  "exclude_reason",
+  "improved_vacant",
+  "appraisal_account_type_sale",
+  "account_type",
+  "deep_type",
+  
+  # duplicate / redundant appraisal type information
+  "appraisal_account_type_sale",
+  
+  # parcel history/admin fields
+  "parent_child_indicator",
+  "continued_indicator",
+  
+  #other irrelevant columns
+  "completed_date",
+  
+   # administrative/date information
+  "appraisal_date",
+  
+  # raw detailed text columns replaced by grouped versions
+  "primary_occupancy_description",
+  "hvac_description",
+  "detail_type",
+  "detail_description",
+  "use_description",
+  
+  # too detailed / may not add much for a general model
+  "story_height",
+  "interior",
+  "roof_cover"
+)
+
+joined_df <- joined_df %>%
+  select(-contains("clean"))
+
+joined_df <- joined_df %>%
+  select(-any_of(cols_to_exclude))
+```
+
+# 14. Numeric Redundancy Review Using Correlation Matrix
+
+A numeric correlation matrix is used to examine relationships between numeric variables.
+
+This helps identify numeric features that are highly correlated with each other or may create multicollinearity problems. Some redundant or administrative numeric fields are removed from the dataset.
+
+```{r}
+# Select only numeric columns
+numeric_df <- joined_df %>%
+  select(where(is.numeric))
+
+# Create correlation matrix
+cor_matrix <- cor(
+  numeric_df,
+  use = "pairwise.complete.obs"
+)
+
+# View correlation matrix
+cor_matrix
+
+# Plot heatmap
+corrplot(
+  cor_matrix,
+  method = "color",
+  type = "upper",
+  tl.cex = 0.7,
+  tl.col = "black",
+  na.label = " "
+)
+```
+
+Redundant numeric features that are highly correlated with each other or with the target variable are removed to avoid multicollinearity issues in predictive modeling.
+
+```{r}
+numeric_cols_to_exclude <- c(
+  # administrative / historical fields
+  "parcel_count",
+  "seg_merge_number",
+  "tax_year",
+  "tax_year_prior",
+  "tax_year_current",
+  
+  # redundant year/age information
+  "adjusted_year_built",
+  "physical_age",
+  
+  # redundant value fields - these are assessor values and may leak price information
+  "land_value_prior_year",
+  "improvement_value_prior_year",
+  "total_market_value_prior_year",
+  "taxable_value_prior_year",
+  "land_value_current_year",
+  "improvement_value_current_year",
+  "total_market_value_current_year",
+  "taxable_value_current_year",
+  
+  # redundant land area fields - keep simpler parcel-level size fields
+  "land_gross_acres",
+  "land_gross_square_feet",
+  "land_net_acres",
+  "net_square_feet",
+  "built_as_square_feet",
+  
+  "units_detail",
+  "percent_complete",
+  "built_as_length",
+  "built_as_width",
+  "land_width",
+  "land_depth",
+  "land_gross_front_feet",
+  "sprinkler_square_feet",
+  "year_remodeled"
+)
+
+joined_df <- joined_df %>%
+  select(-any_of(numeric_cols_to_exclude))
+```
+
+# 15. Variance Check for Numeric Features
+
+The remaining numeric features are reviewed using summary statistics, including missing values, unique values, minimum, maximum, mean, median, standard deviation, and variance.
+
+This step helps identify variables with very low variation or unusual distributions that may not be useful for predictive modeling.
+
+```{r}
+numeric_summary <- joined_df %>%
+  select(where(is.numeric)) %>%
+  summarise(across(
+    everything(),
+    list(
+      missing = ~ sum(is.na(.x)),
+      unique_values = ~ n_distinct(.x, na.rm = TRUE),
+      min = ~ min(.x, na.rm = TRUE),
+      max = ~ max(.x, na.rm = TRUE),
+      mean = ~ mean(.x, na.rm = TRUE),
+      median = ~ median(.x, na.rm = TRUE),
+      sd = ~ sd(.x, na.rm = TRUE),
+      variance = ~ var(.x, na.rm = TRUE)
+    ),
+    .names = "{.col}_{.fn}"
+  )) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = c("column_name", ".value"),
+    names_pattern = "(.+)_(missing|unique_values|min|max|mean|median|sd|variance)"
+  ) %>%
+  arrange(sd)
+
+numeric_summary
+```
+
+# 16. Additional Feature Consolidation
+
+Some related features are combined or updated to reduce redundancy and improve consistency.
+
+For example, fireplace information is consolidated into one feature, and detail-based boolean indicators are updated using information from grouped detail categories and related numeric columns.
+
+## 16.1 Fireplace Consolidation
+
+Fireplace and `has_fireplace_detail` both indicate the presence of a fireplace. These features are combined into one fireplace indicator.
+
+```{r}
+joined_df <- joined_df %>%
+  mutate(
+    has_fireplace_detail = case_when(
+      fireplaces == 1 ~ TRUE,
+      has_fireplace_detail == TRUE ~ TRUE,
+      TRUE ~ FALSE
+    )
+  ) %>%
+  select(-any_of(c("fireplaces")))
+```
+
+```{r}
+joined_df
+```
+
+## 16.2 Detail Feature Consolidation
+
+Detail information is combined into grouped boolean features. This reduces the number of detailed text-based variables while keeping information about relevant property features.
+
+```{r}
+joined_df <- joined_df %>%
+  mutate(
+    has_fireplace_detail = coalesce(has_fireplace_detail, FALSE) | coalesce(detail_group == "Fireplace or stove", FALSE),
+    has_garage_or_carport_detail = coalesce(has_garage_or_carport_detail, FALSE) | coalesce(detail_group == "Garage or carport", FALSE),
+    has_deck_or_porch_detail = coalesce(has_deck_or_porch_detail, FALSE) | coalesce(detail_group == "Outdoor living feature", FALSE),
+    has_pool_or_spa_detail = coalesce(has_pool_or_spa_detail, FALSE) | coalesce(detail_group == "Leisure amenity", FALSE),
+    has_storage_detail = coalesce(has_storage_detail, FALSE) | coalesce(detail_group == "Storage feature", FALSE),
+    has_waterfront_detail = coalesce(has_waterfront_detail, FALSE) | coalesce(detail_group == "Waterfront feature", FALSE),
+    has_parking_detail = coalesce(has_parking_detail, FALSE) | coalesce(detail_group == "Parking feature", FALSE),
+    has_finished_space_detail = coalesce(has_finished_space_detail, FALSE) | coalesce(detail_group == "Finished extra space", FALSE),
+    has_bath_detail = coalesce(has_bath_detail, FALSE) | coalesce(detail_group == "Plumbing or bath feature", FALSE)
+  )
+joined_df <- joined_df %>%
+  select(-any_of("detail_group"))
+```
+
+# 17. Redundancy Checks
+
+Potentially overlapping features are compared before removal.
+
+This ensures that columns are not removed without first checking whether they provide additional useful information.
+
+## 17.1 Bathroom Detail Check
+
+Bathroom detail information is compared with the numeric bathroom count.
+
+```{r}
+joined_df %>%
+  group_by(has_bath_detail) %>%
+  summarise(
+    count = n(),
+    avg_bathrooms = mean(bathrooms, na.rm = TRUE),
+    median_bathrooms = median(bathrooms, na.rm = TRUE),
+    missing_bathrooms = sum(is.na(bathrooms)),
+    .groups = "drop"
+  )
+```
+
+```{r}
+joined_df <- joined_df %>%
+  mutate(
+    has_bath_detail = case_when(
+      has_bath_detail == TRUE ~ TRUE,
+      has_bath_detail == FALSE & !is.na(bathrooms) & bathrooms > 0 ~ TRUE,
+      TRUE ~ FALSE
+    )
+  )
+```
+
+## 17.2 Deck or Porch Detail Check
+
+Deck or porch detail information is compared with porch square footage.
+
+```{r}
+joined_df %>%
+  group_by(has_deck_or_porch_detail) %>%
+  summarise(
+    count = n(),
+    avg_porch_sqft = mean(porch_square_feet, na.rm = TRUE),
+    median_porch_sqft = median(porch_square_feet, na.rm = TRUE),
+    missing_porch_sqft = sum(is.na(porch_square_feet)),
+    .groups = "drop"
+  )
+```
+
+```{r}
+joined_df <- joined_df %>%
+  mutate(
+    has_deck_or_porch_detail = case_when(
+      has_deck_or_porch_detail == TRUE ~ TRUE,
+      has_deck_or_porch_detail == FALSE & !is.na(porch_square_feet) & porch_square_feet > 0 ~ TRUE,
+      TRUE ~ FALSE
+    )
+  )
+```
+
+## 17.3 Garage or Carport Detail Check
+
+Garage or carport detail information is compared with attached garage square footage.
+
+```{r}
+joined_df %>%
+  group_by(has_garage_or_carport_detail) %>%
+  summarise(
+    count = n(),
+    avg_attached_garage_sqft = mean(attached_garage_square_feet, na.rm = TRUE),
+    median_attached_garage_sqft = median(attached_garage_square_feet, na.rm = TRUE),
+    missing_attached_garage_sqft = sum(is.na(attached_garage_square_feet)),
+    .groups = "drop"
+  )
+```
+
+```{r}
+joined_df <- joined_df %>%
+  mutate(
+    has_garage_or_carport_detail = case_when(
+      has_garage_or_carport_detail == TRUE ~ TRUE,
+      has_garage_or_carport_detail == FALSE & !is.na(attached_garage_square_feet) & attached_garage_square_feet > 0 ~ TRUE,
+      TRUE ~ FALSE
+    )
+  )
+```
+
+## 17.4 Property Classification Overlap Check
+
+Property classification variables are compared with each other to identify redundant information.
+
+```{r}
+joined_df %>%
+  count(appraisal_account_type_appraisal, property_type, use_group, sort = TRUE)
+
+joined_df %>%
+  distinct(appraisal_account_type_appraisal, property_type, use_group) %>%
+  arrange(appraisal_account_type_appraisal, property_type, use_group)
+```
+
+The variables `appraisal_account_type_appraisal`, `property_type`, and `use_group` describe similar aspects of property classification. Since `use_group` provides a simplified and more interpretable version of property use, and `property_type` describes the building/improvement type, `appraisal_account_type_appraisal` was removed to reduce redundancy.
+
+```{r}
+joined_df <- joined_df %>%
+  select(-any_of("appraisal_account_type_appraisal"))
+```
+
+## 17.5 Sale Price Comparison for Detail Features
+
+The selected boolean features are compared against median sale price to evaluate whether they may still provide useful price-related information.
+
+```{r}
+joined_df %>%
+  group_by(has_bath_detail) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+joined_df %>%
+  group_by(has_deck_or_porch_detail) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+joined_df %>%
+  group_by(has_garage_or_carport_detail) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+joined_df %>%
+  group_by(has_parking_detail) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+Based on the comparison, `has_bath_detail` is removed because the numeric `bathrooms` column already provides more direct information.
+
+```{r}
+joined_df <- joined_df %>%
+  select(-any_of("has_bath_detail"))
+```
+
+# 18. Final Feature Set Before EDA
+
+After cleaning, grouping, and redundancy checks, the final dataset contains the selected features that will be used for further exploratory data analysis and modeling.
+
+```{r}
+joined_df <- joined_df %>% distinct()
+names(joined_df)
+```
+
+# 19. Data Dictionary for Prepared Dataset
+
+The data dictionary explains the final variables included in the analysis dataset.
+
+For each variable, the dictionary provides the variable name, a description, and the reason why the variable is useful for the analysis.
+
+| Variable | Description | Why it is useful |
+|-------------------|----------------------------------|-------------------|
+| `sale_date` | Date when the property sale was recorded or legally sold. | Helps capture market changes over time, such as price trends by year or period. |
+| `sale_price` | Recorded sale price of the property. This is the target variable for price prediction. | This is the value the model will try to predict. |
+| `buildings` | Number of buildings or improvements located on the parcel. | More buildings or improvements can affect property value. |
+| `land_net_square_feet` | Size of the individual parcel in square feet. | Land size is often an important factor in property value. |
+| `utility_electric` | Indicates whether electric power is installed, available, or not available for the property. | Utility access can influence usability and value. |
+| `utility_sewer` | Indicates whether sewer or septic service is installed, available, or not available. | Sewer or septic availability can affect development potential and property value. |
+| `utility_water` | Indicates whether water service is installed, available, or not available. | Water access is essential for property use and can affect value. |
+| `street_type` | Describes the type of road access to the property, such as paved road, unpaved road, or no road access. | Road access can influence accessibility, desirability, and value. |
+| `latitude` | Latitude coordinate of the parcel location. | Captures geographic location, which is highly relevant for property prices. |
+| `longitude` | Longitude coordinate of the parcel location. | Captures geographic location, which is highly relevant for property prices. |
+| `property_type` | Classification of the building or improvement type, such as residential, commercial, mobile home, or other property types. | Helps distinguish different types of structures that may follow different price patterns. |
+| `neighborhood` | Assessor neighborhood code representing an area with similar location and market characteristics. | Location and neighborhood are usually strong drivers of property price. |
+| `square_feet` | Total building square footage recorded for the property improvement. | Building size is one of the most important predictors of property value. |
+| `condition` | Overall condition of the structure, reflecting maintenance, upkeep, and depreciation. | Better condition can increase value, while poor condition can reduce value. |
+| `quality` | Quality rating of the structure, reflecting materials, workmanship, design, and construction quality. | Higher construction quality is usually associated with higher property value. |
+| `porch_square_feet` | Total square footage of porch areas associated with the property. | Additional outdoor living space may increase property appeal and value. |
+| `attached_garage_square_feet` | Total square footage of attached or built-in garage space. | Garage space can increase convenience, storage, and overall property value. |
+| `exterior` | Predominant exterior material or siding used on the building. | Exterior material can reflect construction quality, maintenance needs, and market appeal. |
+| `stories` | Number of floors or building levels above grade, excluding attic and basement areas. | Building layout and number of levels can influence usable space and buyer preference. |
+| `bedrooms` | Number of bedrooms listed for the residential property. | Bedroom count is a common and important housing characteristic for buyers. |
+| `bathrooms` | Number of bathrooms listed for the residential property, often represented as a decimal. | Bathroom count strongly affects comfort, functionality, and property value. |
+| `units` | Number of separate units within the building. | Helps distinguish single-unit from multi-unit properties, which can have different values. |
+| `year_built` | Year the building was originally constructed. | Property age can affect value, maintenance needs, and building standards. |
+| `primary_occupancy_group` | Simplified category describing the main occupancy or use of the building. | Helps group properties by broad use type, making patterns easier to analyze. |
+| `hvac_group` | Simplified category describing the heating, ventilation, or HVAC system type. | Heating and HVAC systems can affect comfort, energy efficiency, and value. |
+| `has_garage_or_carport_detail` | Boolean indicator showing whether garage or carport-related detail was recorded. | Captures additional parking or covered vehicle storage features. |
+| `has_deck_or_porch_detail` | Boolean indicator showing whether deck, porch, balcony, or outdoor living detail was recorded. | Outdoor living features can improve property appeal. |
+| `has_pool_or_spa_detail` | Boolean indicator showing whether pool, hot tub, spa, sauna, tennis, or similar leisure amenity detail was recorded. | Leisure amenities can add value for some properties. |
+| `has_fireplace_detail` | Boolean indicator showing whether fireplace or stove-related detail was recorded. | Fireplaces or stoves can increase comfort and market appeal. |
+| `has_storage_detail` | Boolean indicator showing whether storage-related detail was recorded. | Extra storage can improve functionality and usability. |
+| `has_waterfront_detail` | Boolean indicator showing whether dock, marina, boat, float, bulkhead, piling, or other waterfront-related detail was recorded. | Waterfront-related features can strongly influence property value. |
+| `has_parking_detail` | Boolean indicator showing whether parking-related detail was recorded. | Parking availability can affect convenience and property desirability. |
+| `has_finished_space_detail` | Boolean indicator showing whether finished attic, basement, office, loft, solar room, or other finished extra space was recorded. | Finished extra space can increase usable area and value. |
+| `use_group` | Simplified category describing the overall property use, such as residential, multi-unit housing, commercial, industrial, vacant land, public/community service, or other use types. | Helps separate properties with different use types and price behavior. |
+
+# 20. Transition to Exploratory Data Analysis
+
+After the data preparation and feature selection steps, the next phase is exploratory data analysis.
+
+The EDA will focus on understanding:
+
+-   The distribution of sale prices
+-   Price trends over time
+-   Relationships between numeric features and sale price
+-   Differences in sale price across categorical groups
+-   Outliers and unusual values
+-   Missing values in the final dataset
+-   Which features appear most relevant for house price prediction
+
+# 21. Exploratory Data Analysis
+
+The exploratory data analysis focuses on understanding the final prepared dataset before modeling. The main goal is to analyze the distribution of the target variable, investigate relationships between features and sale price, identify outliers, and understand which variables may be most relevant for price prediction.
+
+## 21.1 Target Variable Analysis: Sale Price
+
+The target variable for this project is `sale_price`. Before analyzing the relationship between house prices and other features, the distribution of sale prices is examined. This helps identify skewness, extreme values, and unusual transactions that may affect later modeling.
+
+```{r}
+summary(joined_df$sale_price)
+```
+
+The sale price distribution is strongly right-skewed. The median sale price is 303,000 USD, while the mean sale price is higher at 581,189 USD, indicating that very expensive properties are pulling the average upward. The minimum sale price is 1 USD, which is likely not a normal market transaction, and the maximum sale price is 198,274,450 USD, which is an extreme outlier. Therefore, sale price outliers should be investigated before modeling.
+
+```{r}
+joined_df %>%
+  summarise(
+    sales_below_10000 = sum(sale_price < 10000, na.rm = TRUE),
+    sales_below_50000 = sum(sale_price < 50000, na.rm = TRUE),
+    sales_above_1000000 = sum(sale_price > 1000000, na.rm = TRUE),
+    sales_above_5000000 = sum(sale_price > 5000000, na.rm = TRUE),
+    sales_above_10000000 = sum(sale_price > 10000000, na.rm = TRUE)
+  )
+```
+
+The outlier check shows that there are 1,954 sales below 10,000 USD and 10,458 sales below 50,000 USD. These very low sale prices may represent unusual transactions, partial sales, mobile homes, land-only sales, or records that do not reflect typical house market prices.
+
+On the upper end, there are 19,138 sales above 1,000,000 USD, 2,900 sales above 5,000,000 USD, and 1,639 sales above 10,000,000 USD. These high-value sales may represent luxury properties, commercial properties, multi-parcel transactions, or other non-standard residential sales. Therefore, the sale price distribution should be investigated further before deciding whether to filter outliers or keep them.
+
+### 21.1.1 Outliers lower than 10,000 USD
+
+```{r}
+# Very low sale prices
+joined_df %>%
+  filter(sale_price < 10000) %>%
+  select(sale_price, sale_date, property_type, use_group, square_feet, land_net_square_feet) %>%
+  arrange(sale_price) %>%
+  head(10)
+```
+
+As a first outlier-cleaning step, records with sale prices below 10,000 USD were removed. The inspection of low-price records showed that many of these transactions had extremely small sale prices, such as 1 USD, 50 USD, or 100 USD, which are unlikely to represent normal market transactions.
+
+```{r}
+joined_df <- joined_df %>%
+  filter(sale_price >= 10000)
+```
+
+### 21.1.2 Outliers higher than 10,000,000 USD
+
+```{r}
+# Very high sale prices
+joined_df %>%
+  filter(sale_price > 10000000) %>%
+  select(sale_price, sale_date, property_type, use_group, square_feet, land_net_square_feet) %>%
+  arrange(desc(sale_price)) %>%
+  head(20)
+```
+
+The inspection of the highest sale prices shows that the most expensive records are mainly industrial, commercial, or multi-unit properties. These properties have very large building areas and land sizes, such as industrial properties with more than 1,000,000 square feet of building area. Therefore, these extreme high-value records do not represent typical residential house sales and should be treated separately.
+
+For our analysis only residential properties will be included, so these high-value commercial and industrial sales will be removed.
+
+```{r}
+joined_df <- joined_df %>%
+  filter(
+    property_type == "Residential",
+    use_group == "Residential"
+  )
+joined_df <- joined_df %>%
+  distinct()
+
+nrow(joined_df)
+summary(joined_df$sale_price)
+```
+
+After filtering the dataset to residential properties and removing records with sale prices below 10,000 USD, the dataset contains 254,567 records. The sale price distribution is still right-skewed, but it is more representative of residential house sales. The median sale price is 320,000 USD, while the mean sale price is 397,055 USD, indicating that higher-priced residential properties still pull the average upward. The maximum sale price is 8,500,000 USD, which may represent luxury residential properties and should be reviewed further.
+
+### 21.1.3 Additional Feature Reduction
+
+The utility variables and and other variables are removed because they are highly imbalanced after filtering to residential properties. Almost all residential properties have electric, sewer/septic, and water access, so these columns add little variation for the remaining analysis.
+
+```{r}
+joined_df <- joined_df %>%
+  select(
+    -any_of(c(
+      "utility_electric",
+      "utility_sewer",
+      "utility_water",
+      "street_type",
+      "condition",
+      "property_type", 
+      "use_group",
+      "has_fireplace_detail",
+      "has_parking_detail"
+    ))
+  )
+
+joined_df <- joined_df %>%
+  distinct()
+```
+
+### 21.1.4 Target Variable Analysis: Sale Price Distribution
+
+```{r}
+p1 <- ggplot(joined_df, aes(x = sale_price)) +
+  geom_histogram(bins = 50) +
+  labs(
+    title = "Distribution of \nSale Price",
+    x = "Sale Price in USD",
+    y = "Number of Properties"
+  )
+
+p2 <- ggplot(joined_df, aes(x = sale_price)) +
+  geom_histogram(bins = 50) +
+  scale_x_log10() +
+  labs(
+    title = "Distribution of \nSale Price on \nLog Scale",
+    x = "Sale Price in USD, Log Scale",
+    y = "Number of Properties"
+  )
+
+p3 <- ggplot(joined_df, aes(y = sale_price)) +
+  geom_boxplot() +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price Outliers",
+    y = "Sale Price in USD, Log Scale"
+  )
+
+p1 + p2 + p3 + plot_layout(ncol = 3)
+```
+
+The histogram confirms that sale prices are right-skewed, meaning that most properties are concentrated in the lower and middle price ranges, while a smaller number of properties have very high sale prices. The log-scale histogram makes the distribution easier to interpret by reducing the visual impact of extreme high values. The boxplot also confirms the presence of high-value outliers, which is expected in property price data.
+
+## 21.2 Sale Price Over Time
+
+After analyzing the overall distribution of sale prices, the next step is to examine how sale prices changed over time. Since the dataset contains a `sale_date` variable, prices can be summarized by year to identify market trends and changes in typical sale prices.
+
+```{r}
+joined_df <- joined_df %>%
+  mutate(
+    sale_year = year(sale_date)
+  )
+
+sale_price_by_year <- joined_df %>%
+  group_by(sale_year) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    mean_sale_price = mean(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot(sale_price_by_year, aes(x = sale_year, y = median_sale_price)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Median Sale Price Over Time",
+    x = "Sale Year",
+    y = "Median Sale Price in USD"
+  )
+```
+
+This analysis shows how the typical sale price changed across years. The median sale price is used because it is less affected by extreme values than the mean sale price.
+
+The median sale price shows a clear upward trend over time. Prices increased gradually from the late 1990s to the mid-2000s, followed by a decline around the 2008–2010 period. After that, median sale prices started increasing again, with a stronger rise after approximately 2015. The strongest growth appears in the most recent years, where the median sale price reaches its highest levels. This suggests that `sale_date` or a derived time variable such as `sale_year` may be important for the price prediction model.
+
+```{r}
+joined_df <- joined_df %>%
+  mutate(
+    sale_year = lubridate::year(sale_date) # keeping it as a feature since it shows a clear relationship with sale price
+  )
+```
+
+## 21.3 Bivariate Analysis
+
+In this section, the relationship between `sale_price` and the remaining features is explored. The goal is to understand which variables may have a visible relationship with property prices and may therefore be useful for later modeling.
+
+The analysis is split into numeric, categorical, boolean, location, and time-based features.
+
+```{r}
+numeric_features <- c(
+  "buildings",
+  "land_net_square_feet",
+  "latitude",
+  "longitude",
+  "square_feet",
+  "porch_square_feet",
+  "attached_garage_square_feet",
+  "stories",
+  "bedrooms",
+  "bathrooms",
+  "units",
+  "year_built",
+  "sale_year"
+)
+
+categorical_features <- c(
+  "neighborhood",
+  "quality",
+  "exterior",
+  "primary_occupancy_group",
+  "hvac_group"
+)
+
+boolean_features <- c(
+  "has_garage_or_carport_detail",
+  "has_deck_or_porch_detail",
+  "has_pool_or_spa_detail",
+  "has_storage_detail",
+  "has_waterfront_detail",
+  "has_finished_space_detail"
+)
+
+categorical_features <- categorical_features[categorical_features %in% names(joined_df)]
+boolean_features <- boolean_features[boolean_features %in% names(joined_df)]
+```
+
+### 21.3.1 Numeric Feature Correlation with Sale Price
+
+```{r, fig.width=15, fig.height=5}
+# Correlation table
+numeric_correlations <- joined_df %>%
+  select(sale_price, all_of(numeric_features)) %>%
+  summarise(across(
+    all_of(numeric_features),
+    ~ cor(.x, sale_price, use = "pairwise.complete.obs")
+  )) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "feature",
+    values_to = "correlation"
+  ) %>%
+  mutate(
+    correlation = round(correlation, 3)
+  ) %>%
+  arrange(desc(abs(correlation)))
+
+# Plot
+correlation_plot <- ggplot(numeric_correlations, aes(
+  x = reorder(feature, correlation),
+  y = correlation
+)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Correlation Between Numeric Features and Sale Price",
+    x = "Numeric Feature",
+    y = "Correlation with Sale Price"
+  )
+
+# Table
+correlation_table <- tableGrob(
+  numeric_correlations,
+  rows = NULL
+)
+
+# Show plot and table side by side
+correlation_plot + wrap_elements(correlation_table) +
+  plot_layout(widths = c(2, 1))
+```
+
+The correlation results show that `sale_year` has the strongest positive correlation with `sale_price`, suggesting that prices increased over time. Building size, represented by `square_feet`, also has a clear positive relationship with sale price. Other property characteristics such as `bathrooms`, `porch_square_feet`, `attached_garage_square_feet`, and `bedrooms` also show positive correlations, meaning that larger or better-equipped homes tend to have higher sale prices.
+
+The correlations are moderate rather than extremely high, which means that no single numeric feature fully explains sale price on its own. This suggests that house prices are influenced by a combination of time, size, location, and property characteristics.
+
+### 21.3.2 Numeric Feature Visualization
+
+```{r, fig.width=12, fig.height=8}
+
+p1 <- ggplot(
+  joined_df %>% filter(!is.na(square_feet), !is.na(sale_price), sale_price > 0),
+  aes(x = square_feet, y = sale_price)
+) +
+  geom_point(alpha = 0.2) +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price vs Building Square Feet",
+    x = "Building Square Feet",
+    y = "Sale Price in USD, Log Scale"
+  )
+
+p2 <- ggplot(
+  joined_df %>% filter(!is.na(bathrooms), !is.na(sale_price), sale_price > 0),
+  aes(x = bathrooms, y = sale_price)
+) +
+  geom_boxplot(aes(group = bathrooms)) +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price by Number of Bathrooms",
+    x = "Bathrooms",
+    y = "Sale Price in USD, Log Scale"
+  )
+
+p3 <- ggplot(
+  joined_df %>% filter(!is.na(bedrooms), !is.na(sale_price), sale_price > 0),
+  aes(x = bedrooms, y = sale_price)
+) +
+  geom_boxplot(aes(group = bedrooms)) +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price by Number of Bedrooms",
+    x = "Bedrooms",
+    y = "Sale Price in USD, Log Scale"
+  )
+
+p4 <- ggplot(
+  joined_df %>% filter(!is.na(year_built), !is.na(sale_price), sale_price > 0),
+  aes(x = year_built, y = sale_price)
+) +
+  geom_point(alpha = 0.2) +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price vs Year Built",
+    x = "Year Built",
+    y = "Sale Price in USD, Log Scale"
+  )
+
+(p1 + p2) / (p3 + p4)
+```
+
+The numeric bivariate plots show that several property characteristics have a visible relationship with sale price. Building size has a positive relationship with sale price: as `square_feet` increases, sale prices generally tend to increase as well, although there is still a lot of variation. The bathroom and bedroom plots show that properties with more bathrooms and bedrooms generally have higher sale prices. However, the relationship is not perfectly linear, and there are some extreme values, especially for properties with unusually high numbers of bedrooms or bathrooms. The year-built plot suggests that newer properties tend to have somewhat higher sale prices, but the relationship is weaker and more scattered than for building size. This indicates that age alone does not explain sale price, but it may still provide useful information together with other features.
+
+```{r, fig.width=12, fig.height=8}
+p5 <- ggplot(
+  joined_df %>% filter(!is.na(land_net_square_feet), !is.na(sale_price), sale_price > 0),
+  aes(x = land_net_square_feet, y = sale_price)
+) +
+  geom_point(alpha = 0.2) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price vs Land Size",
+    x = "Land Net Square Feet, Log Scale",
+    y = "Sale Price in USD, Log Scale"
+  )
+
+p6 <- ggplot(
+  joined_df %>% filter(!is.na(porch_square_feet), !is.na(sale_price), sale_price > 0),
+  aes(x = porch_square_feet, y = sale_price)
+) +
+  geom_point(alpha = 0.2) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price vs Porch Square Feet",
+    x = "Porch Square Feet, Log Scale",
+    y = "Sale Price in USD, Log Scale"
+  )
+
+p7 <- ggplot(
+  joined_df %>% filter(!is.na(attached_garage_square_feet), !is.na(sale_price), sale_price > 0),
+  aes(x = attached_garage_square_feet, y = sale_price)
+) +
+  geom_point(alpha = 0.2) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price vs Attached Garage Square Feet",
+    x = "Attached Garage Square Feet, Log Scale",
+    y = "Sale Price in USD, Log Scale"
+  )
+
+p8 <- ggplot(
+  joined_df %>% filter(!is.na(buildings), !is.na(sale_price), sale_price > 0),
+  aes(x = buildings, y = sale_price)
+) +
+  geom_boxplot(aes(group = buildings)) +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price by Number of Buildings",
+    x = "Number of Buildings",
+    y = "Sale Price in USD, Log Scale"
+  )
+
+(p5 + p6) / (p7 + p8)
+```
+
+The additional numeric bivariate plots show that land size, porch area, garage area, and number of buildings also have relationships with sale price. `land_net_square_feet` shows a positive but scattered relationship with sale price. Larger land parcels tend to have higher prices, but the relationship is not very strong on its own. This suggests that land size matters, but location and building characteristics likely explain much of the remaining variation. `porch_square_feet` also shows a positive relationship with sale price. Properties with larger porch or outdoor living areas tend to have higher sale prices, although the points are widely spread. `attached_garage_square_feet` shows a visible positive pattern as well. Larger attached garage areas are generally associated with higher sale prices, which suggests that garage space may add value to a property. The number of buildings also appears related to sale price. Properties with more buildings tend to have higher median sale prices, although there are fewer observations for higher building counts. This means the relationship should be interpreted carefully.
+
+Overall, the numeric bivariate analysis suggests that sale price is related to property size, building size, garage size, outdoor space, number of bathrooms and bedrooms, year built, and sale year. However, the relationships are not perfect, indicating that price is influenced by multiple factors at the same time rather than by one single variable.
+
+### 21.3.4 **Numeric Feature Summary Table**
+
+| Importance level | Numeric features | Reason |
+|------------------------|------------------------|------------------------|
+| **Most important** | `sale_year` | Showed the strongest numeric relationship with sale price. Captures market changes over time. |
+| **Most important** | `square_feet` | Larger homes generally had higher sale prices. Building size is one of the strongest property characteristics. |
+| **Important** | `bathrooms`, `bedrooms` | More bathrooms and bedrooms were generally associated with higher sale prices. |
+| **Important** | `land_net_square_feet` | Larger land parcels tended to have higher prices, although the relationship was scattered. |
+| **Moderately important** | `porch_square_feet`, `attached_garage_square_feet` | Outdoor space and garage space were associated with higher sale prices. |
+| **Moderately important** | `year_built` | Newer homes tended to have somewhat higher prices, but the relationship was weaker and more scattered. |
+| **Less important / weaker** | `buildings`, `stories`, `units`, `latitude`, `longitude` | These may still be useful, but their individual numeric relationships with sale price were weaker or harder to interpret directly. |
+
+## 21.4 Categorical Features vs Sale Price
+
+After analyzing numeric features, categorical variables are analyzed to understand how sale prices differ across different property groups. Since sale prices are skewed and contain high-value outliers, the median sale price is used instead of the mean because it is less affected by extreme values.
+
+```{r}
+plot_categorical_vs_price <- function(df, column_name) {
+  df %>%
+    filter(!is.na(.data[[column_name]])) %>%
+    group_by(.data[[column_name]]) %>%
+    summarise(
+      count = n(),
+      median_sale_price = median(sale_price, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    arrange(desc(median_sale_price)) %>%
+    ggplot(aes(
+      x = reorder(.data[[column_name]], median_sale_price),
+      y = median_sale_price
+    )) +
+    geom_col() +
+    coord_flip() +
+    labs(
+      title = paste("Median Sale Price by", column_name),
+      x = column_name,
+      y = "Median Sale Price in USD"
+    )
+}
+```
+
+### 21.4.1 Main categorical features
+
+```{r, fig.width=12, fig.height=8}
+p2 <- plot_categorical_vs_price(joined_df, "quality")
+
+p2
+```
+
+### 21.4.3 Building Category Features
+
+```{r, fig.width=12, fig.height=8}
+p9 <- plot_categorical_vs_price(joined_df, "exterior")
+p10 <- plot_categorical_vs_price(joined_df, "hvac_group")
+
+(p9 + p10) 
+```
+
+### 21.4.4 Neighborhood Analysis
+
+Because `neighborhood` may have many values, show only the top 20 neighborhoods by number of records:
+
+```{r, fig.width=10, fig.height=8}
+top_neighborhoods <- joined_df %>%
+  count(neighborhood, sort = TRUE) %>%
+  slice_head(n = 20) %>%
+  pull(neighborhood)
+
+joined_df %>%
+  filter(neighborhood %in% top_neighborhoods) %>%
+  group_by(neighborhood) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(median_sale_price)) %>%
+  ggplot(aes(
+    x = reorder(as.factor(neighborhood), median_sale_price),
+    y = median_sale_price
+  )) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Median Sale Price by Top 20 Neighborhoods",
+    x = "Neighborhood",
+    y = "Median Sale Price in USD"
+  )
+```
+
+```{r}
+all_categorical_features <- c(
+  "neighborhood",
+  "quality",
+  "exterior",
+  "primary_occupancy_group",
+  "hvac_group"
+)
+
+categorical_count_summary <- bind_rows(
+  lapply(all_categorical_features, function(feature) {
+    joined_df %>%
+      filter(!is.na(.data[[feature]])) %>%
+      group_by(.data[[feature]]) %>%
+      summarise(
+        count = n(),
+        median_sale_price = median(sale_price, na.rm = TRUE),
+        .groups = "drop"
+      ) %>%
+      mutate(feature = feature) %>%
+      rename(category = .data[[feature]])
+  })
+)
+
+categorical_count_summary %>%
+  arrange(feature, desc(count))
 
 ```
 
 ```{r}
+# Removed because used for filtering
+categorical_cols_to_remove <- c(
+  "property_type",
+  "use_group",
+  "primary_occupancy_group"
+)
+
+joined_df <- joined_df %>%
+  select(-any_of(categorical_cols_to_remove))
+```
+
+### 21.4.6 Categorical Feature Summary
+
+The categorical bivariate analysis shows that several categorical variables are related to differences in median sale price.
+
+The `quality` variable shows the clearest and most meaningful pattern. Properties with higher quality ratings generally have higher median sale prices. For example, properties rated `Excellent`, `Very Good Plus`, and `Very Good` have much higher median sale prices than properties rated `Average`, `Fair`, or `Low`. This suggests that construction quality is an important factor in explaining property value.
+
+The `condition` variable is less straightforward. Most properties are classified as `Average`, while the other condition categories contain much fewer observations. Some smaller categories, such as `Poor` or `Very Poor`, do not follow a fully intuitive price pattern. Therefore, condition should be interpreted carefully, especially for categories with low counts.
+
+The utility variables show that properties with electric power, sewer/septic, and water available or installed generally have higher median sale prices than properties without these utilities. However, the groups without utilities contain very few observations, this is why these variables will not be considered for the further analysis.
+
+The `street_type` variable shows only a small difference between properties with road access and properties with limited or no road access. This suggests that street access may be less important in the filtered residential dataset, or that most properties already have adequate road access, this is why it is removed.
+
+The `exterior` and `hvac_group` variables show visible differences in median sale price across categories. Some exterior types and heating systems are associated with higher median prices, but several categories have low counts. These differences may also reflect other factors, such as location, property quality, or property age.
+
+The `property_type` and `use_group` variables only contain residential values after filtering the dataset. Therefore, they no longer explain differences in sale price within the current residential analysis dataset.
+
+The `neighborhood` variable shows strong differences in median sale price across neighborhood codes. This confirms that location is an important factor in property prices. However, some neighborhood categories have very few observations, so low-count neighborhoods should be handled carefully in later modeling.
+
+Overall, the categorical analysis suggests that `quality`, `neighborhood`, `hvac_group`, `exterior`, and utility availability may be useful categorical predictors. At the same time, category counts must be considered because small groups can produce unstable median sale prices.
+
+| Importance level | Features | Summary |
+|------------------------|------------------------|------------------------|
+| **Most important** | `quality`, `neighborhood` | These variables showed the clearest relationship with median sale price. Quality captures construction level, while neighborhood captures location differences. |
+| **Moderately important** | `exterior`, `hvac_group` | These variables showed visible price differences across categories, but some categories had low counts and may also reflect other factors such as quality, age, or location. |
+| **Weak / uncertain / removed** | `condition` | The pattern was less intuitive and several categories had low counts, so this variable should be interpreted carefully or removed. |
+| **Least important / removed** | `utility_electric`, `utility_sewer`, `utility_water`, `street_type`, `property_type`, `use_group` | These variables were either highly imbalanced, showed only small price differences, or contained only residential values after filtering. |
+
+## 21.5 Boolean Features vs Sale Price
+
+The boolean features indicate whether specific property details or amenities are present. These variables are analyzed by comparing median sale prices for properties where the feature is present versus not present.
+
+```{r}
+boolean_price_summary <- bind_rows(
+  lapply(boolean_features, function(feature) {
+    joined_df %>%
+      group_by(.data[[feature]]) %>%
+      summarise(
+        count = n(),
+        median_sale_price = median(sale_price, na.rm = TRUE),
+        mean_sale_price = mean(sale_price, na.rm = TRUE),
+        .groups = "drop"
+      ) %>%
+      mutate(feature = feature) %>%
+      rename(value = .data[[feature]])
+  })
+)
+
+boolean_price_summary
+
+ggplot(boolean_price_summary, aes(
+  x = feature,
+  y = median_sale_price,
+  fill = value
+)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  labs(
+    title = "Median Sale Price by Boolean Property Features",
+    x = "Feature",
+    y = "Median Sale Price in USD",
+    fill = "Feature Present"
+  )
+```
+
+```{r}
+boolean_feature_counts <- bind_rows(
+  lapply(boolean_features, function(feature) {
+    joined_df %>%
+      count(.data[[feature]]) %>%
+      mutate(feature = feature) %>%
+      rename(value = .data[[feature]])
+  })
+)
+
+boolean_feature_counts
+```
+
+The boolean feature count summary shows that most engineered features have both `TRUE` and `FALSE` values and can therefore provide useful variation for analysis. Garage/carport, deck/porch, fireplace, storage, waterfront, pool/spa, and finished-space indicators all contain both categories.
+
+However, some features are highly imbalanced. For example, `has_pool_or_spa_detail` is `TRUE` for only 3,272 records, and `has_waterfront_detail` is `TRUE` for only 2,067 records. These features may still be important because they are associated with higher median sale prices, but their small counts should be considered during modeling.
+
+```{r}
+joined_df <- joined_df %>%
+  select(-any_of("has_parking_detail"))
+```
+
+## 21.5.1 Boolean Features Summary
+
+| Importance level | Features | Summary |
+|------------------------|------------------------|------------------------|
+| **Most important** | `has_waterfront_detail`, `has_finished_space_detail` | These features showed clear differences in median sale price. Waterfront details were associated with much higher prices, while finished extra space added value across different home sizes. |
+| **Important** | `has_pool_or_spa_detail`, `has_garage_or_carport_detail`, `has_deck_or_porch_detail` | These features were generally associated with higher median sale prices. Pool/spa features were rare but potentially valuable, while garage/carport and deck/porch details represented useful property amenities. |
+| **Moderately important** | `has_storage_detail` | Storage details showed some price differences and may add useful information, but the relationship was weaker than waterfront, finished space, garage, or pool/spa features. |
+| **Weak / uncertain** | `has_fireplace_detail` | This feature did not show a strong positive pattern. It may not capture fireplace value consistently or may be related to older properties. This feature was removed. |
+| **Least important / removed** | `has_parking_detail` | This feature had no `TRUE` values after filtering to residential properties, so it provided no useful variation and was removed. This feature was removed. |
+
+## 21.6 Missing Values in the Final Dataset
+
+After completing the bivariate analysis, missing values are checked again in the final prepared dataset. This step helps identify which variables need imputation, replacement, or removal before modeling.
+
+```{r}
+missing_final <- data.frame(
+  column_name = names(joined_df),
+  missing_count = sapply(joined_df, function(x) sum(is.na(x))),
+  missing_percent = round(sapply(joined_df, function(x) mean(is.na(x))) * 100, 2),
+  stringsAsFactors = FALSE
+) %>%
+  arrange(desc(missing_percent))
+
+missing_final %>%
+  filter(missing_count > 0)
 
 ```
 
 ```{r}
+# Replace with 0
+joined_df <- joined_df %>%
+  mutate(
+    attached_garage_square_feet = case_when(
+      is.na(attached_garage_square_feet) & has_garage_or_carport_detail == FALSE ~ 0,
+      TRUE ~ attached_garage_square_feet
+    ),
+    porch_square_feet = case_when(
+      is.na(porch_square_feet) & coalesce(has_deck_or_porch_detail, FALSE) == FALSE ~ 0,
+      TRUE ~ porch_square_feet
+    )
+  )
 
+# Remove missing values
+joined_df <- joined_df %>%
+  filter(
+    !is.na(attached_garage_square_feet),
+    !is.na(porch_square_feet),
+    !is.na(land_net_square_feet),
+    !is.na(latitude),
+    !is.na(longitude),
+    !is.na(bedrooms),
+    !is.na(bathrooms),
+    !is.na(units)
+  )
 ```
+
+## 21.7 Key Findings from the Bivariate Analysis
+
+The following table summarizes the key findings from the exploratory data analysis regarding the relationships between features and sale price. This summary can help guide feature selection and engineering for the later modeling phase.
+
+| Importance area | Feature(s) | What the EDA showed | Interpretation |
+|------------------|------------------|------------------|------------------|
+| Time | `sale_year` | Sale year showed the strongest numeric relationship with `sale_price`. Median sale prices increased clearly over time. | Market timing is important because house prices changed substantially across years. |
+| Building size | `square_feet` | Larger homes generally had higher sale prices. | Building size is one of the most important property characteristics. |
+| Location | `neighborhood`, `latitude`, `longitude` | Median sale prices differed strongly across neighborhood codes. Latitude and longitude capture geographic location. | Location is a major driver of property value. |
+| Construction quality | `quality` | Higher quality ratings were associated with higher median sale prices. | Better construction quality generally increases property value. |
+| Rooms | `bathrooms`, `bedrooms` | Properties with more bathrooms and bedrooms generally had higher sale prices. | Room count reflects property size, comfort, and functionality. |
+| Land size | `land_net_square_feet` | Larger land parcels tended to have higher prices, but the relationship was scattered. | Land size matters, but it does not explain price on its own. |
+| Garage and outdoor space | `attached_garage_square_feet`, `porch_square_feet`, `has_garage_or_carport_detail`, `has_deck_or_porch_detail` | Garage space and porch/deck features were associated with higher median sale prices. | Parking and outdoor living space can increase property appeal and value. |
+| Amenities | `has_waterfront_detail`, `has_pool_or_spa_detail`, `has_finished_space_detail`, `has_storage_detail` | Waterfront and pool/spa features showed higher median prices, but they were rare. Finished space and storage also showed price differences. | Special amenities may add value, but rare features should be interpreted carefully. |
+| Utilities | `utility_electric`, `utility_sewer`, `utility_water` | Properties without utilities had lower median sale prices, but these categories had very small counts. | Utility access may affect value, but the small “no utility” groups should be treated with caution. |
+
+## 21.8 Interaction Analysis
+
+After analyzing individual variables, selected interactions between important features are explored. Interaction analysis helps show whether the relationship between a feature and `sale_price` changes depending on another feature.
+
+### 21.8.1 Square Feet × Quality
+
+```{r, fig.width=12, fig.height=10}
+quality_order <- c(
+  "Low",
+  "Low Plus",
+  "Fair",
+  "Fair Plus",
+  "Average",
+  "Average Plus",
+  "Good",
+  "Good Plus",
+  "Very Good",
+  "Very Good Plus",
+  "Excellent"
+)
+
+# Raw interaction plot
+p_raw <- ggplot(
+  joined_df %>%
+    filter(
+      !is.na(square_feet),
+      !is.na(sale_price),
+      !is.na(quality),
+      sale_price > 0
+    ) %>%
+    mutate(
+      quality = factor(quality, levels = quality_order, ordered = TRUE)
+    ),
+  aes(x = square_feet, y = sale_price, color = quality)
+) +
+  geom_point(alpha = 0.25) +
+  scale_y_log10() +
+  labs(
+    title = "Raw Interaction Between Building Size and Quality",
+    x = "Building Square Feet",
+    y = "Sale Price in USD, Log Scale",
+    color = "Quality"
+  )
+
+# Aggregated median plot
+p_aggregated <- joined_df %>%
+  filter(
+    !is.na(square_feet),
+    !is.na(quality),
+    !is.na(sale_price)
+  ) %>%
+  mutate(
+    quality = factor(quality, levels = quality_order, ordered = TRUE),
+    square_feet_group = cut(
+      square_feet,
+      breaks = quantile(square_feet, probs = seq(0, 1, 0.25), na.rm = TRUE),
+      include.lowest = TRUE
+    )
+  ) %>%
+  group_by(square_feet_group, quality) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(count >= 30) %>%
+  ggplot(aes(x = square_feet_group, y = median_sale_price, fill = quality)) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "Aggregated Median Sale Price by Building Size Group and Quality",
+    x = "Building Square Feet Group",
+    y = "Median Sale Price in USD",
+    fill = "Quality"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+p_raw / p_aggregated +
+  plot_layout(heights = c(1.2, 1))
+```
+
+The interaction plot between building size and quality shows that sale prices generally increase with larger building size. At the same time, higher quality categories tend to appear more often in the upper price range. This suggests that both building size and construction quality are important for sale price, and that larger homes with higher quality ratings tend to sell for higher prices.
+
+### 21.8.2 Bathrooms × Quality
+
+```{r, fig.width=10, fig.height=6}
+joined_df %>%
+  filter(
+    !is.na(bathrooms),
+    !is.na(quality),
+    !is.na(sale_price)
+  ) %>%
+  mutate(
+    quality = factor(quality, levels = quality_order, ordered = TRUE)
+  ) %>%
+  group_by(bathrooms, quality) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(count >= 30) %>%
+  ggplot(aes(x = bathrooms, y = median_sale_price, color = quality)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Interaction Between Bathrooms and Quality",
+    x = "Bathrooms",
+    y = "Median Sale Price in USD",
+    color = "Quality"
+  )
+```
+
+The interaction between bathrooms and quality shows that median sale price generally increases as the number of bathrooms increases. This pattern is especially visible for higher-quality homes. Properties with higher quality ratings, such as `Very Good`, `Very Good Plus`, and `Excellent`, tend to have higher median sale prices at similar bathroom counts compared with lower-quality properties.
+
+The lines also show that the effect of bathrooms is not the same for every quality level. For higher-quality homes, additional bathrooms are associated with much higher median sale prices, while for lower-quality homes the increase is more moderate. This suggests that bathrooms and quality interact: the value of additional bathrooms appears stronger when the overall construction quality is higher.
+
+Some fluctuations at higher bathroom counts should be interpreted carefully because there may be fewer observations in those groups.
+
+### 21.8.3 Square Feet × Sale Year
+
+This checks whether the value of larger homes changes over time.
+
+```{r, fig.width=10, fig.height=6}
+joined_df %>%
+  filter(
+    !is.na(square_feet),
+    !is.na(sale_year),
+    !is.na(sale_price)
+  ) %>%
+  mutate(
+    square_feet_group = cut(
+      square_feet,
+      breaks = quantile(square_feet, probs = seq(0, 1, 0.25), na.rm = TRUE),
+      include.lowest = TRUE
+    )
+  ) %>%
+  group_by(sale_year, square_feet_group) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(count >= 30) %>%
+  ggplot(aes(x = sale_year, y = median_sale_price, color = square_feet_group)) +
+  geom_line() +
+  labs(
+    title = "Median Sale Price Over Time by Building Size Group",
+    x = "Sale Year",
+    y = "Median Sale Price in USD",
+    color = "Square Feet Group"
+  )
+```
+
+The interaction between sale year and building size shows that median sale prices increased over time for all building-size groups. Larger homes consistently have higher median sale prices than smaller homes across the full time period.
+
+The price gap between smaller and larger homes also appears to become wider in more recent years. This suggests that building size and time interact: larger homes did not only remain more expensive, but their prices increased more strongly over time compared with smaller homes.
+
+The plot also shows a visible decline around the 2008–2010 period, followed by a recovery and stronger price growth after approximately 2015. This pattern is consistent across all building-size groups, but the increase is strongest for the largest homes.
+
+### 21.8.4 Neighborhood × Sale Year
+
+This checks whether price trends differ by neighborhood. Since there may be many neighborhoods, this uses the top 10 by number of records.
+
+```{r, fig.width=10, fig.height=6}
+top_neighborhoods <- joined_df %>%
+  count(neighborhood, sort = TRUE) %>%
+  slice_head(n = 10) %>%
+  pull(neighborhood)
+
+joined_df %>%
+  filter(
+    neighborhood %in% top_neighborhoods,
+    !is.na(sale_year),
+    !is.na(sale_price)
+  ) %>%
+  group_by(sale_year, neighborhood) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(count >= 20) %>%
+  ggplot(aes(x = sale_year, y = median_sale_price, color = as.factor(neighborhood))) +
+  geom_line() +
+  labs(
+    title = "Median Sale Price Over Time by Top Neighborhoods",
+    x = "Sale Year",
+    y = "Median Sale Price in USD",
+    color = "Neighborhood"
+  )
+```
+
+The interaction between neighborhood and sale year shows that median sale prices increased over time in all top neighborhoods, but the price levels and growth rates differ across neighborhoods. Some neighborhoods consistently have higher median sale prices than others, indicating that location is a key factor in property value.
+
+### 21.8.5 Land Size × Waterfront Detail
+
+This checks whether waterfront-related features change the relationship between land size and sale price.
+
+```{r, fig.width=10, fig.height=6}
+ggplot(
+  joined_df %>%
+    filter(
+      !is.na(land_net_square_feet),
+      !is.na(has_waterfront_detail),
+      !is.na(sale_price),
+      land_net_square_feet > 0,
+      sale_price > 0
+    ),
+  aes(x = land_net_square_feet, y = sale_price, color = has_waterfront_detail)
+) +
+  geom_point(alpha = 0.25) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(
+    title = "Interaction Between Land Size and Waterfront Detail",
+    x = "Land Net Square Feet, Log Scale",
+    y = "Sale Price in USD, Log Scale",
+    color = "Waterfront Detail"
+  )
+```
+
+### 21.8.6 Garage/Carport × Square Feet
+
+This checks whether garage/carport presence changes the relationship between building size and sale price.
+
+```{r, fig.width=10, fig.height=6}
+joined_df %>%
+  filter(
+    !is.na(square_feet),
+    !is.na(has_garage_or_carport_detail),
+    !is.na(sale_price)
+  ) %>%
+  mutate(
+    square_feet_group = cut(
+      square_feet,
+      breaks = quantile(square_feet, probs = seq(0, 1, 0.25), na.rm = TRUE),
+      include.lowest = TRUE
+    )
+  ) %>%
+  group_by(square_feet_group, has_garage_or_carport_detail) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(count >= 30) %>%
+  ggplot(aes(
+    x = square_feet_group,
+    y = median_sale_price,
+    fill = has_garage_or_carport_detail
+  )) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "Median Sale Price by Building Size and Garage/Carport Detail",
+    x = "Building Square Feet Group",
+    y = "Median Sale Price in USD",
+    fill = "Garage/Carport Detail"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+### 21.8.7 Pool/Spa × Quality
+
+This checks whether pool/spa amenities are associated with different price levels across construction quality groups.
+
+```{r, fig.width=10, fig.height=6}
+joined_df %>%
+  filter(
+    !is.na(has_pool_or_spa_detail),
+    !is.na(quality),
+    !is.na(sale_price)
+  ) %>%
+  group_by(quality, has_pool_or_spa_detail) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(count >= 30) %>%
+  ggplot(aes(
+    x = reorder(quality, median_sale_price),
+    y = median_sale_price,
+    fill = has_pool_or_spa_detail
+  )) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  labs(
+    title = "Median Sale Price by Quality and Pool/Spa Detail",
+    x = "Quality",
+    y = "Median Sale Price in USD",
+    fill = "Pool/Spa Detail"
+  )
+```
+
+### 21.8.8 Finished Space × Square Feet
+
+This checks whether finished extra space adds value across different home sizes.
+
+```{r, fig.width=10, fig.height=6}
+joined_df %>%
+  filter(
+    !is.na(square_feet),
+    !is.na(has_finished_space_detail),
+    !is.na(sale_price)
+  ) %>%
+  mutate(
+    square_feet_group = cut(
+      square_feet,
+      breaks = quantile(square_feet, probs = seq(0, 1, 0.25), na.rm = TRUE),
+      include.lowest = TRUE
+    )
+  ) %>%
+  group_by(square_feet_group, has_finished_space_detail) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(count >= 30) %>%
+  ggplot(aes(
+    x = square_feet_group,
+    y = median_sale_price,
+    fill = has_finished_space_detail
+  )) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "Median Sale Price by Building Size and Finished Extra Space",
+    x = "Building Square Feet Group",
+    y = "Median Sale Price in USD",
+    fill = "Finished Extra Space"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+### 21.8.9 Summary of Interaction Analysis
+
+| Interaction | Main finding | Interpretation |
+|------------------------|------------------------|------------------------|
+| `sale_year` × `neighborhood` | Median sale prices increased over time across the top neighborhoods, but growth patterns differed by neighborhood. | Time and location interact. Some neighborhoods experienced stronger price growth than others. |
+| `square_feet` × `quality` | Larger homes generally had higher sale prices, especially when they also had higher quality ratings. | Building size and construction quality reinforce each other. Large, high-quality homes tend to achieve the highest prices. |
+| `bathrooms` × `quality` | More bathrooms were associated with higher median sale prices, especially in higher-quality homes. | The value of additional bathrooms depends partly on the overall quality of the property. |
+| `square_feet` × `has_finished_space_detail` | Properties with finished extra space had higher median sale prices across all building-size groups. | Finished extra space appears to add value beyond the main building square footage. |
+| `quality` × `has_pool_or_spa_detail` | Pool or spa details were associated with higher median sale prices in several quality groups, especially higher-quality homes. | Pool/spa amenities may add value, but the feature is relatively rare and should be interpreted carefully. |
+| `land_net_square_feet` × `has_waterfront_detail` | Waterfront properties were rare, but appeared in higher price ranges. | Waterfront details may add value, especially when combined with land characteristics, but the small number of observations requires caution. |
+| `square_feet` × `has_garage_or_carport_detail` | Properties without garage/carport detail sometimes had slightly higher median sale prices within building-size groups. | This result is less intuitive and may reflect missing detail records, location effects, or that the indicator does not fully capture garage value. |
+
+Overall, the interaction analysis shows that the relationships between features and sale price are complex and often depend on other factors. Building size, construction quality, location, amenities, and time all interact in ways that influence property values. These interactions suggest that a multivariate modeling approach will be necessary to capture the combined effects of these features on sale price.
+
+## 21.9 EDA Conclusion
+
+The exploratory data analysis showed that \`sale_price\` is influenced by a combination of time, location, building characteristics, property quality, and selected amenities.
+
+The target variable \`sale_price\` was strongly right-skewed, with a small number of very high-value properties pulling the mean above the median. Very low sale prices below 10,000 USD were removed because they were unlikely to represent normal market transactions. The dataset was also filtered to residential properties, which made the sale price distribution more representative for the goal of predicting house prices.\
+\
+The time-based analysis showed that sale prices increased clearly over the years. The variable \`sale_year\` had the strongest numeric relationship with \`sale_price\`, indicating that market trends over time are an important factor in explaining property value.\
+\
+The numeric bivariate analysis showed that \`square_feet\`, \`bathrooms\`, \`bedrooms\`, \`land_net_square_feet\`, \`porch_square_feet\`, \`attached_garage_square_feet\`, and \`year_built\` are relevant numeric predictors. Larger homes, properties with more rooms, larger land parcels, garage space, and outdoor areas generally had higher sale prices.\
+\
+The categorical analysis showed that \`quality\` and \`neighborhood\` were the most important categorical variables. Higher quality ratings were associated with higher median sale prices, and median prices differed strongly across neighborhood codes. This confirms that both construction quality and location play an important role in property value. \`exterior\` and \`hvac_group\` also showed some useful differences, while variables such as utilities, street type, property type, and use group were removed because they were either highly imbalanced or no longer meaningful after filtering to residential properties.\
+\
+The boolean feature analysis showed that selected amenities may also contribute to property value. \`has_waterfront_detail\`, \`has_finished_space_detail\`, \`has_pool_or_spa_detail\`, \`has_garage_or_carport_detail\`, and \`has_deck_or_porch_detail\` showed meaningful differences in median sale price. However, rare features such as waterfront and pool/spa details should be interpreted carefully because they contain relatively few observations.\
+\
+The interaction analysis confirmed that sale price is not explained by single variables alone. Important interactions were observed between \`sale_year\` and \`neighborhood\`, \`square_feet\` and \`quality\`, \`bathrooms\` and \`quality\`, and \`square_feet\` with finished extra space. These findings suggest that the final model should be able to capture non-linear relationships and interactions between time, location, size, quality, and amenities.
+
+| Feature | Why it is important |
+|------------------------------------|------------------------------------|
+| `sale_year` | Captures market price changes over time. Sale prices increased clearly across years. |
+| `neighborhood` | Captures location differences, which strongly affect property prices. |
+| `latitude`, `longitude` | Provide precise geographic coordinates and help capture location patterns within and across neighborhoods. |
+| `square_feet` | Represents building size. Larger homes generally had higher sale prices. |
+| `quality` | Captures construction quality. Higher quality ratings were associated with higher median prices. |
+| `bathrooms` | More bathrooms were generally associated with higher sale prices. |
+| `bedrooms` | More bedrooms were generally associated with higher sale prices. |
+| `land_net_square_feet` | Represents land size. Larger parcels tended to have higher prices. |
+| `attached_garage_square_feet` | Garage space was associated with higher property value. |
+| `porch_square_feet` | Outdoor living space showed a positive relationship with sale price. |
+| `year_built` | Newer homes tended to have somewhat higher prices. |
+| `has_waterfront_detail` | Waterfront details were associated with much higher prices, although rare. |
+| `has_finished_space_detail` | Finished extra space added value across building-size groups. |
+| `has_pool_or_spa_detail` | Pool/spa features were associated with higher prices, although rare. |
+| `has_garage_or_carport_detail` | Garage/carport presence showed useful price differences. |
+| `has_deck_or_porch_detail` | Deck/porch details were associated with higher median sale prices. |
 
 ```{r}
+important_features <- c(
+  "sale_price",
+  "sale_year",
+  "neighborhood",
+  "latitude",
+  "longitude",
+  "square_feet",
+  "quality",
+  "bathrooms",
+  "bedrooms",
+  "land_net_square_feet",
+  "attached_garage_square_feet",
+  "porch_square_feet",
+  "year_built",
+  "has_waterfront_detail",
+  "has_finished_space_detail",
+  "has_pool_or_spa_detail",
+  "has_garage_or_carport_detail",
+  "has_deck_or_porch_detail"
+)
 
+joined_df <- joined_df %>%
+  select(any_of(important_features))
+final_analytics_df <- joined_df %>%
+  distinct()
+
+head(final_analytics_df,10)
 ```
+
+# 22. Advanced EDA and Feature Engineering
+
+After the main exploratory data analysis, additional derived features are created to better understand how sale price relates to size, quality, location, and selected property amenities.
+
+The goal of this step is not only to inspect individual variables, but also to create more meaningful feature combinations. Some of these variables are useful for interpretation only, while others may later be useful for modeling.
+
+Important note: variables that are calculated directly from `sale_price`, such as `price_per_sqft` and `price_category`, should not be used as predictors in the final regression model because they contain information from the target variable.
+
+## 22.1 Starting Point: Final Analytics Dataset
+
+The advanced EDA uses the final analytics dataset, which contains the most important features identified during the previous EDA steps.
 
 ```{r}
-
+head(final_analytics_df, 10)
+dim(final_analytics_df)
+names(final_analytics_df)
 ```
+
+## 22.2 Price per Square Foot
+
+Price per square foot is created to normalize sale price by building size. This helps compare properties of different sizes and identify whether a property is expensive because it is large or because each square foot is highly valued.
+
+This variable is useful for EDA, but it should not be used as a predictor in the final regression model because it is calculated using sale_price.
 
 ```{r}
+final_analytics_df <- final_analytics_df %>%
+  mutate(
+    price_per_sqft = ifelse(
+      !is.na(square_feet) & square_feet > 0,
+      sale_price / square_feet,
+      NA
+    )
+  )
 
+summary(final_analytics_df$price_per_sqft)
+ggplot(
+  final_analytics_df %>%
+    filter(!is.na(price_per_sqft), price_per_sqft > 0),
+  aes(x = price_per_sqft)
+) +
+  geom_histogram(bins = 50) +
+  scale_x_log10() +
+  labs(
+    title = "Distribution of Price per Square Foot",
+    x = "Price per Square Foot in USD, Log Scale",
+    y = "Number of Properties"
+  )
 ```
+
+The distribution of `price_per_sqft` is concentrated mostly around the middle range, with most properties falling roughly between 100 and 300 USD per square foot. The log scale helps reduce the influence of extreme values and makes the distribution easier to read.
+
+The distribution is still slightly right-skewed, meaning that some properties have a much higher price per square foot than most others. These high values may represent very desirable locations, high-quality homes, waterfront properties, or unusual records.
+
+## 22.3 Size-Based Features
+
+Additional size-based features are created to measure property size more broadly. While square_feet captures the main building size, other areas such as porch space and garage space may also contribute to value.
 
 ```{r}
+final_analytics_df <- final_analytics_df %>%
+  mutate(
+    total_extra_area = porch_square_feet + attached_garage_square_feet,
+    total_size_score = square_feet + porch_square_feet + attached_garage_square_feet,
+    building_to_land_ratio = ifelse(
+      !is.na(land_net_square_feet) & land_net_square_feet > 0,
+      square_feet / land_net_square_feet,
+      NA
+    )
+  )
+final_analytics_df %>%
+  summarise(
+    min_total_extra_area = min(total_extra_area, na.rm = TRUE),
+    median_total_extra_area = median(total_extra_area, na.rm = TRUE),
+    mean_total_extra_area = mean(total_extra_area, na.rm = TRUE),
+    max_total_extra_area = max(total_extra_area, na.rm = TRUE),
+    
+    min_total_size_score = min(total_size_score, na.rm = TRUE),
+    median_total_size_score = median(total_size_score, na.rm = TRUE),
+    mean_total_size_score = mean(total_size_score, na.rm = TRUE),
+    max_total_size_score = max(total_size_score, na.rm = TRUE),
+    
+    min_building_to_land_ratio = min(building_to_land_ratio, na.rm = TRUE),
+    median_building_to_land_ratio = median(building_to_land_ratio, na.rm = TRUE),
+    mean_building_to_land_ratio = mean(building_to_land_ratio, na.rm = TRUE),
+    max_building_to_land_ratio = max(building_to_land_ratio, na.rm = TRUE)
+  )
+p1 <- ggplot(
+  final_analytics_df %>%
+    filter(!is.na(total_size_score), total_size_score > 0),
+  aes(x = total_size_score, y = sale_price)
+) +
+  geom_point(alpha = 0.2) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price vs Total Size Score",
+    x = "Total Size Score, Log Scale",
+    y = "Sale Price in USD, Log Scale"
+  )
 
+p2 <- ggplot(
+  final_analytics_df %>%
+    filter(!is.na(building_to_land_ratio), building_to_land_ratio > 0),
+  aes(x = building_to_land_ratio, y = sale_price)
+) +
+  geom_point(alpha = 0.2) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price vs Building-to-Land \nRatio",
+    x = "Building-to-Land Ratio, Log Scale",
+    y = "Sale Price in USD, Log Scale"
+  )
+
+p1 + p2
 ```
+
+The size-based features help capture different aspects of property size. total_size_score combines the main building area with porch and garage space, while building_to_land_ratio measures how much building area exists relative to the land area.
+
+The size-based feature analysis shows that `total_size_score` has a clear positive relationship with `sale_price`. Properties with a higher total size score generally have higher sale prices. This confirms that combining building square footage with porch and attached garage area provides a useful broader measure of property size.
+
+The `building_to_land_ratio` plot is less clear. Most properties are concentrated in a similar range, and the relationship with sale price is highly scattered. This suggests that the ratio between building size and land size does not explain sale price as clearly as the total size score. The ratio may still capture some property structure information, but it appears less important than direct size measures such as `square_feet` or `total_size_score`.
+
+Overall, `total_size_score` appears useful for advanced EDA and potentially for modeling, while `building_to_land_ratio` should be treated as a weaker feature and reviewed later using model-based feature importance.
+
+## 22.4 Quality Score
+
+The quality variable is an ordered categorical feature. To make it easier to analyze and use in interaction features, it is converted into a numeric quality score 1-11.
 
 ```{r}
+quality_order <- c(
+  "Low",
+  "Low Plus",
+  "Fair",
+  "Fair Plus",
+  "Average",
+  "Average Plus",
+  "Good",
+  "Good Plus",
+  "Very Good",
+  "Very Good Plus",
+  "Excellent"
+)
 
+final_analytics_df <- final_analytics_df %>%
+  mutate(
+    quality_score = as.numeric(factor(
+      quality,
+      levels = quality_order,
+      ordered = TRUE
+    ))
+  )
+
+final_analytics_df %>%
+  count(quality, quality_score) %>%
+  arrange(quality_score)
+final_analytics_df %>%
+  filter(!is.na(quality_score), !is.na(sale_price)) %>%
+  group_by(quality_score, quality) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  ggplot(aes(x = quality_score, y = median_sale_price)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Median Sale Price by Quality Score",
+    x = "Quality Score",
+    y = "Median Sale Price in USD"
+  )
 ```
+
+`quality_score` is a very useful derived feature because it converts the ordered quality categories into a numeric scale and shows a strong relationship with sale price.
+
+## 22.5 Room Density Features
+
+Bathroom and bedroom counts are useful, but their meaning depends on the size of the home. Room density features are created to measure how many bathrooms or bedrooms a property has relative to its building size.
 
 ```{r}
+final_analytics_df <- final_analytics_df %>%
+  mutate(
+    bathrooms_per_1000_sqft = ifelse(
+      !is.na(square_feet) & square_feet > 0,
+      bathrooms / (square_feet / 1000),
+      NA
+    ),
+    bedrooms_per_1000_sqft = ifelse(
+      !is.na(square_feet) & square_feet > 0,
+      bedrooms / (square_feet / 1000),
+      NA
+    )
+  )
+final_analytics_df %>%
+  summarise(
+    median_bathrooms_per_1000_sqft = median(bathrooms_per_1000_sqft, na.rm = TRUE),
+    mean_bathrooms_per_1000_sqft = mean(bathrooms_per_1000_sqft, na.rm = TRUE),
+    median_bedrooms_per_1000_sqft = median(bedrooms_per_1000_sqft, na.rm = TRUE),
+    mean_bedrooms_per_1000_sqft = mean(bedrooms_per_1000_sqft, na.rm = TRUE)
+  )
+p1 <- ggplot(
+  final_analytics_df %>%
+    filter(!is.na(bathrooms_per_1000_sqft), bathrooms_per_1000_sqft > 0),
+  aes(x = bathrooms_per_1000_sqft)
+) +
+  geom_histogram(bins = 50) +
+  labs(
+    title = "Bathrooms per 1,000 Square Feet",
+    x = "Bathrooms per 1,000 Square Feet",
+    y = "Number of Properties"
+  )
 
+p2 <- ggplot(
+  final_analytics_df %>%
+    filter(!is.na(bedrooms_per_1000_sqft), bedrooms_per_1000_sqft > 0),
+  aes(x = bedrooms_per_1000_sqft)
+) +
+  geom_histogram(bins = 50) +
+  labs(
+    title = "Bedrooms per 1,000 Square Feet",
+    x = "Bedrooms per 1,000 Square Feet",
+    y = "Number of Properties"
+  )
+
+p1 + p2
 ```
+
+Bathroom and bedroom density are useful derived features because they adjust room counts for property size.
+
+## 22.6 Interaction Features
+
+The previous interaction analysis showed that sale price is affected by combinations of variables. Therefore, selected interaction features are created to capture combined effects between size, quality, location, and amenities.
 
 ```{r}
+final_analytics_df <- final_analytics_df %>%
+  mutate(
+    square_feet_quality_interaction = square_feet * quality_score,
+    bathrooms_quality_interaction = bathrooms * quality_score,
+    finished_space_size_interaction = square_feet * as.numeric(has_finished_space_detail),
+    garage_size_interaction = attached_garage_square_feet * as.numeric(has_garage_or_carport_detail),
+    porch_size_interaction = porch_square_feet * as.numeric(has_deck_or_porch_detail),
+    waterfront_land_interaction = land_net_square_feet * as.numeric(has_waterfront_detail)
+  )
+final_analytics_df %>%
+  select(
+    square_feet_quality_interaction,
+    bathrooms_quality_interaction,
+    finished_space_size_interaction,
+    garage_size_interaction,
+    porch_size_interaction,
+    waterfront_land_interaction
+  ) %>%
+  summary()
+p1 <- ggplot(
+  final_analytics_df %>%
+    filter(!is.na(square_feet_quality_interaction), square_feet_quality_interaction > 0),
+  aes(x = square_feet_quality_interaction, y = sale_price)
+) +
+  geom_point(alpha = 0.2) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price vs Size-Quality \nInteraction",
+    x = "Square Feet × Quality Score, Log Scale",
+    y = "Sale Price in USD, Log Scale"
+  )
 
+p2 <- ggplot(
+  final_analytics_df %>%
+    filter(!is.na(bathrooms_quality_interaction), bathrooms_quality_interaction > 0),
+  aes(x = bathrooms_quality_interaction, y = sale_price)
+) +
+  geom_point(alpha = 0.2) +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price vs Bathroom-Quality \nInteraction",
+    x = "Bathrooms × Quality Score",
+    y = "Sale Price in USD, Log Scale"
+  )
+
+p3 <- ggplot(
+  final_analytics_df %>%
+    filter(!is.na(finished_space_size_interaction), finished_space_size_interaction > 0),
+  aes(x = finished_space_size_interaction, y = sale_price)
+) +
+  geom_point(alpha = 0.2) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price vs Finished Space-Size \nInteraction",
+    x = "Square Feet × Finished Space Detail, Log Scale",
+    y = "Sale Price in USD, Log Scale"
+  )
+
+p4 <- ggplot(
+  final_analytics_df %>%
+    filter(!is.na(waterfront_land_interaction), waterfront_land_interaction > 0),
+  aes(x = waterfront_land_interaction, y = sale_price)
+) +
+  geom_point(alpha = 0.2) +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(
+    title = "Sale Price vs Waterfront-Land \nInteraction",
+    x = "Land Size × Waterfront Detail, Log Scale",
+    y = "Sale Price in USD, Log Scale"
+  )
+
+(p1 + p2) / (p3 + p4)
 ```
+
+The interaction-feature plots show that several combined variables have meaningful relationships with sale price.
+
+The `square_feet_quality_interaction` shows a positive relationship with sale price. Properties with larger building size and higher quality scores tend to have higher sale prices. This confirms that size and quality reinforce each other.
+
+The `bathrooms_quality_interaction` also shows a positive relationship with sale price, although the plot is more concentrated. Homes with more bathrooms and higher quality scores tend to appear in higher price ranges.
+
+The `finished_space_size_interaction` shows that properties with finished extra space and larger building size generally have higher sale prices. This supports the earlier finding that finished extra space adds value beyond the main square footage.
+
+The `waterfront_land_interaction` is based on fewer observations because waterfront features are rare. However, the points appear mostly in higher price ranges, suggesting that waterfront-related land characteristics may contribute to higher property values.
+
+Overall, these plots support the idea that interaction features can help capture combined effects between important variables. The most useful interaction features appear to be size-quality, bathroom-quality, finished-space-size, and waterfront-land interactions.
+
+## 22.7 Location Clustering
+
+Location is one of the most important drivers of property value. While neighborhood captures location as a categorical variable, latitude and longitude provide more precise geographic information. Location clusters are created using k-means clustering based on latitude and longitude.
 
 ```{r}
+location_data <- final_analytics_df %>%
+  filter(!is.na(latitude), !is.na(longitude)) %>%
+  select(latitude, longitude)
 
+set.seed(123)
+
+location_clusters <- kmeans(
+  scale(location_data),
+  centers = 10
+)
+
+final_analytics_df$location_cluster <- NA
+
+final_analytics_df$location_cluster[
+  !is.na(final_analytics_df$latitude) & !is.na(final_analytics_df$longitude)
+] <- location_clusters$cluster
+
+final_analytics_df <- final_analytics_df %>%
+  mutate(
+    location_cluster = as.factor(location_cluster)
+  )
+location_cluster_summary <- final_analytics_df %>%
+  group_by(location_cluster) %>%
+  summarise(
+    count = n(),
+    median_sale_price = median(sale_price, na.rm = TRUE),
+    mean_sale_price = mean(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(median_sale_price))
+
+location_cluster_summary
+ggplot(final_analytics_df, aes(x = longitude, y = latitude, color = location_cluster)) +
+  geom_point(alpha = 0.4) +
+  labs(
+    title = "Location Clusters Based on Latitude and Longitude",
+    x = "Longitude",
+    y = "Latitude",
+    color = "Location Cluster"
+  )
 ```
+
+The location clustering analysis shows that properties can be grouped into clear geographic clusters using latitude and longitude. The clusters represent different spatial areas in the dataset and provide a more flexible way to capture location than using neighborhood codes alone.
+
+The map shows that most clusters are geographically compact, meaning that the clustering successfully grouped nearby properties together. Some clusters cover larger or more spread-out areas, which may reflect rural or less densely populated regions.
+
+Because location is one of the most important drivers of property value, these clusters may be useful for modeling. They can help capture regional price differences, especially when combined with other features such as building size, quality, and sale year.
 
 ```{r}
+quality_order <- c(
+  "Low",
+  "Low Plus",
+  "Fair",
+  "Fair Plus",
+  "Average",
+  "Average Plus",
+  "Good",
+  "Good Plus",
+  "Very Good",
+  "Very Good Plus",
+  "Excellent"
+)
 
+final_analytics_df <- final_analytics_df %>%
+  mutate(
+    quality = factor(quality, levels = quality_order, ordered = TRUE)
+  )
+
+quality_by_cluster <- final_analytics_df %>%
+  filter(!is.na(location_cluster), !is.na(quality)) %>%
+  count(location_cluster, quality) %>%
+  group_by(location_cluster) %>%
+  mutate(
+    percent = n / sum(n) * 100
+  ) %>%
+  ungroup()
+
+ggplot(quality_by_cluster, aes(
+  x = location_cluster,
+  y = percent,
+  fill = quality
+)) +
+  geom_col(position = "fill") +
+  labs(
+    title = "Quality Distribution by Location Cluster",
+    x = "Location Cluster",
+    y = "Share of Properties",
+    fill = "Quality"
+  )
 ```
+
+The quality distribution by location cluster shows that most clusters are dominated by `Average` and `Average Plus` quality properties. However, the share of higher-quality categories differs across clusters.
+
+Some clusters, such as clusters 6 and 8, appear to contain a larger share of higher-quality properties compared with other clusters. This may partly explain why some location clusters have higher median sale prices. In contrast, clusters with a larger share of `Average`, `Fair`, or lower-quality properties may have lower median sale prices.
+
+This suggests that location-based price differences are not only caused by geography itself, but may also be related to differences in property quality within each area. Therefore, both `location_cluster` and `quality_score` are useful features for modeling, and their interaction may also be important.
+
+## 22.8 Location Price Multiplier
+
+A location price multiplier is created by comparing the median sale price in each location cluster to the overall median sale price. A multiplier above 1 means that the cluster is more expensive than the overall median, while a multiplier below 1 means that the cluster is less expensive.
+
+This variable is useful for interpretation. If used for modeling, it should be calculated only from the training data to avoid target leakage.
+
+```{r}
+overall_median_price <- median(final_analytics_df$sale_price, na.rm = TRUE)
+
+location_price_multiplier <- final_analytics_df %>%
+  group_by(location_cluster) %>%
+  summarise(
+    location_median_price = median(sale_price, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    location_price_multiplier = location_median_price / overall_median_price
+  )
+
+location_price_multiplier
+final_analytics_df <- final_analytics_df %>%
+  left_join(location_price_multiplier, by = "location_cluster")
+ggplot(location_price_multiplier, aes(
+  x = reorder(location_cluster, location_price_multiplier),
+  y = location_price_multiplier
+)) +
+  geom_col() +
+  labs(
+    title = "Location Price Multiplier by Cluster",
+    x = "Location Cluster",
+    y = "Location Price Multiplier"
+  )
+```
+
+The location price multiplier confirms that geographic area strongly affects property value. Some clusters are clearly below the overall market median, while others are substantially above it.
+
+## 22.9 Price Categories
+
+Sale prices are grouped into lower, middle, and upper price categories based on quantiles. This is useful for interpretation and can support classification-style analysis, although the main prediction task remains regression.
+
+```{r}
+final_analytics_df <- final_analytics_df %>%
+  mutate(
+    price_category = case_when(
+      sale_price <= quantile(sale_price, 0.33, na.rm = TRUE) ~ "Lower price",
+      sale_price <= quantile(sale_price, 0.66, na.rm = TRUE) ~ "Middle price",
+      TRUE ~ "Upper price"
+    )
+  )
+
+final_analytics_df %>%
+  count(price_category)
+final_analytics_df %>%
+  count(price_category) %>%
+  ggplot(aes(x = price_category, y = n)) +
+  geom_col() +
+  labs(
+    title = "Number of Properties by Price Category",
+    x = "Price Category",
+    y = "Number of Properties"
+  )
+```
+
+The price categories divide the dataset into lower, middle, and upper price groups. This can help compare property characteristics across price levels.
+
+## 22.10 Final Advanced EDA Dataset Check
+
+After creating the advanced EDA features, the structure of the dataset is checked again.
+
+```{r}
+dim(final_analytics_df)
+names(final_analytics_df)
+advanced_missing_check <- data.frame(
+  column_name = names(final_analytics_df),
+  missing_count = sapply(final_analytics_df, function(x) sum(is.na(x))),
+  missing_percent = round(sapply(final_analytics_df, function(x) mean(is.na(x))) * 100, 2),
+  stringsAsFactors = FALSE
+) %>%
+  arrange(desc(missing_percent))
+
+advanced_missing_check %>%
+  filter(missing_count > 0)
+```
+
+## 22.11 Advanced EDA Summary
+
+The advanced EDA extended the previous analysis by creating derived features that describe property value in a more detailed way. While the basic EDA showed which individual variables were related to `sale_price`, the advanced EDA helped explain how size, quality, location, and amenities work together.
+
+First, `price_per_sqft` was created to normalize sale price by building size. This showed that most properties are concentrated around a typical price-per-square-foot range, while some properties have much higher values. These higher values may reflect premium locations, higher quality, waterfront features, or unusual properties. This feature is useful for interpretation, but it should not be used as a predictor because it is calculated from `sale_price`.
+
+The size-based features provided additional insight into how property size can be measured. `total_size_score`, which combines building square footage, porch area, and attached garage area, showed a clear positive relationship with sale price. This suggests that overall usable or value-adding space matters beyond the main building square footage alone. In contrast, `building_to_land_ratio` showed a weaker and more scattered relationship, suggesting that direct size measures are more informative than the ratio between building size and land size.
+
+The quality-score analysis confirmed that construction quality is one of the strongest drivers of sale price. By converting `quality` into an ordered numeric score, it became clear that median sale price increases as quality score increases. The increase is especially steep at the highest quality levels, suggesting that high-quality homes receive a strong market premium.
+
+The room-density features gave a more detailed view of bathrooms and bedrooms. Instead of only counting rooms, `bathrooms_per_1000_sqft` and `bedrooms_per_1000_sqft` measure how many rooms a property has relative to its size. These features help identify homes with unusually high or low room density and may capture layout differences that simple room counts do not fully explain.
+
+The interaction features showed that sale price is influenced by combinations of variables. The size-quality interaction showed that larger, higher-quality homes tend to have higher prices. The bathroom-quality interaction showed that the value of bathrooms depends partly on construction quality. The finished-space-size interaction confirmed that finished extra space adds value beyond main square footage. The waterfront-land interaction suggested that waterfront-related land characteristics may be associated with higher prices, although waterfront records are relatively rare.
+
+The location clustering analysis added a more flexible way to represent geographic patterns. By clustering properties based on latitude and longitude, the dataset was divided into spatial groups. These clusters showed clear differences in median sale price, confirming that location strongly affects property value. The location price multiplier further showed that some clusters are below the overall market median, while others are substantially above it. This supports the idea that the same property characteristics can have different values depending on location.
+
+Finally, price categories were created to divide properties into lower, middle, and upper price groups. These categories are useful for interpretation and comparison across market segments, but the main modeling task remains regression because `sale_price` is continuous.
+
+Overall, the advanced EDA deepened the analysis by showing that the most important drivers of sale price are not only individual variables, but also derived measures and interactions.
+
+### Most Important Insights from the Advanced EDA
+
+| New feature | What it measures | Why it matters | Use for modeling? |
+|------------------|------------------|------------------|------------------|
+| `price_per_sqft` | Sale price divided by building square feet. | Helps compare properties after adjusting for size. It shows whether a property is expensive because it is large or because each square foot is highly valued. | No |
+| `total_extra_area` | Combined porch area and attached garage area. | Captures additional usable or value-adding space beyond the main building size. | No |
+| `total_size_score` | Main building square feet plus porch square feet plus attached garage square feet. | Gives a broader measure of total property space. It showed a clear positive relationship with sale price. | Yes |
+| `building_to_land_ratio` | Building square feet divided by land square feet. | Measures how much of the land is developed. It can distinguish large parcels with small homes from more densely developed properties. | No |
+| `quality_score` | Numeric version of the ordered `quality` variable. | Converts quality from categories into an ordered scale. It showed a strong positive relationship with median sale price. | Yes |
+| `bathrooms_per_1000_sqft` | Number of bathrooms relative to building size. | Measures bathroom density instead of only bathroom count. It helps identify whether a home has many or few bathrooms for its size. | Yes |
+| `bedrooms_per_1000_sqft` | Number of bedrooms relative to building size. | Measures bedroom density. It helps identify homes with unusually many or few bedrooms for their size. | Yes |
+| `square_feet_quality_interaction` | Building size multiplied by quality score. | Captures the combined effect of size and quality. Large high-quality homes tend to have much higher prices. | Yes |
+| `bathrooms_quality_interaction` | Number of bathrooms multiplied by quality score. | Captures whether bathrooms add more value in higher-quality properties. | Yes |
+| `finished_space_size_interaction` | Building size multiplied by finished extra space indicator. | Captures whether finished extra space adds value differently depending on home size. | Yes |
+| `garage_size_interaction` | Attached garage square feet multiplied by garage/carport indicator. | Combines garage size with garage/carport presence. | No |
+| `porch_size_interaction` | Porch square feet multiplied by deck/porch indicator. | Combines outdoor area size with deck/porch presence. | No |
+| `waterfront_land_interaction` | Land size multiplied by waterfront indicator. | Captures whether land size behaves differently when waterfront-related features are present. | Yes |
+| `location_cluster` | Geographic cluster based on latitude and longitude. | Groups nearby properties together and captures spatial price patterns beyond neighborhood codes. | Yes |
+| `location_price_multiplier` | Median price of each location cluster divided by the overall median price. | Shows whether a location cluster is above or below the overall market median. | No |
+| `price_category` | Lower, middle, or upper price group based on sale price quantiles. | Helps compare properties across price segments. | No |
+
+# 23. Final Feature selection
+
+Because the final goal is to build a user-facing price prediction app, the modeling features were reduced to variables that a user can realistically provide or that the app can derive automatically. Technical assessor variables and highly specific categorical codes were removed from the app-focused feature set. This improves usability and ensures that the model can be used in a real prediction interface.
+
+```{r}
+app_model_features <- c(
+  "sale_price",
+
+  # time
+  "sale_year",
+
+  # location
+  "latitude",
+  "longitude",
+  "location_cluster",
+
+  # size
+  "square_feet",
+  "land_net_square_feet",
+  "total_size_score",
+
+  # quality
+  "quality_score",
+
+  # rooms
+  "bathrooms",
+  "bedrooms",
+  "bathrooms_per_1000_sqft",
+  "bedrooms_per_1000_sqft",
+
+  # property age
+  "year_built",
+
+  # amenities
+  "has_garage_or_carport_detail",
+  "has_deck_or_porch_detail",
+  "has_finished_space_detail",
+  "has_pool_or_spa_detail",
+  "has_waterfront_detail",
+
+  # interactions
+  "square_feet_quality_interaction",
+  "bathrooms_quality_interaction",
+  "finished_space_size_interaction",
+  "waterfront_land_interaction"
+)
+
+app_model_df <- final_analytics_df %>%
+  select(any_of(app_model_features)) %>%
+  distinct()
+```
+
+For the App input form, users should add the following information:
+
+| App input | Used to create model features |
+|------------------------|------------------------------------------------|
+| Address or map location | `latitude`, `longitude`, `location_cluster` - will be derived |
+| Sale year | `sale_year` |
+| Living area | `square_feet` |
+| Land size | `land_net_square_feet` |
+| Porch/deck yes/no | `has_deck_or_porch_detail` |
+| Porch/deck size | `porch_square_feet` |
+| Garage yes/no | `has_garage_or_carport_detail` |
+| Garage size | `attached_garage_square_feet` |
+| Quality rating | `quality_score` |
+| Number of bedrooms | `bedrooms`, `bedrooms_per_1000_sqft` - will be derived |
+| Number of bathrooms | `bathrooms`, `bathrooms_per_1000_sqft` - will be derived |
+| Year built | `year_built` |
+| Pool/spa yes/no | `has_pool_or_spa_detail` |
+| Waterfront yes/no | `has_waterfront_detail` |
+| Finished extra space yes/no | `has_finished_space_detail` |
