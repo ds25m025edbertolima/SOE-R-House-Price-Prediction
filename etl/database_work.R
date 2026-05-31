@@ -247,19 +247,16 @@ seg_merge_data <- seg_merge_data %>%
 str(seg_merge_data)
 dbWriteTable(con, "SEG_MERGE", seg_merge_data, overwrite = TRUE, row.names = FALSE)
 
-
-
-
 ### TAX DESCRIPTION
-#tax_description_data <- read_delim("raw_data/tax_description.txt", delim = "|", trim_ws = TRUE, col_names = FALSE)
-#tax_description_cols <- c("parcel_no", "line_no", "tax_description_line")
-#colnames(tax_description_data) <- tax_description_cols
-#tax_description_data <- tax_description_data %>%
-#  mutate(
-#    line_no = as.integer(line_no)
-#  )
-#str(tax_description_data)
-#dbWriteTable(con, "TAX_DESCRIPTION", tax_description_data, overwrite = TRUE, row.names = FALSE)
+tax_description_data <- read_delim("raw_data/tax_description.txt", delim = "|", trim_ws = TRUE, col_names = FALSE)
+tax_description_cols <- c("parcel_no", "line_no", "tax_description_line")
+colnames(tax_description_data) <- tax_description_cols
+tax_description_data <- tax_description_data %>%
+  mutate(
+    line_no = as.integer(line_no)
+  )
+str(tax_description_data)
+dbWriteTable(con, "TAX_DESCRIPTION", tax_description_data, overwrite = TRUE, row.names = FALSE)
 
 
 
