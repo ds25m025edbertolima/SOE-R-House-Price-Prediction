@@ -11,7 +11,7 @@
 
 : Project team composition and assigned roles. {#tbl-team}
 
-## Tools & Infrastructure
+## Tools & Infrastructure {style="font-size: 60%;"}
 
 | Component              | Detail                                      |
 |------------------------|---------------------------------------------|
@@ -27,13 +27,16 @@
 | **Spatial Analysis**   | sf, geosphere                               |
 | **Deployment**         | Shiny, shinydashboard                       |
 
+::: {.content-visible unless-format="revealjs"}
 : Technology stack and development infrastructure components. {#tbl-stack}
-
+:::
 ## Project Kanban Board
-
+::: {.content-visible unless-format="revealjs"}
 The following board tracks the real-time status of all project tasks.
-
+:::
 ![Project task tracking board showing workflow stages from backlog to completion.](tasks.png){#fig-kanban-board}
+
+::: {.content-visible unless-format="revealjs"}
 
 ## Risk Management
 
@@ -47,3 +50,5 @@ The following board tracks the real-time status of all project tasks.
 | Shiny App complexity | Start with minimal viable app; add features iteratively |
 
 : Identified project risks and corresponding mitigation strategies. {#tbl-risks}
+
+:::
