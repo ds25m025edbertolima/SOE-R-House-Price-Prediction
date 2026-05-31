@@ -46,7 +46,7 @@ gantt
 
 ::: {.content-visible when-format="pdf"}
 
-![Project Gantt Chart showing all work packages and critical path tasks.](gantt.png){#fig-gantt-timeline}
+![Project Gantt Chart showing all work packages and critical path tasks.](diagrams/gantt.png){#fig-gantt-timeline}
 
 :::
 

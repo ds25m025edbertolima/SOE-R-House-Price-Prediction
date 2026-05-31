@@ -54,6 +54,7 @@ _freeze/
 .env
 .env.local
 
+data/documentation/_book
 
 # Data files - exclude large data
 data/source/**

@@ -8,7 +8,7 @@ The project is splinted into work packages (WP0–WP7) over 6 weeks.
 
 ## Workflow Diagram
 
-![Project Development Workflow](workflow.png){#fig-workflow}
+![Project Development Workflow](diagrams/workflow.png){#fig-workflow}
 
 ## Work Package Summary {style="font-size: 60%;"}
 

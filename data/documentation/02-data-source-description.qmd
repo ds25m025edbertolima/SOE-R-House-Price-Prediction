@@ -143,7 +143,7 @@ Entity–relationship diagram of the Pierce County Assessor–Treasurer Data Mar
 
 ::: {.content-visible when-format="pdf"}
 
-![Entity–relationship diagram of the Pierce County data showing relationships among tax, appraisal, land, improvement, taxpayer, and sales tables.](er-diagram.png){#fig-pierce-er}
+![Entity–relationship diagram of the Pierce County data showing relationships among tax, appraisal, land, improvement, taxpayer, and sales tables.](diagrams/er-diagram.png){#fig-pierce-er}
 
 :::
 

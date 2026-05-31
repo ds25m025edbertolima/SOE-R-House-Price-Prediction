@@ -34,7 +34,7 @@
 ::: {.content-visible unless-format="revealjs"}
 The following board tracks the real-time status of all project tasks.
 :::
-![Project task tracking board showing workflow stages from backlog to completion.](tasks.png){#fig-kanban-board}
+![Project task tracking board showing workflow stages from backlog to completion.](diagrams/tasks.png){#fig-kanban-board}
 
 ::: {.content-visible unless-format="revealjs"}
 
