@@ -1,0 +1,74 @@
+{
+  "index.qmd": {
+    "index.html": "099d7010"
+  },
+  "intro.qmd": {
+    "intro.html": "9c5f2d7c"
+  },
+  "01-eml-pierce-county-data-dic.qmd": {
+    "01-eml-pierce-county-data-dic.html": "4d3afebf"
+  },
+  "summary.qmd": {
+    "summary.html": "8c76fae8"
+  },
+  "references.qmd": {
+    "references.html": "05716faa"
+  },
+  "01-eml-project-objective.qmd": {
+    "01-eml-project-objective.html": "70bd98e9"
+  },
+  "02-eml-pierce-county-data-dic.qmd": {
+    "02-eml-pierce-county-data-dic.html": "4a6ee118"
+  },
+  "03-eml-project_org.qmd": {
+    "03-eml-project_org.html": "eebb44b3"
+  },
+  "01-project-objective.qmd": {
+    "01-project-objective.html": "84999a3c"
+  },
+  "02-data-source-description.qmd": {
+    "02-data-source-description.html": "9e3afa26"
+  },
+  "03-project-organization.qmd": {
+    "03-project-organization.html": "39aaa0c5"
+  },
+  "04-development-plan.qmd": {
+    "04-development-plan.html": "cecd946f"
+  },
+  "05-data-preparation.qmd": {
+    "05-data-preparation.html": "99c713ff"
+  },
+  "06-exploratory-analysis.qmd": {
+    "06-exploratory-analysis.html": "95cd8bd2"
+  },
+  "07-model-development.qmd": {
+    "07-model-development.html": "4f82caf5"
+  },
+  "08-analytics-features.qmd": {
+    "08-analytics-features.html": "5c6c242a"
+  },
+  "09-results-presentation.qmd": {
+    "09-results-presentation.html": "b690110b"
+  },
+  "10-evaluation.qmd": {
+    "10-evaluation.html": "0f770004"
+  },
+  "gantt-project-schedule.qmd": {
+    "gantt-project-schedule.html": "ee75764c"
+  },
+  "workpackage-breakdown.qmd": {
+    "workpackage-breakdown.html": "e0985131"
+  },
+  "resource-allocation.qmd": {
+    "resource-allocation.html": "792d8cc7"
+  },
+  "05-project-schedule-and-workpackages.qmd": {
+    "05-project-schedule-and-workpackages.html": "cd50f164"
+  },
+  "06-data-subsetting-cleaning.qmd": {
+    "06-data-subsetting-cleaning.html": "22b8d01b"
+  },
+  "07-data-dictionary-appendix.qmd": {
+    "07-data-dictionary-appendix.html": "416999e9"
+  }
+}

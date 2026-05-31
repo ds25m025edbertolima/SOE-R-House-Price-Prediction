@@ -60,6 +60,9 @@ data/source/**
 !data/source/.gitignore
 scratch/
 
+# Archive folder - for old/unused files
+#99-archive/
+
 # Python
 __pycache__/
 *.py[cod]
