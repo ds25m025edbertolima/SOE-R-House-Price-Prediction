@@ -4,15 +4,25 @@ After all the data has been mapped put in a database we construct the final sele
 of variables used for modelling and clean this data.
 
 ```{r}
+load_packages <- function(packages) {
+  lapply(packages, function(pkg) {
+    if (!require(pkg, character.only = TRUE)) {
+      install.packages(pkg)
+      library(pkg, character.only = TRUE)
+    }
+  })
+}
 
-library(DBI)
-library(RPostgres)
-library(dotenv)
-library(here)
-library(dplyr)
-library(tidyr)
-library(forcats)
-library(stringr)
+load_packages(c(
+  "DBI",
+  "RPostgres",
+  "dotenv",
+  "here",
+  "dplyr",
+  "tidyr",
+  "forcats",
+  "stringr"
+))
 
 load_dot_env(here::here(".env"))
 ```
