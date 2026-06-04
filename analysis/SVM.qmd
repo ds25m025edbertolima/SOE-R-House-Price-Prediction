@@ -1,0 +1,230 @@
+---
+title: "SVM"
+format: html
+editor: visual
+---
+
+```{r}
+
+library(readr)
+library(dplyr)
+library(stringr)
+library(rcompanion)
+library(corrplot)
+library(tidyr)
+library(ggplot2)
+library(patchwork)
+library(lubridate)
+library(gridExtra)
+library(caret)
+library(kernlab)
+
+```
+
+```{r}
+app_model_df <- read.delim(
+  "/workspaces/SOE-R-House-Price-Prediction/data/app_model_df.txt",
+  sep = "\t",
+  header = TRUE,
+  stringsAsFactors = FALSE
+)
+
+```
+
+# 24. Support Vector Machine Model
+
+Support Vector Machine regression is used to predict the continuous target variable `sale_price`. Since SVM models are sensitive to feature scales, numeric predictors are normalized before modeling. Categorical variables are converted into dummy variables.
+
+Because the sale price distribution is right-skewed, the model is trained on a log-transformed version of `sale_price`. After prediction, the values are transformed back to the original USD scale.
+
+## 24.1 Select App-Focused Modeling Features
+
+For the Support Vector Machine model, only the app-focused features are selected. These variables were chosen because they can either be entered directly by the user in the final app or derived automatically from user input.
+
+The target variable is `sale_price`, which the model will predict. Location-based features such as `latitude`, `longitude`, and `location_cluster` are derived from the user’s address or map location. Room-density features such as `bedrooms_per_1000_sqft` and `bathrooms_per_1000_sqft` are derived from the entered number of bedrooms, bathrooms, and living area.
+
+After selecting the relevant variables, duplicate rows are removed using `distinct()` to make sure the modeling dataset does not contain repeated observations.
+
+```{r}
+app_model_features <- c(
+  "sale_price",
+  "latitude",
+  "longitude",
+  "location_cluster",
+  "sale_year",
+  "square_feet",
+  "land_net_square_feet",
+  "porch_square_feet",
+  "attached_garage_square_feet",
+  "quality_score",
+  "bedrooms",
+  "bathrooms",
+  "bedrooms_per_1000_sqft",
+  "bathrooms_per_1000_sqft",
+  "year_built",
+  "has_deck_or_porch_detail",
+  "has_garage_or_carport_detail",
+  "has_pool_or_spa_detail",
+  "has_waterfront_detail",
+  "has_finished_space_detail"
+)
+
+svm_df <- app_model_df %>%
+  select(any_of(app_model_features)) %>%
+  distinct()
+```
+
+## 24.3 Convert Categorical and Boolean Variables
+
+Before training the SVM model, categorical and boolean variables are converted into factors.
+
+This step is necessary because machine learning models need variables to be stored in the correct format. Character variables represent categories, such as `location_cluster`, and logical variables represent TRUE/FALSE features, such as whether a property has a pool, waterfront detail, garage, or finished extra space.
+
+By converting character and logical variables into factors, R treats them as categorical predictors instead of plain text or logical values. This allows the modeling function to correctly create dummy variables internally and use these features during training.
+
+The `location_cluster` variable is also explicitly converted into a factor because it represents a geographic category, not a numeric value. Even if the cluster labels are numbers, they do not have a mathematical order. For example, cluster 5 is not “greater” than cluster 2; it simply represents a different geographic area.
+
+```{r}
+svm_df <- svm_df %>%
+  mutate(
+    across(where(is.character), as.factor),
+    across(where(is.logical), as.factor),
+    location_cluster = as.factor(location_cluster)
+  )
+```
+
+## 24.4 Log-Transform the Target Variable
+
+Because `sale_price` is right-skewed, the model is trained on the log-transformed price.
+
+```{r}
+svm_model_df <- svm_df %>%
+  mutate(
+    log_sale_price = log(sale_price)
+  ) %>%
+  select(-sale_price)
+```
+
+## 24.5 Train-Test Split
+
+```{r}
+set.seed(123)
+
+train_index <- createDataPartition(
+  svm_model_df$log_sale_price,
+  p = 0.8,
+  list = FALSE
+)
+
+train_data <- svm_model_df[train_index, ]
+test_data <- svm_model_df[-train_index, ]
+```
+
+## 24.6 Train the SVM Model
+
+In this step, a Support Vector Machine regression model is trained using a radial basis function kernel.
+
+Because SVM models can be computationally expensive, especially with large datasets, only a sample of the training data is used for the first model. This allows the modeling workflow to be tested more quickly before increasing the sample size.
+
+Three-fold cross-validation is used during training. This means the sampled training data is split into three parts, and the model is trained and validated multiple times to estimate performance more reliably.
+
+```{r}
+set.seed(123)
+
+train_data_sample <- train_data %>%
+  slice_sample(n = min(10000, nrow(train_data)))
+
+# Custom tuning grid
+svm_grid_fast <- expand.grid(
+  sigma = c(0.008, 0.01, 0.0125, 0.015),
+  C = c(8, 16, 24, 32, 48)
+)
+
+set.seed(123)
+
+svm_model_tuned <- train(
+  log_sale_price ~ .,
+  data = train_data_sample,
+  method = "svmRadial",
+  preProcess = c("center", "scale"),
+  trControl = trainControl(
+    method = "cv",
+    number = 3
+  ),
+  tuneGrid = svm_grid_fast,
+  metric = "RMSE"
+)
+
+svm_model_tuned
+```
+
+In the radial SVM model, `C` and `sigma` are the main tuning parameters. They control how flexible the model is when learning patterns from the data.
+
+The parameter `C` controls how strongly the model penalizes prediction errors. A smaller `C` allows the model to make more errors and creates a smoother, more general model. A larger `C` forces the model to fit the training data more closely, which can improve accuracy but may also increase the risk of overfitting.
+
+The parameter `sigma` controls the influence of each observation in the radial kernel. A smaller `sigma` creates smoother patterns because each observation has a wider influence. A larger `sigma` creates more local and detailed patterns, which can capture complex relationships but may also overfit the data.
+
+During tuning, different combinations of `C` and `sigma` were tested using 3-fold cross-validation. The goal was to find the parameter combination with the lowest RMSE.
+
+The best SVM model so far was trained on 10,000 observations. Based on cross-validation, the best parameter combination was `sigma = 0.015` and `C = 24`. This model achieved an RMSE of 0.353 and an R-squared of 0.731 on the log-price scale. This indicates that the selected app-focused features have meaningful predictive power. However, the final model still needs to be evaluated on the test set in the original USD scale to understand its real prediction performance.
+
+## 23.8 Make Predictions on Test Data
+
+```{r}
+set.seed(123)
+
+test_data_sample <- test_data %>%
+  slice_sample(n = min(30000, nrow(test_data)))
+
+svm_pred_log <- predict(
+  svm_model_tuned,
+  newdata = test_data_sample
+)
+
+svm_results_tuned <- data.frame(
+  actual_log_sale_price = test_data_sample$log_sale_price,
+  predicted_log_sale_price = svm_pred_log
+) %>%
+  mutate(
+    actual_sale_price = exp(actual_log_sale_price),
+    predicted_sale_price = exp(predicted_log_sale_price),
+    percent_error = abs(predicted_sale_price - actual_sale_price) / actual_sale_price,
+    within_15_percent = percent_error <= 0.15
+  )
+
+head(svm_results_tuned)
+```
+
+## 23.9 Evaluate Model Performance
+
+```{r}
+svm_results_tuned %>%
+  summarise(
+    RMSE = sqrt(mean((actual_sale_price - predicted_sale_price)^2)),
+    MAE = mean(abs(actual_sale_price - predicted_sale_price)),
+    R_squared = cor(actual_sale_price, predicted_sale_price)^2,
+    MAPE = mean(percent_error) * 100,
+    percent_within_15 = mean(within_15_percent) * 100
+  )
+```
+
+The final tuned SVM model achieved an RMSE of 163,767 USD, an MAE of 77,631 USD, an R-squared of 0.699, a MAPE of 26.75 percent, and 54.48 percent of predictions within 15 percent of the actual sale price.
+
+Compared with earlier SVM models, this model improved the app-focused metrics. It achieved the lowest MAE and MAPE and the highest percentage of predictions within 15 percent. This means that, although the model does not have the lowest RMSE, it performs best in terms of average prediction accuracy and practical app usefulness.
+
+However, the percentage of predictions within 15 percent is still below the desired 80 percent target. Therefore, the tuned SVM model can be considered a useful baseline, but additional models should be tested to improve prediction performance.
+
+```{r}
+
+ggplot(svm_results_tuned, aes(x = actual_sale_price, y = predicted_sale_price)) +
+  geom_point(alpha = 0.3) +
+  scale_x_log10() +
+  scale_y_log10() +
+  geom_abline(slope = 1, intercept = 0) +
+  labs(
+    title = "Actual vs Predicted Sale Price - Tuned SVM",
+    x = "Actual Sale Price in USD, Log Scale",
+    y = "Predicted Sale Price in USD, Log Scale"
+  )
+
+```
