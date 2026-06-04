@@ -10,18 +10,35 @@ The analysis combines several property-related data sources, including sales tra
 This section loads the R packages required for data loading, data manipulation, text processing, categorical association analysis, correlation analysis, and data reshaping.
 
 ```{r}
-library(readr)
-library(dplyr)
-library(stringr)
-library(rcompanion)
-library(corrplot)
-library(tidyr)
-library(ggplot2)
-library(patchwork)
-library(lubridate)
-library(gridExtra)
 
+load_packages <- function(packages) {
+  lapply(packages, function(pkg) {
+    if (!require(pkg, character.only = TRUE)) {
+      install.packages(pkg)
+      library(pkg, character.only = TRUE)
+    }
+  })
+}
+
+load_packages(c(
+  "readr",
+  "dplyr",
+  "stringr",
+  "rcompanion",
+  "corrplot",
+  "tidyr",
+  "ggplot2",
+  "lubridate",
+  "gridExtra",
+  "ggplot2",
+  "patchwork",
+  "here"
+))
+
+#here()
 ```
+
+
 
 # 3. Data Sources
 
@@ -34,7 +51,7 @@ Each original text file is loaded separately and assigned meaningful column name
 The **Sale** table contains information about recorded property transactions, including when a sale occurred, the recorded sale price, and the parcels involved in the transaction. It also includes fields that help evaluate whether a sale is valid, verified, or excluded from official sales analysis.
 
 ```{r}
-sale_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/sale.txt",delim = "|")
+sale_df <- read_delim("data/source/sale.txt",delim = "|")
 colnames(sale_df) <- c(
   "etn",                    # (PK) used to identify a sale transaction; may repeat if one recorded sale includes multiple parcels 
   "parcel_count",           # nr of parcels associated with a sale
@@ -59,7 +76,7 @@ The **Appraisal Account** table contains parcel-level appraisal information, inc
 This table provides important parcel characteristics that may help explain differences in property prices.
 
 ```{r}
-appraisal_account_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/appraisal_account.txt",delim = "|")
+appraisal_account_df <- read_delim("data/source/appraisal_account.txt",delim = "|")
 colnames(appraisal_account_df) <- c(
   "parcel_number",              # (PK) unique 10 digit number assigned to each property
   "appraisal_account_type",     # describes how a parcel is classified
@@ -95,7 +112,7 @@ The **Improvement** table contains information about buildings or improvements l
 It includes property type, neighborhood, building size, condition, quality, occupancy type, porch area, garage area, and fireplace information. These features are useful because building characteristics are often strongly related to property value.
 
 ```{r}
-improvement_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/improvement.txt",delim = "|")
+improvement_df <- read_delim("data/source/improvement.txt",delim = "|")
 colnames(improvement_df) <- c(
   "parcel_number",                    # (PK) unique 10 digit number assigned to each property
   "building_id",                      # (PK) unique identifier for each improvement record on a parcel
@@ -132,7 +149,7 @@ The **Improvement Built-As** table describes the original purpose, construction 
 It includes information such as HVAC type, exterior and interior materials, number of stories, roof cover, bedrooms, bathrooms, units, year built, and year remodeled. These variables help describe the physical characteristics of the property.
 
 ```{r}
-improvement_builtas_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/improvement_builtas.txt",delim = "|")
+improvement_builtas_df <- read_delim("data/source/improvement_builtas.txt",delim = "|")
 colnames(improvement_builtas_df) <- c(
   "parcel_number",              # (PK) unique 10 digit number assigned to each property
   "building_id",                # (PK) unique identifier for each improvement record on a parcel
@@ -170,7 +187,7 @@ The **Improvement Detail** table contains detailed building characteristics, suc
 Because this table contains very detailed text descriptions, it is later used to create simplified boolean features that indicate whether certain property amenities are present.
 
 ```{r}
-improvement_detail_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/improvement_detail.txt",delim = "|")
+improvement_detail_df <- read_delim("data/source/improvement_detail.txt",delim = "|")
 colnames(improvement_detail_df) <- c(
   "parcel_number",        # (PK) unique 10 digit number assigned to each property
   "building_id",          # (PK) unique identifier for each improvement record on a parcel
@@ -187,7 +204,7 @@ The **Land Attribute** table contains descriptive land-related attributes.
 These attributes may describe features such as views, waterfront access, neighborhood characteristics, utilities, or other land-related conditions. Some of this information may contribute to property value, depending on the type of attribute.
 
 ```{r}
-land_attribute_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/land_attribute.txt",delim = "|")
+land_attribute_df <- read_delim("data/source/land_attribute.txt",delim = "|")
 colnames(land_attribute_df) <- c(
   "parcel_number",           # (PK) unique 10 digit number assigned to each property
   "attribute",               # (PK) category assigned to the land attribute, such as residential, commercial, amenities, economic, functional, neighborhood, or utilities
@@ -202,7 +219,7 @@ The **Seg Merge** table contains information about parcel segregation and merge 
 This table helps identify whether a parcel was split, merged, or changed over time. Most of this information is administrative, but it is reviewed to understand whether it may be relevant for the analysis.
 
 ```{r}
-seg_merge_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/seg_merge.txt",delim = "|")
+seg_merge_df <- read_delim("data/source/seg_merge.txt",delim = "|")
 colnames(seg_merge_df) <- c(
   "seg_merge_number",        # (PK) unique number assigned to each segregation
   "parent_child_indicator",  # identifies whether the parcel is a parent parcel being replaced or a child parcel newly created by the segregation
@@ -220,7 +237,7 @@ The **Tax Account** table contains tax-related information, including account ty
 Some of these values are useful for understanding the property, while others may be removed later to avoid value leakage in predictive modeling.
 
 ```{r}
-tax_account_df <- read_delim("/workspaces/SOE-R-House-Price-Prediction/datasources/tax_account.txt",delim = "|")
+tax_account_df <- read_delim("data/source/tax_account.txt",delim = "|")
 colnames(tax_account_df) <- c(
   "parcel_number",                    # (PK) unique 10 digit number assigned to each property
   "account_type",                     # account type, such as real property, structures, personal property, or mobile home
