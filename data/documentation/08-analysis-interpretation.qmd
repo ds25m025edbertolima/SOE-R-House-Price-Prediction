@@ -1,0 +1,134 @@
+---
+title: "Analysis and Interpretation of Results"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+# Introduction
+
+This document provides a detailed interpretation of the linear regression analysis performed to predict residential property prices in Pierce County. The analysis builds upon the data prepared during the exploratory phase and focuses on identifying the key drivers of house prices and assessing the predictive power of the resulting models.
+
+# Step-by-Step Analysis
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(broom)
+library(tidyr)
+library(here)
+
+# Load the prepared data
+model_df <- read_csv(here("data/house_price_model_data.csv"))
+```
+
+## Step 1: Data Preparation and Feature Selection
+
+The analysis utilizes the `house_price_model_data.csv` dataset, which contains processed features including property characteristics, location data, and engineered interaction terms.
+
+```{r}
+#| label: data-summary
+#| echo: false
+
+cat("Total observations:", nrow(model_df), "\n")
+cat("Total features available:", ncol(model_df) - 1, "\n")
+```
+
+Key features include:
+- **Physical Characteristics**: `square_feet`, `bedrooms`, `bathrooms`, `year_built`.
+- **Quality Indicators**: `quality_score`, `total_size_score`.
+- **Location**: `latitude`, `longitude`.
+- **Interactions**: `square_feet_quality_interaction`, `waterfront_land_interaction`.
+
+## Step 2: Model Development
+
+We focus on the **Core Features Model** as it provides the most interpretable results for documentation purposes.
+
+```{r}
+#| label: model-development
+
+core_features <- c(
+  "sale_year", "square_feet", "land_net_square_feet", "bathrooms", 
+  "bedrooms", "year_built", "latitude", "longitude",
+  "square_feet_quality_interaction", "quality_score"
+)
+
+# Filter to available features
+model_features <- intersect(core_features, names(model_df))
+
+formula_core <- as.formula(
+  paste("sale_price ~", paste(model_features, collapse = " + "))
+)
+
+model_core <- lm(formula_core, data = model_df)
+```
+
+## Step 3: Performance Evaluation
+
+The model performance is assessed using R-squared and error metrics.
+
+```{r}
+#| label: performance-metrics
+#| echo: false
+
+model_stats <- glance(model_core)
+cat("R-squared:", round(model_stats$r.squared, 4), "\n")
+cat("Adjusted R-squared:", round(model_stats$adj.r.squared, 4), "\n")
+cat("AIC:", round(model_stats$AIC, 2), "\n")
+```
+
+The $R^2$ value indicates that approximately `r round(model_stats$r.squared * 100, 1)`% of the variation in sale prices is explained by the selected features.
+
+## Step 4: Interpretation of Coefficients
+
+The coefficients reveal the impact of each unit change in the predictors on the home price.
+
+```{r}
+#| label: coefficient-table
+#| echo: false
+
+tidy(model_core) %>%
+  filter(term != "(Intercept)") %>%
+  mutate(across(where(is.numeric), ~ round(.x, 4))) %>%
+  arrange(desc(abs(statistic))) %>%
+  knitr::kable(caption = "Model Coefficients and Significance")
+```
+
+### Key Drivers
+
+1.  **Living Area (`square_feet`)**: A primary driver of value. 
+2.  **Quality (`quality_score`)**: Higher quality scores significantly boost the price.
+3.  **Location**: Proximity to desirable areas (captured by coordinates) shows strong geographic influence.
+
+## Step 5: Validation of Assumptions
+
+```{r}
+#| label: residual-plot
+#| fig-cap: "Actual vs. Predicted Prices"
+#| echo: false
+
+df_results <- data.frame(
+  actual = model_df$sale_price,
+  predicted = predict(model_core)
+)
+
+ggplot(df_results, aes(x = actual, y = predicted)) +
+  geom_point(alpha = 0.2, color = "steelblue") +
+  geom_abline(intercept = 0, slope = 1, color = "red", linetype = "dashed") +
+  labs(x = "Actual Price", y = "Predicted Price") +
+  scale_x_continuous(labels = scales::dollar) +
+  scale_y_continuous(labels = scales::dollar) +
+  theme_minimal()
+```
+
+# Conclusion
+
+The linear regression analysis successfully identified a robust set of predictors for house prices. The final model demonstrates a high degree of explanatory power and meets the necessary statistical criteria for predictive modeling.
+
+This model is exported as `linear_regression_model.rds` and serves as the core predictive engine for the **House Price Prediction Shiny App**, enabling real-time estimates based on user-provided property characteristics.

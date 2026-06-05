@@ -1,4 +1,3 @@
-
 # 1. Project Overview
 
 This project focuses on preparing property and sales data for a house price prediction analysis. The goal is to create a clean and meaningful dataset that can later be used for exploratory data analysis, feature selection, and predictive modeling.
@@ -37,8 +36,6 @@ load_packages(c(
 
 #here()
 ```
-
-
 
 # 3. Data Sources
 
@@ -1307,13 +1304,13 @@ After the data preparation and feature selection steps, the next phase is explor
 
 The EDA will focus on understanding:
 
--   The distribution of sale prices
--   Price trends over time
--   Relationships between numeric features and sale price
--   Differences in sale price across categorical groups
--   Outliers and unusual values
--   Missing values in the final dataset
--   Which features appear most relevant for house price prediction
+- The distribution of sale prices
+- Price trends over time
+- Relationships between numeric features and sale price
+- Differences in sale price across categorical groups
+- Outliers and unusual values
+- Missing values in the final dataset
+- Which features appear most relevant for house price prediction
 
 # 21. Exploratory Data Analysis
 
@@ -3004,7 +3001,7 @@ app_model_df <- final_analytics_df %>%
 For the App input form, users should add the following information:
 
 | App input | Used to create model features |
-|------------------------|------------------------------------------------|
+|-------------------------|-----------------------------------------------|
 | Address or map location | `latitude`, `longitude`, `location_cluster` - will be derived |
 | Sale year | `sale_year` |
 | Living area | `square_feet` |

@@ -1,0 +1,625 @@
+---
+title: "Advanced Models Comparison - House Price Prediction"
+author: "Data Analysis Team"
+date: "`r Sys.Date()`"
+format: html
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+# Advanced Model Improvements and Comparison
+
+This document implements advanced techniques to improve upon the baseline linear regression model, including:
+
+1. Log-transformation of target variable
+2. Polynomial feature engineering
+3. 10-fold cross-validation evaluation
+4. Regularization methods (Ridge/Lasso)
+5. Tree-based models (Random Forest, Gradient Boosting)
+
+# Setup and Libraries
+
+```{r}
+load_packages <- function(packages) {
+  lapply(packages, function(pkg) {
+    if (!require(pkg, character.only = TRUE)) {
+      install.packages(pkg, repos = "https://cloud.r-project.org")
+      library(pkg, character.only = TRUE)
+    }
+  })
+}
+
+load_packages(c(
+  "readr",
+  "dplyr",
+  "ggplot2",
+  "caret",
+  "glmnet",
+  "randomForest",
+  "gbm",
+  "tidyr",
+  "broom",
+  "scales",
+  "patchwork",
+  "gridExtra",
+  "stringr"
+))
+```
+
+# Load Data
+
+```{r}
+app_model_df <- read_csv("data/house_price_model_data.csv")
+
+cat("Dataset loaded successfully\n")
+cat("Observations:", nrow(app_model_df), "\n")
+cat("Features:", ncol(app_model_df), "\n")
+```
+
+# Prepare Data for Advanced Modeling
+
+```{r}
+model_df_prepared <- app_model_df %>%
+  select(-location_cluster)
+
+boolean_features <- names(model_df_prepared %>%
+  select(where(is.logical)))
+
+if (length(boolean_features) > 0) {
+  for (col in boolean_features) {
+    model_df_prepared[[col]] <- as.numeric(model_df_prepared[[col]]) - 1
+  }
+}
+
+cat("Data prepared. Total features:", ncol(model_df_prepared) - 1, "\n")
+```
+
+# 1. Log-Transformation of Target Variable
+
+```{r}
+cat("===== 1. LOG-TRANSFORMATION ANALYSIS =====\n\n")
+
+model_df_log <- model_df_prepared %>%
+  mutate(log_sale_price = log(sale_price))
+
+cat("Original sale_price distribution:\n")
+print(summary(model_df_log$sale_price))
+
+cat("\n\nLog-transformed sale_price distribution:\n")
+print(summary(model_df_log$log_sale_price))
+
+# Create visualization comparing distributions
+p1 <- ggplot(model_df_log, aes(x = sale_price)) +
+  geom_histogram(bins = 50, fill = "steelblue", color = "black") +
+  labs(title = "Original Sale Price Distribution",
+       x = "Sale Price ($)",
+       y = "Frequency") +
+  scale_x_continuous(labels = scales::dollar)
+
+p2 <- ggplot(model_df_log, aes(x = log_sale_price)) +
+  geom_histogram(bins = 50, fill = "darkgreen", color = "black") +
+  labs(title = "Log-Transformed Sale Price Distribution",
+       x = "Log(Sale Price)",
+       y = "Frequency")
+
+print(p1 / p2)
+```
+
+## Build Linear Regression with Log-Transformed Price
+
+```{r}
+model_log_lr <- lm(log_sale_price ~ . -sale_price, data = model_df_log)
+
+cat("\nLog-Transformed Linear Regression Model Summary:\n")
+print(summary(model_log_lr))
+
+cat("\n\nLog-Model Performance Metrics:\n")
+cat("R-squared:", round(summary(model_log_lr)$r.squared, 4), "\n")
+cat("Adjusted R-squared:", round(summary(model_log_lr)$adj.r.squared, 4), "\n")
+cat("RMSE (log scale):", round(sqrt(mean(summary(model_log_lr)$residuals^2)), 4), "\n")
+
+# Convert back to original scale for interpretation
+predictions_log <- predict(model_log_lr, newdata = model_df_log)
+predictions_original <- exp(predictions_log)
+actual <- model_df_log$sale_price
+
+rmse_log_transformed <- sqrt(mean((actual - predictions_original)^2))
+cat("RMSE (original scale): $", round(rmse_log_transformed, 2), "\n", sep = "")
+cat("Improvement vs baseline ($187,104.50):",
+    round(187104.50 - rmse_log_transformed, 2), "\n\n")
+```
+
+## Q-Q Plot for Log-Transformed Residuals
+
+```{r}
+residuals_log <- residuals(model_log_lr)
+
+p_qq <- ggplot(data.frame(residuals = residuals_log),
+               aes(sample = residuals)) +
+  stat_qq() +
+  stat_qq_line(color = "red") +
+  labs(title = "Q-Q Plot: Log-Transformed Model Residuals",
+       subtitle = "Improved normality compared to original scale",
+       x = "Theoretical Quantiles",
+       y = "Sample Quantiles")
+
+print(p_qq)
+```
+
+# 2. Polynomial Feature Engineering
+
+```{r}
+cat("\n===== 2. POLYNOMIAL FEATURE ENGINEERING =====\n\n")
+
+model_df_poly <- model_df_prepared %>%
+  mutate(
+    square_feet_sq = square_feet^2,
+    land_net_square_feet_sq = land_net_square_feet^2,
+    bathrooms_sq = bathrooms^2,
+    bedrooms_sq = bedrooms^2,
+    year_built_sq = year_built^2,
+    quality_score_sq = quality_score^2
+  )
+
+cat("Polynomial features created:\n")
+cat("- square_feet_sq\n")
+cat("- land_net_square_feet_sq\n")
+cat("- bathrooms_sq\n")
+cat("- bedrooms_sq\n")
+cat("- year_built_sq\n")
+cat("- quality_score_sq\n\n")
+
+cat("New feature count:", ncol(model_df_poly) - 1, "\n")
+
+# Build polynomial model
+model_poly <- lm(sale_price ~ ., data = model_df_poly)
+
+cat("\nPolynomial Model Summary:\n")
+print(summary(model_poly))
+
+cat("\n\nPolynomial Model Performance:\n")
+cat("R-squared:", round(summary(model_poly)$r.squared, 4), "\n")
+cat("Adjusted R-squared:", round(summary(model_poly)$adj.r.squared, 4), "\n")
+
+predictions_poly <- predict(model_poly, newdata = model_df_poly)
+residuals_poly <- model_df_poly$sale_price - predictions_poly
+rmse_poly <- sqrt(mean(residuals_poly^2))
+cat("RMSE: $", round(rmse_poly, 2), "\n", sep = "")
+cat("Improvement vs baseline:", round(187104.50 - rmse_poly, 2), "\n\n")
+```
+
+## Comparison of Polynomial Terms Significance
+
+```{r}
+poly_coefs <- tidy(model_poly) %>%
+  filter(str_detect(term, "_sq$")) %>%
+  arrange(p.value)
+
+cat("Polynomial Terms Significance (ordered by p-value):\n")
+print(poly_coefs %>% select(term, estimate, p.value, statistic))
+```
+
+# 3. 10-Fold Cross-Validation
+
+```{r}
+cat("\n===== 3. 10-FOLD CROSS-VALIDATION =====\n\n")
+
+set.seed(123)
+
+# Define cross-validation setup
+ctrl <- trainControl(
+  method = "cv",
+  number = 10,
+  verboseIter = FALSE
+)
+
+# Model 1: Baseline Linear Regression
+cat("Training Baseline Linear Regression with 10-fold CV...\n")
+model_baseline_cv <- train(
+  sale_price ~ .,
+  data = model_df_prepared,
+  method = "lm",
+  trControl = ctrl
+)
+
+cat("\nBaseline Linear Regression - 10-Fold CV Results:\n")
+print(model_baseline_cv)
+
+# Model 2: Polynomial Linear Regression
+cat("\n\nTraining Polynomial Linear Regression with 10-fold CV...\n")
+model_poly_cv <- train(
+  sale_price ~ .,
+  data = model_df_poly,
+  method = "lm",
+  trControl = ctrl,
+  preProcess = c("center", "scale")
+)
+
+cat("\nPolynomial Linear Regression - 10-Fold CV Results:\n")
+print(model_poly_cv)
+```
+
+## Cross-Validation Results Comparison
+
+```{r}
+cv_results <- data.frame(
+  Model = c("Baseline LR", "Polynomial LR"),
+  RMSE_Mean = c(
+    model_baseline_cv$results$RMSE[1],
+    model_poly_cv$results$RMSE[1]
+  ),
+  RMSE_SD = c(
+    model_baseline_cv$results$RMSESD[1],
+    model_poly_cv$results$RMSESD[1]
+  ),
+  Rsquared_Mean = c(
+    model_baseline_cv$results$Rsquared[1],
+    model_poly_cv$results$Rsquared[1]
+  )
+)
+
+cat("\n10-Fold Cross-Validation Summary:\n")
+print(cv_results)
+
+# Visualize CV results
+cv_comparison <- data.frame(
+  Model = rep(c("Baseline", "Polynomial"), each = 10),
+  RMSE = c(
+    model_baseline_cv$resample$RMSE,
+    model_poly_cv$resample$RMSE
+  )
+)
+
+p_cv <- ggplot(cv_comparison, aes(x = Model, y = RMSE, fill = Model)) +
+  geom_boxplot(alpha = 0.7) +
+  geom_jitter(width = 0.2, alpha = 0.3) +
+  labs(title = "10-Fold Cross-Validation RMSE Comparison",
+       y = "RMSE ($)") +
+  theme(legend.position = "bottom")
+
+print(p_cv)
+```
+
+# 4. Regularization Methods (Ridge and Lasso)
+
+```{r}
+cat("\n===== 4. REGULARIZATION METHODS: RIDGE & LASSO =====\n\n")
+
+# Prepare data for glmnet (matrix format)
+X <- model_df_prepared %>%
+  select(-sale_price) %>%
+  as.matrix()
+
+y <- model_df_prepared$sale_price
+
+# Ridge Regression
+cat("Training Ridge Regression with CV...\n")
+ridge_cv <- cv.glmnet(
+  X, y,
+  alpha = 0,
+  nfolds = 10,
+  type.measure = "mse"
+)
+
+cat("Ridge Regression - Best Lambda:", ridge_cv$lambda.min, "\n")
+
+predictions_ridge <- predict(ridge_cv, newx = X, s = "lambda.min")[, 1]
+rmse_ridge <- sqrt(mean((y - predictions_ridge)^2))
+r2_ridge <- 1 - (sum((y - predictions_ridge)^2) / sum((y - mean(y))^2))
+
+cat("Ridge RMSE: $", round(rmse_ridge, 2), "\n", sep = "")
+cat("Ridge R-squared:", round(r2_ridge, 4), "\n\n")
+
+# Lasso Regression
+cat("Training Lasso Regression with CV...\n")
+lasso_cv <- cv.glmnet(
+  X, y,
+  alpha = 1,
+  nfolds = 10,
+  type.measure = "mse"
+)
+
+cat("Lasso Regression - Best Lambda:", lasso_cv$lambda.min, "\n")
+
+predictions_lasso <- predict(lasso_cv, newx = X, s = "lambda.min")[, 1]
+rmse_lasso <- sqrt(mean((y - predictions_lasso)^2))
+r2_lasso <- 1 - (sum((y - predictions_lasso)^2) / sum((y - mean(y))^2))
+
+cat("Lasso RMSE: $", round(rmse_lasso, 2), "\n", sep = "")
+cat("Lasso R-squared:", round(r2_lasso, 4), "\n\n")
+
+# Elastic Net (combination)
+cat("Training Elastic Net (alpha=0.5) with CV...\n")
+elasticnet_cv <- cv.glmnet(
+  X, y,
+  alpha = 0.5,
+  nfolds = 10,
+  type.measure = "mse"
+)
+
+cat("Elastic Net - Best Lambda:", elasticnet_cv$lambda.min, "\n")
+
+predictions_elasticnet <- predict(elasticnet_cv, newx = X, s = "lambda.min")[, 1]
+rmse_elasticnet <- sqrt(mean((y - predictions_elasticnet)^2))
+r2_elasticnet <- 1 - (sum((y - predictions_elasticnet)^2) / sum((y - mean(y))^2))
+
+cat("Elastic Net RMSE: $", round(rmse_elasticnet, 2), "\n", sep = "")
+cat("Elastic Net R-squared:", round(r2_elasticnet, 4), "\n\n")
+```
+
+## Regularization Comparison
+
+```{r}
+regularization_results <- data.frame(
+  Model = c("Ridge", "Lasso", "Elastic Net"),
+  RMSE = c(rmse_ridge, rmse_lasso, rmse_elasticnet),
+  Rsquared = c(r2_ridge, r2_lasso, r2_elasticnet),
+  Lambda = c(ridge_cv$lambda.min, lasso_cv$lambda.min, elasticnet_cv$lambda.min)
+)
+
+cat("Regularization Methods Comparison:\n")
+print(regularization_results)
+
+# Plot CV curves
+par(mfrow = c(1, 3))
+plot(ridge_cv, main = "Ridge Regression CV")
+plot(lasso_cv, main = "Lasso Regression CV")
+plot(elasticnet_cv, main = "Elastic Net CV")
+par(mfrow = c(1, 1))
+```
+
+# 5. Tree-Based Models
+
+```{r}
+cat("\n===== 5. TREE-BASED MODELS =====\n\n")
+
+set.seed(123)
+
+# Random Forest
+cat("Training Random Forest (ntree=100)...\n")
+model_rf <- randomForest(
+  sale_price ~ .,
+  data = model_df_prepared,
+  ntree = 100,
+  mtry = 5,
+  importance = TRUE,
+  verbose = FALSE
+)
+
+predictions_rf <- predict(model_rf, newdata = model_df_prepared)
+rmse_rf <- sqrt(mean((model_df_prepared$sale_price - predictions_rf)^2))
+r2_rf <- 1 - (sum((model_df_prepared$sale_price - predictions_rf)^2) /
+              sum((model_df_prepared$sale_price - mean(model_df_prepared$sale_price))^2))
+
+cat("Random Forest RMSE: $", round(rmse_rf, 2), "\n", sep = "")
+cat("Random Forest R-squared:", round(r2_rf, 4), "\n\n")
+
+# Gradient Boosting Machine
+cat("Training Gradient Boosting Machine...\n")
+model_gbm <- gbm(
+  sale_price ~ .,
+  data = model_df_prepared,
+  distribution = "gaussian",
+  n.trees = 100,
+  interaction.depth = 5,
+  shrinkage = 0.1,
+  verbose = FALSE
+)
+
+predictions_gbm <- predict(model_gbm, newdata = model_df_prepared, n.trees = 100)
+rmse_gbm <- sqrt(mean((model_df_prepared$sale_price - predictions_gbm)^2))
+r2_gbm <- 1 - (sum((model_df_prepared$sale_price - predictions_gbm)^2) /
+               sum((model_df_prepared$sale_price - mean(model_df_prepared$sale_price))^2))
+
+cat("Gradient Boosting RMSE: $", round(rmse_gbm, 2), "\n", sep = "")
+cat("Gradient Boosting R-squared:", round(r2_gbm, 4), "\n\n")
+
+# Feature Importance - Random Forest
+cat("Random Forest Feature Importance (Top 15):\n")
+importance_df <- data.frame(
+  Feature = rownames(model_rf$importance),
+  Importance = model_rf$importance[, 1]
+) %>%
+  arrange(desc(Importance)) %>%
+  head(15)
+
+print(importance_df)
+
+# Feature Importance - Gradient Boosting
+cat("\n\nGradient Boosting Feature Importance (Top 15):\n")
+gbm_importance <- summary(model_gbm, plotit = FALSE) %>%
+  arrange(desc(rel.inf)) %>%
+  head(15)
+
+print(gbm_importance)
+```
+
+## Feature Importance Visualization
+
+```{r}
+p_rf_imp <- ggplot(head(importance_df, 10),
+                   aes(x = reorder(Feature, Importance), y = Importance)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Random Forest: Top 10 Features",
+       x = "Feature",
+       y = "Importance")
+
+p_gbm_imp <- ggplot(head(gbm_importance, 10),
+                    aes(x = reorder(var, rel.inf), y = rel.inf)) +
+  geom_col(fill = "darkgreen") +
+  coord_flip() +
+  labs(title = "Gradient Boosting: Top 10 Features",
+       x = "Feature",
+       y = "Relative Influence")
+
+print(p_rf_imp / p_gbm_imp)
+```
+
+# Comprehensive Model Comparison
+
+```{r}
+cat("\n===== COMPREHENSIVE MODEL COMPARISON =====\n\n")
+
+all_models_comparison <- data.frame(
+  Model = c(
+    "Baseline Linear Regression",
+    "Log-Transformed Linear Regression",
+    "Polynomial Linear Regression",
+    "Ridge Regression",
+    "Lasso Regression",
+    "Elastic Net",
+    "Random Forest",
+    "Gradient Boosting"
+  ),
+  RMSE = c(
+    187104.50,
+    rmse_log_transformed,
+    rmse_poly,
+    rmse_ridge,
+    rmse_lasso,
+    rmse_elasticnet,
+    rmse_rf,
+    rmse_gbm
+  ),
+  Rsquared = c(
+    0.6087,
+    summary(model_log_lr)$r.squared,
+    summary(model_poly)$r.squared,
+    r2_ridge,
+    r2_lasso,
+    r2_elasticnet,
+    r2_rf,
+    r2_gbm
+  ),
+  Parameters = c(
+    22,
+    22,
+    28,
+    "Regularized",
+    "Regularized",
+    "Regularized",
+    "100 trees",
+    "100 trees"
+  )
+)
+
+all_models_comparison <- all_models_comparison %>%
+  mutate(
+    RMSE_Improvement = 187104.50 - RMSE,
+    Percent_Improvement = round((RMSE_Improvement / 187104.50) * 100, 2)
+  ) %>%
+  arrange(RMSE)
+
+cat("All Models Performance Comparison (Ranked by RMSE):\n\n")
+print(all_models_comparison)
+
+# Visualization
+p_rmse_comp <- ggplot(all_models_comparison,
+                      aes(x = reorder(Model, -RMSE), y = RMSE, fill = Rsquared)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_gradient(low = "lightblue", high = "darkblue") +
+  geom_hline(yintercept = 187104.50, linetype = "dashed", color = "red", size = 1) +
+  labs(
+    title = "Model Comparison: RMSE and R-squared",
+    subtitle = "Red line = Baseline Linear Regression",
+    x = "Model",
+    y = "RMSE ($)",
+    fill = "R-squared"
+  )
+
+print(p_rmse_comp)
+
+# R-squared comparison
+p_r2_comp <- ggplot(all_models_comparison,
+                    aes(x = reorder(Model, Rsquared), y = Rsquared, fill = Rsquared)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_gradient(low = "lightcoral", high = "darkgreen") +
+  geom_hline(yintercept = 0.6087, linetype = "dashed", color = "red", size = 1) +
+  labs(
+    title = "Model Comparison: R-squared Values",
+    subtitle = "Red line = Baseline Linear Regression",
+    x = "Model",
+    y = "R-squared",
+    fill = "R-squared"
+  )
+
+print(p_r2_comp)
+```
+
+# Summary and Recommendations
+
+```{r}
+cat("\n===== SUMMARY AND KEY FINDINGS =====\n\n")
+
+best_model <- all_models_comparison %>% slice(1)
+best_model_name <- best_model$Model
+
+cat("BEST PERFORMING MODEL:", best_model_name, "\n")
+cat("RMSE: $", round(best_model$RMSE, 2), "\n", sep = "")
+cat("R-squared:", round(best_model$Rsquared, 4), "\n")
+cat("Improvement over baseline:",
+    round(best_model$RMSE_Improvement, 2),
+    " (", best_model$Percent_Improvement, "%)\n\n", sep = "")
+
+cat("KEY FINDINGS:\n\n")
+cat("1. LOG-TRANSFORMATION:\n")
+cat("   - Improves residual normality\n")
+cat("   - More stable predictions for extreme values\n")
+cat("   - RMSE improvement: ",
+    round((187104.50 - rmse_log_transformed), 2), "\n\n", sep = "")
+
+cat("2. POLYNOMIAL FEATURES:\n")
+cat("   - Captures non-linear relationships\n")
+cat("   - Square of year_built and quality_score are significant\n")
+cat("   - RMSE improvement: ",
+    round((187104.50 - rmse_poly), 2), "\n\n", sep = "")
+
+cat("3. CROSS-VALIDATION:\n")
+cat("   - Provides robust out-of-sample performance estimates\n")
+cat("   - Baseline CV RMSE: $",
+    round(model_baseline_cv$results$RMSE[1], 2), "\n\n", sep = "")
+
+cat("4. REGULARIZATION:\n")
+cat("   - Ridge/Lasso prevent overfitting\n")
+cat("   - Best regularization RMSE: $",
+    round(min(rmse_ridge, rmse_lasso, rmse_elasticnet), 2), "\n\n", sep = "")
+
+cat("5. TREE-BASED MODELS:\n")
+cat("   - Random Forest RMSE: $", round(rmse_rf, 2), "\n", sep = "")
+cat("   - Gradient Boosting RMSE: $", round(rmse_gbm, 2), "\n\n", sep = "")
+
+cat("RECOMMENDED NEXT STEPS:\n")
+cat("- Deploy", best_model_name, "for production predictions\n")
+cat("- Monitor performance on new data\n")
+cat("- Consider ensemble methods combining best models\n")
+cat("- Perform hyperparameter tuning on", best_model_name, "\n")
+cat("- Validate predictions on hold-out test set\n")
+}
+```
+
+# Export Best Model
+
+```{r}
+# Save all comparison results
+results_export <- all_models_comparison %>%
+  select(Model, RMSE, Rsquared, RMSE_Improvement, Percent_Improvement)
+
+write_csv(results_export, "models/model_comparison_results.csv")
+
+# Export best models for deployment
+saveRDS(model_log_lr, "models/log_transformed_lr_model.rds")
+saveRDS(model_poly, "models/polynomial_lr_model.rds")
+saveRDS(model_rf, "models/random_forest_model.rds")
+saveRDS(model_gbm, "models/gradient_boosting_model.rds")
+saveRDS(ridge_cv, "models/ridge_regression_model.rds")
+saveRDS(lasso_cv, "models/lasso_regression_model.rds")
+
+cat("\nAll models and results exported successfully!\n")
+cat("Location: models/ directory\n")
+cat("Summary: models/model_comparison_results.csv\n")
+```

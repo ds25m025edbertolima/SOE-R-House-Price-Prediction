@@ -23,7 +23,8 @@ book:
     - 03-project-organization.qmd
     - 04-development-plan.qmd
     - 05-project-schedule-and-workpackages.qmd
-    #- 06-data-subsetting-cleaning.qmd
+    - 06-data-subsetting-cleaning.qmd
+    - 08-analysis-interpretation.qmd
 
   appendices:
     - 07-data-dictionary-appendix.qmd
