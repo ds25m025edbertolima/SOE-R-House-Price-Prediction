@@ -1,0 +1,318 @@
+---
+title: "Transformations & Outlier Detection - House Price Prediction"
+author: "Data Analysis Team"
+date: "`r Sys.Date()`"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+# Regression Analysis: Target Variable Transformations & Outlier Detection
+
+This analysis focuses on improving linear regression through transformations and outlier detection methods.
+
+# Setup
+
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(MASS)
+library(patchwork)
+library(scales)
+
+app_model_df <- read_csv("data/house_price_model_data.csv")
+model_df <- app_model_df[, names(app_model_df) != "location_cluster"]
+
+cat("Dataset loaded:", nrow(model_df), "observations,", ncol(model_df), "features\n")
+```
+
+# 1. Analyze Original Price Distribution
+
+```{r}
+cat("\n===== ORIGINAL PRICE DISTRIBUTION =====\n\n")
+
+cat("Summary Statistics:\n")
+cat("Mean: $", round(mean(model_df$sale_price), 2), "\n", sep = "")
+cat("Median: $", round(median(model_df$sale_price), 2), "\n", sep = "")
+cat("Std Dev: $", round(sd(model_df$sale_price), 2), "\n", sep = "")
+cat("Min: $", round(min(model_df$sale_price), 2), "\n", sep = "")
+cat("Max: $", round(max(model_df$sale_price), 2), "\n\n", sep = "")
+
+# Calculate skewness
+mean_price <- mean(model_df$sale_price)
+sd_price <- sd(model_df$sale_price)
+skew_original <- mean((model_df$sale_price - mean_price)^3) / (sd_price^3)
+
+cat("Skewness:", round(skew_original, 4), "\n")
+cat("(Positive skewness = right-skewed, has long tail to right)\n\n")
+
+p_original <- ggplot(model_df, aes(x = sale_price)) +
+  geom_histogram(bins = 60, fill = "steelblue", color = "black", alpha = 0.7) +
+  labs(title = "Original Sale Price Distribution",
+       x = "Sale Price ($)",
+       y = "Frequency") +
+  scale_x_continuous(labels = dollar)
+
+print(p_original)
+```
+
+# 2. Target Variable Transformations
+
+```{r}
+cat("\n===== TARGET VARIABLE TRANSFORMATIONS =====\n\n")
+
+# Create transformed versions
+trans_data <- data.frame(
+  sale_price = model_df$sale_price,
+  log_price = log(model_df$sale_price),
+  sqrt_price = sqrt(model_df$sale_price)
+)
+
+# Box-Cox transformation
+cat("Computing Box-Cox transformation...\n")
+bc_fit <- boxcox(sale_price ~ 1, data = model_df, lambda = seq(-0.5, 1, 0.1), plotit = FALSE)
+lambda_opt <- bc_fit$x[which.max(bc_fit$y)]
+
+if (abs(lambda_opt) < 0.001) {
+  trans_data$boxcox_price <- log(model_df$sale_price)
+} else {
+  trans_data$boxcox_price <- ((model_df$sale_price ^ lambda_opt) - 1) / lambda_opt
+}
+
+cat("Optimal Box-Cox lambda:", round(lambda_opt, 4), "\n\n")
+
+# Calculate statistics for each transformation
+transformations <- list(
+  list(name = "Original", data = trans_data$sale_price),
+  list(name = "Log", data = trans_data$log_price),
+  list(name = "Square Root", data = trans_data$sqrt_price),
+  list(name = "Box-Cox", data = trans_data$boxcox_price)
+)
+
+results <- data.frame()
+
+for (trans in transformations) {
+  mean_val <- mean(trans$data, na.rm = TRUE)
+  sd_val <- sd(trans$data, na.rm = TRUE)
+  skew_val <- mean((trans$data - mean_val)^3, na.rm = TRUE) / (sd_val^3)
+
+  results <- rbind(results, data.frame(
+    Transformation = trans$name,
+    Mean = round(mean_val, 2),
+    Std_Dev = round(sd_val, 2),
+    Skewness = round(skew_val, 4)
+  ))
+}
+
+cat("Transformation Comparison:\n")
+print(results)
+
+cat("\nInterpretation:\n")
+cat("- Lower absolute skewness = better normality\n")
+cat("- Log transformation typically works best for right-skewed price data\n")
+cat("- Box-Cox gives optimal data-driven transformation\n\n")
+```
+
+## Visualization of Transformations
+
+```{r}
+p1 <- ggplot(trans_data, aes(x = sale_price)) +
+  geom_histogram(bins = 60, fill = "steelblue", color = "black", alpha = 0.7) +
+  labs(title = "Original", x = "Price ($)", y = "Frequency") +
+  scale_x_continuous(labels = dollar)
+
+p2 <- ggplot(trans_data, aes(x = log_price)) +
+  geom_histogram(bins = 60, fill = "darkgreen", color = "black", alpha = 0.7) +
+  labs(title = "Log(Price)", x = "Log(Price)", y = "Frequency")
+
+p3 <- ggplot(trans_data, aes(x = sqrt_price)) +
+  geom_histogram(bins = 60, fill = "coral", color = "black", alpha = 0.7) +
+  labs(title = "Sqrt(Price)", x = "Sqrt(Price)", y = "Frequency")
+
+p4 <- ggplot(trans_data, aes(x = boxcox_price)) +
+  geom_histogram(bins = 60, fill = "purple", color = "black", alpha = 0.7) +
+  labs(title = paste("Box-Cox (λ =", round(lambda_opt, 3), ")"),
+       x = "Transformed Price", y = "Frequency")
+
+print((p1 | p2) / (p3 | p4))
+```
+
+# 3. Outlier Detection
+
+```{r}
+cat("\n===== OUTLIER DETECTION =====\n\n")
+
+price <- model_df$sale_price
+
+# Method 1: IQR Method
+cat("METHOD 1: Interquartile Range (IQR)\n")
+cat("Rule: Outliers are values outside [Q1 - 1.5*IQR, Q3 + 1.5*IQR]\n\n")
+
+Q1 <- quantile(price, 0.25)
+Q3 <- quantile(price, 0.75)
+IQR <- Q3 - Q1
+lower_iqr <- Q1 - 1.5 * IQR
+upper_iqr <- Q3 + 1.5 * IQR
+
+outliers_iqr <- price < lower_iqr | price > upper_iqr
+n_outliers_iqr <- sum(outliers_iqr)
+pct_iqr <- (n_outliers_iqr / length(price)) * 100
+
+cat("Lower Bound: $", round(lower_iqr, 0), "\n", sep = "")
+cat("Upper Bound: $", round(upper_iqr, 0), "\n", sep = "")
+cat("Outliers Detected:", n_outliers_iqr, "(", round(pct_iqr, 2), "%)\n\n")
+
+# Method 2: Z-Score Method
+cat("METHOD 2: Z-Score (|Z| > 3)\n")
+cat("Rule: Values more than 3 standard deviations from mean\n\n")
+
+z_scores <- (price - mean(price)) / sd(price)
+outliers_z <- abs(z_scores) > 3
+n_outliers_z <- sum(outliers_z)
+pct_z <- (n_outliers_z / length(price)) * 100
+
+cat("Outliers Detected:", n_outliers_z, "(", round(pct_z, 2), "%)\n\n")
+
+# Method 3: Modified Z-Score (MAD - Median Absolute Deviation)
+cat("METHOD 3: Modified Z-Score using MAD\n")
+cat("Rule: |Modified Z| > 3.5, more robust to extreme values\n\n")
+
+median_price <- median(price)
+mad <- median(abs(price - median_price))
+modified_z <- 0.6745 * (price - median_price) / mad
+outliers_mad <- abs(modified_z) > 3.5
+n_outliers_mad <- sum(outliers_mad)
+pct_mad <- (n_outliers_mad / length(price)) * 100
+
+cat("Outliers Detected:", n_outliers_mad, "(", round(pct_mad, 2), "%)\n\n")
+
+# Summary comparison
+outlier_summary <- data.frame(
+  Method = c("IQR", "Z-Score", "Modified Z-Score"),
+  Count = c(n_outliers_iqr, n_outliers_z, n_outliers_mad),
+  Percentage = c(round(pct_iqr, 2), round(pct_z, 2), round(pct_mad, 2))
+)
+
+cat("Summary Comparison:\n")
+print(outlier_summary)
+```
+
+## Outlier Visualization
+
+```{r}
+outlier_df <- data.frame(
+  price = price,
+  outlier_iqr = outliers_iqr,
+  outlier_mad = outliers_mad
+)
+
+p_iqr <- ggplot(outlier_df, aes(x = "", y = price, fill = outlier_iqr)) +
+  geom_boxplot(width = 0.3) +
+  scale_y_continuous(labels = dollar) +
+  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "red")) +
+  labs(title = "IQR Method", y = "Price ($)", fill = "Outlier") +
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank())
+
+p_dist <- ggplot(outlier_df, aes(x = price, fill = outlier_mad)) +
+  geom_histogram(bins = 60, alpha = 0.7, color = "black") +
+  scale_x_continuous(labels = dollar) +
+  scale_fill_manual(values = c("FALSE" = "lightblue", "TRUE" = "red")) +
+  labs(title = "Modified Z-Score Distribution", x = "Price ($)", y = "Frequency", fill = "Outlier")
+
+print(p_iqr / p_dist)
+```
+
+# 4. Impact of Removing Outliers
+
+```{r}
+cat("\n===== IMPACT OF OUTLIER REMOVAL =====\n\n")
+
+# Create dataset without outliers
+model_df_no_outliers <- model_df[!outliers_iqr, ]
+
+cat("Original Dataset:\n")
+cat("  Observations:", nrow(model_df), "\n")
+cat("  Mean Price: $", round(mean(model_df$sale_price), 0), "\n", sep = "")
+cat("  Std Dev: $", round(sd(model_df$sale_price), 0), "\n\n", sep = "")
+
+cat("After Removing IQR Outliers:\n")
+cat("  Observations:", nrow(model_df_no_outliers), "\n")
+cat("  Removed:", nrow(model_df) - nrow(model_df_no_outliers), "rows\n")
+cat("  Mean Price: $", round(mean(model_df_no_outliers$sale_price), 0), "\n", sep = "")
+cat("  Std Dev: $", round(sd(model_df_no_outliers$sale_price), 0), "\n\n", sep = "")
+
+cat("Change in Standard Deviation:",
+    round((sd(model_df$sale_price) - sd(model_df_no_outliers$sale_price)) / sd(model_df$sale_price) * 100, 2),
+    "%\n")
+```
+
+# 5. Build Linear Regression Models
+
+```{r}
+cat("\n===== LINEAR REGRESSION MODELS =====\n\n")
+
+# Model 1: Baseline (Original Scale)
+cat("Model 1: Baseline Linear Regression (Original Scale)\n")
+model_baseline <- lm(sale_price ~ ., data = model_df[, 1:15])
+pred_baseline <- predict(model_baseline, model_df[, 1:15])
+rmse_baseline <- sqrt(mean((model_df$sale_price - pred_baseline)^2))
+r2_baseline <- summary(model_baseline)$r.squared
+
+cat("  R-squared:", round(r2_baseline, 4), "\n")
+cat("  RMSE: $", round(rmse_baseline, 0), "\n\n", sep = "")
+
+# Model 2: Log-Transformed
+cat("Model 2: Log-Transformed Linear Regression\n")
+model_log_df <- data.frame(log_price = log(model_df$sale_price), model_df[, 2:15])
+model_log <- lm(log_price ~ ., data = model_log_df)
+pred_log <- exp(predict(model_log, model_log_df))
+rmse_log <- sqrt(mean((model_df$sale_price - pred_log)^2))
+r2_log <- summary(model_log)$r.squared
+
+cat("  R-squared:", round(r2_log, 4), "\n")
+cat("  RMSE: $", round(rmse_log, 0), "\n")
+cat("  Improvement: $", round(rmse_baseline - rmse_log, 0), "\n\n", sep = "")
+
+# Model 3: Without Outliers
+cat("Model 3: Linear Regression (Outliers Removed)\n")
+model_no_out <- lm(sale_price ~ ., data = model_df_no_outliers[, 1:15])
+pred_no_out <- predict(model_no_out, model_df_no_outliers[, 1:15])
+rmse_no_out <- sqrt(mean((model_df_no_outliers$sale_price - pred_no_out)^2))
+r2_no_out <- summary(model_no_out)$r.squared
+
+cat("  R-squared:", round(r2_no_out, 4), "\n")
+cat("  RMSE: $", round(rmse_no_out, 0), "\n")
+cat("  Improvement: $", round(rmse_baseline - rmse_no_out, 0), "\n\n", sep = "")
+```
+
+# Summary & Recommendations
+
+```{r}
+cat("\n===== SUMMARY & RECOMMENDATIONS =====\n\n")
+
+cat("KEY FINDINGS:\n\n")
+
+cat("1. TRANSFORMATIONS:\n")
+cat("   - Original data shows right-skewed distribution\n")
+cat("   - Log transformation significantly improves normality\n")
+cat("   - Box-Cox optimal lambda:", round(lambda_opt, 4), "\n")
+cat("   - Log transformation RMSE improvement: $", round(rmse_baseline - rmse_log, 0), "\n\n", sep = "")
+
+cat("2. OUTLIERS:\n")
+cat("   - IQR method identifies", n_outliers_iqr, "outliers (", round(pct_iqr, 2), "%)\n")
+cat("   - High-value properties detected as outliers\n")
+cat("   - Removing outliers improves std dev but changes model fit\n\n")
+
+cat("3. MODEL PERFORMANCE:\n")
+cat("   - Baseline RMSE: $", round(rmse_baseline, 0), "\n", sep = "")
+cat("   - Log-transformed: $", round(rmse_log, 0), "\n", sep = "")
+cat("   - Without outliers: $", round(rmse_no_out, 0), "\n\n", sep = "")
+
+cat("RECOMMENDATIONS:\n")
+cat("- Use LOG-TRANSFORMATION for better model assumptions\n")
+cat("- Keep outliers for now (represent legitimate high-value properties)\n")
+cat("- Apply next: polynomial features, cross-validation, regularization\n")
+cat("- Monitor outlier predictions separately if needed\n")
+```

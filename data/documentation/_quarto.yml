@@ -25,6 +25,7 @@ book:
     - 05-project-schedule-and-workpackages.qmd
     - 06-data-subsetting-cleaning.qmd
     - 08-analysis-interpretation.qmd
+    - 09-key-findings-and-refinements.qmd
 
   appendices:
     - 07-data-dictionary-appendix.qmd

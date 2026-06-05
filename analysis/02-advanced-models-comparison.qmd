@@ -1,5 +1,5 @@
 ---
-title: "Advanced Models Comparison - House Price Prediction"
+title: "Regression Analysis with Transformations & Outlier Detection"
 author: "Data Analysis Team"
 date: "`r Sys.Date()`"
 format: html
@@ -9,15 +9,15 @@ execute:
   message: false
 ---
 
-# Advanced Model Improvements and Comparison
+# Advanced Regression Analysis: Transformations & Outlier Detection
 
-This document implements advanced techniques to improve upon the baseline linear regression model, including:
+This document implements focused regression analysis techniques including:
 
-1. Log-transformation of target variable
-2. Polynomial feature engineering
-3. 10-fold cross-validation evaluation
-4. Regularization methods (Ridge/Lasso)
-5. Tree-based models (Random Forest, Gradient Boosting)
+1. Multiple target variable transformations (Log, Square Root, Box-Cox, Reciprocal)
+2. Outlier detection and analysis
+3. Polynomial feature engineering for non-linear relationships
+4. 10-fold cross-validation for robust evaluation
+5. Regularization methods (Ridge/Lasso) to prevent overfitting
 
 # Setup and Libraries
 
@@ -37,14 +37,13 @@ load_packages(c(
   "ggplot2",
   "caret",
   "glmnet",
-  "randomForest",
-  "gbm",
   "tidyr",
   "broom",
   "scales",
   "patchwork",
   "gridExtra",
-  "stringr"
+  "stringr",
+  "MASS"
 ))
 ```
 
@@ -61,11 +60,11 @@ cat("Features:", ncol(app_model_df), "\n")
 # Prepare Data for Advanced Modeling
 
 ```{r}
-model_df_prepared <- app_model_df %>%
-  select(-location_cluster)
+# Prepare dataset by removing location_cluster
+model_df_prepared <- app_model_df[, names(app_model_df) != "location_cluster"]
 
-boolean_features <- names(model_df_prepared %>%
-  select(where(is.logical)))
+# Identify boolean features
+boolean_features <- names(model_df_prepared)[sapply(model_df_prepared, is.logical)]
 
 if (length(boolean_features) > 0) {
   for (col in boolean_features) {
@@ -76,76 +75,158 @@ if (length(boolean_features) > 0) {
 cat("Data prepared. Total features:", ncol(model_df_prepared) - 1, "\n")
 ```
 
-# 1. Log-Transformation of Target Variable
+# 1. Target Variable Transformations Analysis
 
 ```{r}
-cat("===== 1. LOG-TRANSFORMATION ANALYSIS =====\n\n")
+cat("===== 1. TARGET VARIABLE TRANSFORMATIONS =====\n\n")
 
-model_df_log <- model_df_prepared %>%
-  mutate(log_sale_price = log(sale_price))
+# Helper function for skewness - MUST BE DEFINED FIRST
+skewness <- function(x) {
+  m <- mean(x, na.rm = TRUE)
+  s <- sd(x, na.rm = TRUE)
+  n <- length(x)
+  ((sum((x - m)^3, na.rm = TRUE) / n) / (s^3))
+}
 
-cat("Original sale_price distribution:\n")
-print(summary(model_df_log$sale_price))
+# Create transformation dataset using base R
+model_df_transforms <- data.frame(model_df_prepared)
+model_df_transforms$log_sale_price <- log(model_df_transforms$sale_price)
+model_df_transforms$sqrt_sale_price <- sqrt(model_df_transforms$sale_price)
+model_df_transforms$reciprocal_sale_price <- 1 / model_df_transforms$sale_price
 
-cat("\n\nLog-transformed sale_price distribution:\n")
-print(summary(model_df_log$log_sale_price))
+# Calculate Box-Cox transformation lambda
+boxcox_result <- boxcox(sale_price ~ 1, data = model_df_prepared, lambda = seq(-0.5, 1, 0.1))
+lambda_optimal <- boxcox_result$x[which.max(boxcox_result$y)]
+
+model_df_transforms$boxcox_sale_price <- if (abs(lambda_optimal) < 0.001) {
+  log(model_df_prepared$sale_price)
+} else {
+  ((model_df_prepared$sale_price ^ lambda_optimal) - 1) / lambda_optimal
+}
+
+cat("Transformation Methods Applied:\n\n")
+
+cat("1. ORIGINAL (No Transformation):\n")
+cat("   Mean: $", round(mean(model_df_prepared$sale_price), 2), "\n", sep = "")
+cat("   Median: $", round(median(model_df_prepared$sale_price), 2), "\n", sep = "")
+cat("   Skewness:", round(skewness(model_df_prepared$sale_price), 4), "\n\n")
+
+cat("2. LOG TRANSFORMATION: log(price)\n")
+cat("   Mean:", round(mean(model_df_transforms$log_sale_price), 4), "\n")
+cat("   Median:", round(median(model_df_transforms$log_sale_price), 4), "\n")
+cat("   Skewness:", round(skewness(model_df_transforms$log_sale_price), 4), "\n\n")
+
+cat("3. SQUARE ROOT TRANSFORMATION: sqrt(price)\n")
+cat("   Mean:", round(mean(model_df_transforms$sqrt_sale_price), 2), "\n")
+cat("   Median:", round(median(model_df_transforms$sqrt_sale_price), 2), "\n")
+cat("   Skewness:", round(skewness(model_df_transforms$sqrt_sale_price), 4), "\n\n")
+
+cat("4. RECIPROCAL TRANSFORMATION: 1/price\n")
+cat("   Mean:", round(mean(model_df_transforms$reciprocal_sale_price), 6), "\n")
+cat("   Median:", round(median(model_df_transforms$reciprocal_sale_price), 6), "\n")
+cat("   Skewness:", round(skewness(model_df_transforms$reciprocal_sale_price), 4), "\n\n")
+
+cat("5. BOX-COX TRANSFORMATION: lambda =", round(lambda_optimal, 4), "\n")
+cat("   Mean:", round(mean(model_df_transforms$boxcox_sale_price), 2), "\n")
+cat("   Median:", round(median(model_df_transforms$boxcox_sale_price), 2), "\n")
+cat("   Skewness:", round(skewness(model_df_transforms$boxcox_sale_price), 4), "\n\n")
 
 # Create visualization comparing distributions
-p1 <- ggplot(model_df_log, aes(x = sale_price)) +
+p1 <- ggplot(model_df_transforms, aes(x = sale_price)) +
   geom_histogram(bins = 50, fill = "steelblue", color = "black") +
-  labs(title = "Original Sale Price Distribution",
+  labs(title = "Original Price Distribution",
        x = "Sale Price ($)",
        y = "Frequency") +
   scale_x_continuous(labels = scales::dollar)
 
-p2 <- ggplot(model_df_log, aes(x = log_sale_price)) +
+p2 <- ggplot(model_df_transforms, aes(x = log_sale_price)) +
   geom_histogram(bins = 50, fill = "darkgreen", color = "black") +
-  labs(title = "Log-Transformed Sale Price Distribution",
+  labs(title = "Log-Transformed Distribution",
        x = "Log(Sale Price)",
        y = "Frequency")
 
-print(p1 / p2)
+p3 <- ggplot(model_df_transforms, aes(x = sqrt_sale_price)) +
+  geom_histogram(bins = 50, fill = "coral", color = "black") +
+  labs(title = "Square Root Transformation",
+       x = "sqrt(Sale Price)",
+       y = "Frequency")
+
+p4 <- ggplot(model_df_transforms, aes(x = boxcox_sale_price)) +
+  geom_histogram(bins = 50, fill = "purple", color = "black") +
+  labs(title = "Box-Cox Transformation",
+       x = "Box-Cox(Sale Price)",
+       y = "Frequency")
+
+print((p1 | p2) / (p3 | p4))
 ```
 
-## Build Linear Regression with Log-Transformed Price
+## Build Linear Regression Models with Different Transformations
 
 ```{r}
-model_log_lr <- lm(log_sale_price ~ . -sale_price, data = model_df_log)
+cat("\nBuilding and comparing regression models with different transformations...\n\n")
 
-cat("\nLog-Transformed Linear Regression Model Summary:\n")
-print(summary(model_log_lr))
+# Model 1: Log-Transformed
+model_log <- lm(log_sale_price ~ . -sale_price -sqrt_sale_price -reciprocal_sale_price -boxcox_sale_price,
+                data = model_df_transforms)
+pred_log <- exp(predict(model_log, newdata = model_df_transforms))
+rmse_log <- sqrt(mean((model_df_prepared$sale_price - pred_log)^2))
+r2_log <- summary(model_log)$r.squared
 
-cat("\n\nLog-Model Performance Metrics:\n")
-cat("R-squared:", round(summary(model_log_lr)$r.squared, 4), "\n")
-cat("Adjusted R-squared:", round(summary(model_log_lr)$adj.r.squared, 4), "\n")
-cat("RMSE (log scale):", round(sqrt(mean(summary(model_log_lr)$residuals^2)), 4), "\n")
+# Model 2: Square Root Transformed
+model_sqrt <- lm(sqrt_sale_price ~ . -sale_price -log_sale_price -reciprocal_sale_price -boxcox_sale_price,
+                 data = model_df_transforms)
+pred_sqrt <- predict(model_sqrt, newdata = model_df_transforms) ^ 2
+rmse_sqrt <- sqrt(mean((model_df_prepared$sale_price - pred_sqrt)^2))
+r2_sqrt <- summary(model_sqrt)$r.squared
 
-# Convert back to original scale for interpretation
-predictions_log <- predict(model_log_lr, newdata = model_df_log)
-predictions_original <- exp(predictions_log)
-actual <- model_df_log$sale_price
+# Model 3: Box-Cox Transformed
+model_boxcox <- lm(boxcox_sale_price ~ . -sale_price -log_sale_price -sqrt_sale_price -reciprocal_sale_price,
+                   data = model_df_transforms)
+# Inverse Box-Cox transformation
+if (abs(lambda_optimal) < 0.001) {
+  pred_boxcox <- exp(predict(model_boxcox, newdata = model_df_transforms))
+} else {
+  pred_boxcox <- (predict(model_boxcox, newdata = model_df_transforms) * lambda_optimal + 1) ^ (1 / lambda_optimal)
+}
+rmse_boxcox <- sqrt(mean((model_df_prepared$sale_price - pred_boxcox)^2))
+r2_boxcox <- summary(model_boxcox)$r.squared
 
-rmse_log_transformed <- sqrt(mean((actual - predictions_original)^2))
-cat("RMSE (original scale): $", round(rmse_log_transformed, 2), "\n", sep = "")
-cat("Improvement vs baseline ($187,104.50):",
-    round(187104.50 - rmse_log_transformed, 2), "\n\n")
+cat("Log-Transformed Model:\n")
+cat("  R-squared:", round(r2_log, 4), "\n")
+cat("  RMSE: $", round(rmse_log, 2), "\n\n", sep = "")
+
+cat("Square Root Transformed Model:\n")
+cat("  R-squared:", round(r2_sqrt, 4), "\n")
+cat("  RMSE: $", round(rmse_sqrt, 2), "\n\n", sep = "")
+
+cat("Box-Cox Transformed Model (lambda =", round(lambda_optimal, 4), "):\n")
+cat("  R-squared:", round(r2_boxcox, 4), "\n")
+cat("  RMSE: $", round(rmse_boxcox, 2), "\n\n", sep = "")
+
+cat("Baseline (Original Scale): RMSE = $187,104.50, R-squared = 0.6087\n")
 ```
 
-## Q-Q Plot for Log-Transformed Residuals
+## Residual Normality Comparison
 
 ```{r}
-residuals_log <- residuals(model_log_lr)
+residuals_comparison <- data.frame(
+  Transformation = rep(c("Log", "Square Root", "Box-Cox"), each = nrow(model_df_transforms)),
+  Residuals = c(
+    residuals(model_log),
+    residuals(model_sqrt),
+    residuals(model_boxcox)
+  )
+)
 
-p_qq <- ggplot(data.frame(residuals = residuals_log),
-               aes(sample = residuals)) +
-  stat_qq() +
+p_qq_comp <- ggplot(residuals_comparison, aes(sample = Residuals)) +
+  stat_qq(alpha = 0.3) +
   stat_qq_line(color = "red") +
-  labs(title = "Q-Q Plot: Log-Transformed Model Residuals",
-       subtitle = "Improved normality compared to original scale",
+  facet_wrap(~Transformation) +
+  labs(title = "Q-Q Plots: Residual Normality by Transformation Method",
        x = "Theoretical Quantiles",
        y = "Sample Quantiles")
 
-print(p_qq)
+print(p_qq_comp)
 ```
 
 # 2. Polynomial Feature Engineering
@@ -370,139 +451,169 @@ plot(elasticnet_cv, main = "Elastic Net CV")
 par(mfrow = c(1, 1))
 ```
 
-# 5. Tree-Based Models
+# 5. Outlier Detection and Analysis
 
 ```{r}
-cat("\n===== 5. TREE-BASED MODELS =====\n\n")
+cat("\n===== 5. OUTLIER DETECTION =====\n\n")
 
-set.seed(123)
+# Method 1: IQR Method
+cat("Outlier Detection - Method 1: Interquartile Range (IQR)\n\n")
 
-# Random Forest
-cat("Training Random Forest (ntree=100)...\n")
-model_rf <- randomForest(
-  sale_price ~ .,
-  data = model_df_prepared,
-  ntree = 100,
-  mtry = 5,
-  importance = TRUE,
-  verbose = FALSE
-)
+Q1 <- quantile(model_df_prepared$sale_price, 0.25)
+Q3 <- quantile(model_df_prepared$sale_price, 0.75)
+IQR <- Q3 - Q1
+lower_bound <- Q1 - 1.5 * IQR
+upper_bound <- Q3 + 1.5 * IQR
 
-predictions_rf <- predict(model_rf, newdata = model_df_prepared)
-rmse_rf <- sqrt(mean((model_df_prepared$sale_price - predictions_rf)^2))
-r2_rf <- 1 - (sum((model_df_prepared$sale_price - predictions_rf)^2) /
-              sum((model_df_prepared$sale_price - mean(model_df_prepared$sale_price))^2))
+outliers_iqr <- model_df_prepared %>%
+  mutate(is_outlier_iqr = sale_price < lower_bound | sale_price > upper_bound)
 
-cat("Random Forest RMSE: $", round(rmse_rf, 2), "\n", sep = "")
-cat("Random Forest R-squared:", round(r2_rf, 4), "\n\n")
+n_outliers_iqr <- sum(outliers_iqr$is_outlier_iqr)
+pct_outliers_iqr <- (n_outliers_iqr / nrow(model_df_prepared)) * 100
 
-# Gradient Boosting Machine
-cat("Training Gradient Boosting Machine...\n")
-model_gbm <- gbm(
-  sale_price ~ .,
-  data = model_df_prepared,
-  distribution = "gaussian",
-  n.trees = 100,
-  interaction.depth = 5,
-  shrinkage = 0.1,
-  verbose = FALSE
-)
+cat("IQR Method Results:\n")
+cat("Lower Bound: $", round(lower_bound, 2), "\n", sep = "")
+cat("Upper Bound: $", round(upper_bound, 2), "\n", sep = "")
+cat("Number of outliers:", n_outliers_iqr, "\n")
+cat("Percentage of outliers:", round(pct_outliers_iqr, 2), "%\n\n")
 
-predictions_gbm <- predict(model_gbm, newdata = model_df_prepared, n.trees = 100)
-rmse_gbm <- sqrt(mean((model_df_prepared$sale_price - predictions_gbm)^2))
-r2_gbm <- 1 - (sum((model_df_prepared$sale_price - predictions_gbm)^2) /
-               sum((model_df_prepared$sale_price - mean(model_df_prepared$sale_price))^2))
+# Method 2: Z-Score Method
+cat("Outlier Detection - Method 2: Z-Score (|Z| > 3)\n\n")
 
-cat("Gradient Boosting RMSE: $", round(rmse_gbm, 2), "\n", sep = "")
-cat("Gradient Boosting R-squared:", round(r2_gbm, 4), "\n\n")
+z_scores <- scale(model_df_prepared$sale_price)[, 1]
+outliers_zscore <- abs(z_scores) > 3
 
-# Feature Importance - Random Forest
-cat("Random Forest Feature Importance (Top 15):\n")
-importance_df <- data.frame(
-  Feature = rownames(model_rf$importance),
-  Importance = model_rf$importance[, 1]
-) %>%
-  arrange(desc(Importance)) %>%
-  head(15)
+n_outliers_zscore <- sum(outliers_zscore)
+pct_outliers_zscore <- (n_outliers_zscore / nrow(model_df_prepared)) * 100
 
-print(importance_df)
+cat("Z-Score Method Results:\n")
+cat("Number of outliers (|Z| > 3):", n_outliers_zscore, "\n")
+cat("Percentage of outliers:", round(pct_outliers_zscore, 2), "%\n\n")
 
-# Feature Importance - Gradient Boosting
-cat("\n\nGradient Boosting Feature Importance (Top 15):\n")
-gbm_importance <- summary(model_gbm, plotit = FALSE) %>%
-  arrange(desc(rel.inf)) %>%
-  head(15)
+# Method 3: Modified Z-Score (using MAD - Median Absolute Deviation)
+cat("Outlier Detection - Method 3: Modified Z-Score (MAD)\n\n")
 
-print(gbm_importance)
+median_price <- median(model_df_prepared$sale_price)
+mad <- median(abs(model_df_prepared$sale_price - median_price))
+modified_z <- 0.6745 * (model_df_prepared$sale_price - median_price) / mad
+outliers_mad <- abs(modified_z) > 3.5
+
+n_outliers_mad <- sum(outliers_mad)
+pct_outliers_mad <- (n_outliers_mad / nrow(model_df_prepared)) * 100
+
+cat("Modified Z-Score (MAD) Method Results:\n")
+cat("Number of outliers:", n_outliers_mad, "\n")
+cat("Percentage of outliers:", round(pct_outliers_mad, 2), "%\n\n")
+
+# Visualization of outliers
+outlier_data <- model_df_prepared %>%
+  mutate(
+    outlier_iqr = if_else(is_outlier_iqr, "Outlier", "Normal"),
+    outlier_mad = if_else(outliers_mad, "Outlier", "Normal")
+  )
+
+p_outliers_iqr <- ggplot(outlier_data, aes(x = "", y = sale_price, fill = outlier_iqr)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2, alpha = 0.1, size = 1) +
+  scale_y_continuous(labels = scales::dollar) +
+  labs(
+    title = "Outlier Detection: IQR Method",
+    y = "Sale Price ($)",
+    fill = "Status"
+  ) +
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank())
+
+p_outliers_dist <- ggplot(outlier_data, aes(x = sale_price, fill = outlier_mad)) +
+  geom_histogram(bins = 50, alpha = 0.7) +
+  scale_x_continuous(labels = scales::dollar) +
+  labs(
+    title = "Price Distribution with MAD Outliers",
+    x = "Sale Price ($)",
+    y = "Frequency",
+    fill = "Status"
+  )
+
+print(p_outliers_iqr / p_outliers_dist)
 ```
 
-## Feature Importance Visualization
+## Summary of Outlier Methods
 
 ```{r}
-p_rf_imp <- ggplot(head(importance_df, 10),
-                   aes(x = reorder(Feature, Importance), y = Importance)) +
-  geom_col(fill = "steelblue") +
-  coord_flip() +
-  labs(title = "Random Forest: Top 10 Features",
-       x = "Feature",
-       y = "Importance")
+outlier_summary <- data.frame(
+  Method = c("IQR Method", "Z-Score (|Z| > 3)", "Modified Z-Score (MAD)"),
+  Number_Outliers = c(n_outliers_iqr, n_outliers_zscore, n_outliers_mad),
+  Percentage = c(pct_outliers_iqr, pct_outliers_zscore, pct_outliers_mad)
+)
 
-p_gbm_imp <- ggplot(head(gbm_importance, 10),
-                    aes(x = reorder(var, rel.inf), y = rel.inf)) +
-  geom_col(fill = "darkgreen") +
-  coord_flip() +
-  labs(title = "Gradient Boosting: Top 10 Features",
-       x = "Feature",
-       y = "Relative Influence")
+cat("\nOutlier Detection Methods Comparison:\n")
+print(outlier_summary)
 
-print(p_rf_imp / p_gbm_imp)
+cat("\nInterpretation:\n")
+cat("- IQR Method: Conservative, detects extreme values beyond 1.5*IQR\n")
+cat("- Z-Score: Less robust to skewness, sensitive to distribution shape\n")
+cat("- Modified Z-Score (MAD): More robust, less affected by outliers in calculation\n\n")
+
+# Compare outlier sets
+cat("Outlier Agreement Analysis:\n")
+combined_outliers <- data.frame(
+  IQR = outliers_iqr$is_outlier_iqr,
+  ZScore = outliers_zscore,
+  MAD = outliers_mad
+) %>%
+  mutate(Agreement = rowSums(across(everything())) >= 2)
+
+n_all_three <- sum(combined_outliers$IQR & combined_outliers$ZScore & combined_outliers$MAD)
+n_at_least_two <- sum(combined_outliers$Agreement)
+
+cat("Outliers detected by all 3 methods:", n_all_three, "\n")
+cat("Outliers detected by at least 2 methods:", n_at_least_two, "\n")
 ```
 
 # Comprehensive Model Comparison
 
 ```{r}
-cat("\n===== COMPREHENSIVE MODEL COMPARISON =====\n\n")
+cat("\n===== COMPREHENSIVE REGRESSION MODEL COMPARISON =====\n\n")
 
 all_models_comparison <- data.frame(
   Model = c(
     "Baseline Linear Regression",
     "Log-Transformed Linear Regression",
+    "Square Root Transformed",
+    "Box-Cox Transformed",
     "Polynomial Linear Regression",
     "Ridge Regression",
     "Lasso Regression",
-    "Elastic Net",
-    "Random Forest",
-    "Gradient Boosting"
+    "Elastic Net"
   ),
   RMSE = c(
     187104.50,
-    rmse_log_transformed,
+    rmse_log,
+    rmse_sqrt,
+    rmse_boxcox,
     rmse_poly,
     rmse_ridge,
     rmse_lasso,
-    rmse_elasticnet,
-    rmse_rf,
-    rmse_gbm
+    rmse_elasticnet
   ),
   Rsquared = c(
     0.6087,
-    summary(model_log_lr)$r.squared,
+    r2_log,
+    r2_sqrt,
+    r2_boxcox,
     summary(model_poly)$r.squared,
     r2_ridge,
     r2_lasso,
-    r2_elasticnet,
-    r2_rf,
-    r2_gbm
+    r2_elasticnet
   ),
-  Parameters = c(
-    22,
-    22,
-    28,
-    "Regularized",
-    "Regularized",
-    "Regularized",
-    "100 trees",
-    "100 trees"
+  Model_Type = c(
+    "Original Scale",
+    "Log Transform",
+    "Square Root Transform",
+    "Box-Cox Transform",
+    "Polynomial Features",
+    "Regularization",
+    "Regularization",
+    "Regularization"
   )
 )
 
@@ -567,59 +678,107 @@ cat("Improvement over baseline:",
     " (", best_model$Percent_Improvement, "%)\n\n", sep = "")
 
 cat("KEY FINDINGS:\n\n")
-cat("1. LOG-TRANSFORMATION:\n")
-cat("   - Improves residual normality\n")
-cat("   - More stable predictions for extreme values\n")
-cat("   - RMSE improvement: ",
-    round((187104.50 - rmse_log_transformed), 2), "\n\n", sep = "")
+cat("1. TARGET VARIABLE TRANSFORMATIONS:\n")
+cat("   - Log-Transformation RMSE: $", round(rmse_log, 2), "\n", sep = "")
+cat("     • Improves residual normality\n")
+cat("     • Helps with heteroscedasticity\n")
+cat("     • Better for skewed price distributions\n\n")
+
+cat("   - Square Root Transformation RMSE: $", round(rmse_sqrt, 2), "\n", sep = "")
+cat("     • Less aggressive than log\n")
+cat("     • Maintains interpretability\n\n")
+
+cat("   - Box-Cox Transformation RMSE: $", round(rmse_boxcox, 2), "\n", sep = "")
+cat("     • Optimal lambda:", round(lambda_optimal, 4), "\n")
+cat("     • Data-driven transformation\n")
+cat("     • Theoretically optimal for normality\n\n")
 
 cat("2. POLYNOMIAL FEATURES:\n")
 cat("   - Captures non-linear relationships\n")
-cat("   - Square of year_built and quality_score are significant\n")
-cat("   - RMSE improvement: ",
-    round((187104.50 - rmse_poly), 2), "\n\n", sep = "")
+cat("   - RMSE: $", round(rmse_poly, 2), "\n", sep = "")
+cat("   - Improvement: ", round(187104.50 - rmse_poly, 2), " dollars\n\n", sep = "")
 
-cat("3. CROSS-VALIDATION:\n")
-cat("   - Provides robust out-of-sample performance estimates\n")
-cat("   - Baseline CV RMSE: $",
-    round(model_baseline_cv$results$RMSE[1], 2), "\n\n", sep = "")
+cat("3. CROSS-VALIDATION RESULTS:\n")
+cat("   - Baseline CV RMSE: $", round(model_baseline_cv$results$RMSE[1], 2), "\n", sep = "")
+cat("   - Polynomial CV RMSE: $", round(model_poly_cv$results$RMSE[1], 2), "\n")
+cat("   - Provides robust out-of-sample estimates\n\n")
 
-cat("4. REGULARIZATION:\n")
-cat("   - Ridge/Lasso prevent overfitting\n")
-cat("   - Best regularization RMSE: $",
-    round(min(rmse_ridge, rmse_lasso, rmse_elasticnet), 2), "\n\n", sep = "")
+cat("4. REGULARIZATION TECHNIQUES:\n")
+cat("   - Ridge Regression RMSE: $", round(rmse_ridge, 2), "\n", sep = "")
+cat("   - Lasso Regression RMSE: $", round(rmse_lasso, 2), "\n", sep = "")
+cat("   - Elastic Net RMSE: $", round(rmse_elasticnet, 2), "\n")
+cat("   - Prevent overfitting through penalty terms\n\n")
 
-cat("5. TREE-BASED MODELS:\n")
-cat("   - Random Forest RMSE: $", round(rmse_rf, 2), "\n", sep = "")
-cat("   - Gradient Boosting RMSE: $", round(rmse_gbm, 2), "\n\n", sep = "")
+cat("5. OUTLIER DETECTION FINDINGS:\n")
+cat("   - IQR Method identified: ", n_outliers_iqr, " outliers (",
+    round(pct_outliers_iqr, 2), "%)\n", sep = "")
+cat("   - Modified Z-Score identified: ", n_outliers_mad, " outliers (",
+    round(pct_outliers_mad, 2), "%)\n", sep = "")
+cat("   - Recommend reviewing extreme values\n\n")
 
-cat("RECOMMENDED NEXT STEPS:\n")
-cat("- Deploy", best_model_name, "for production predictions\n")
-cat("- Monitor performance on new data\n")
-cat("- Consider ensemble methods combining best models\n")
-cat("- Perform hyperparameter tuning on", best_model_name, "\n")
-cat("- Validate predictions on hold-out test set\n")
+cat("RECOMMENDED APPROACH:\n")
+cat("- Log-transformation is recommended for this dataset\n")
+cat("- Use 10-fold cross-validation for robust validation\n")
+cat("- Ridge/Lasso regularization to prevent overfitting\n")
+cat("- Monitor and potentially remove high-leverage outliers\n")
+cat("- Combine transformation with polynomial features for improved fit\n")
 }
 ```
 
-# Export Best Model
+# Export Models and Results
 
 ```{r}
-# Save all comparison results
+# Create and save comparison results
 results_export <- all_models_comparison %>%
-  select(Model, RMSE, Rsquared, RMSE_Improvement, Percent_Improvement)
+  arrange(RMSE) %>%
+  mutate(
+    RMSE_Improvement = 187104.50 - RMSE,
+    Percent_Improvement = round((RMSE_Improvement / 187104.50) * 100, 2)
+  )
 
-write_csv(results_export, "models/model_comparison_results.csv")
+write_csv(results_export, "models/transformation_model_comparison.csv")
 
-# Export best models for deployment
-saveRDS(model_log_lr, "models/log_transformed_lr_model.rds")
-saveRDS(model_poly, "models/polynomial_lr_model.rds")
-saveRDS(model_rf, "models/random_forest_model.rds")
-saveRDS(model_gbm, "models/gradient_boosting_model.rds")
-saveRDS(ridge_cv, "models/ridge_regression_model.rds")
-saveRDS(lasso_cv, "models/lasso_regression_model.rds")
+# Export transformation-based models
+saveRDS(model_log, "models/log_transformed_regression.rds")
+saveRDS(model_sqrt, "models/sqrt_transformed_regression.rds")
+saveRDS(model_boxcox, "models/boxcox_transformed_regression.rds")
+saveRDS(model_poly, "models/polynomial_regression.rds")
 
-cat("\nAll models and results exported successfully!\n")
-cat("Location: models/ directory\n")
-cat("Summary: models/model_comparison_results.csv\n")
+# Export regularization models
+saveRDS(ridge_cv, "models/ridge_regression.rds")
+saveRDS(lasso_cv, "models/lasso_regression.rds")
+saveRDS(elasticnet_cv, "models/elasticnet_regression.rds")
+
+# Save transformation metadata
+transformation_metadata <- list(
+  lambda_boxcox = lambda_optimal,
+  outlier_methods = list(
+    iqr_count = n_outliers_iqr,
+    iqr_percentage = pct_outliers_iqr,
+    mad_count = n_outliers_mad,
+    mad_percentage = pct_outliers_mad
+  ),
+  baseline_rmse = 187104.50,
+  baseline_rsquared = 0.6087
+)
+
+saveRDS(transformation_metadata, "models/transformation_metadata.rds")
+
+cat("\n===== MODEL EXPORT SUMMARY =====\n\n")
+cat("Transformation-Based Models Saved:\n")
+cat("  1. log_transformed_regression.rds\n")
+cat("  2. sqrt_transformed_regression.rds\n")
+cat("  3. boxcox_transformed_regression.rds\n")
+cat("  4. polynomial_regression.rds\n\n")
+
+cat("Regularization Models Saved:\n")
+cat("  5. ridge_regression.rds\n")
+cat("  6. lasso_regression.rds\n")
+cat("  7. elasticnet_regression.rds\n\n")
+
+cat("Results and Metadata Saved:\n")
+cat("  - transformation_model_comparison.csv\n")
+cat("  - transformation_metadata.rds\n\n")
+
+print(results_export %>% select(Model, RMSE, Rsquared, Percent_Improvement))
 ```
