@@ -13,11 +13,11 @@ execute:
 
 This document implements focused regression analysis techniques including:
 
-1. Multiple target variable transformations (Log, Square Root, Box-Cox, Reciprocal)
-2. Outlier detection and analysis
-3. Polynomial feature engineering for non-linear relationships
-4. 10-fold cross-validation for robust evaluation
-5. Regularization methods (Ridge/Lasso) to prevent overfitting
+1.  Multiple target variable transformations (Log, Square Root, Box-Cox, Reciprocal)
+2.  Outlier detection and analysis
+3.  Polynomial feature engineering for non-linear relationships
+4.  10-fold cross-validation for robust evaluation
+5.  Regularization methods (Ridge/Lasso) to prevent overfitting
 
 # Setup and Libraries
 
