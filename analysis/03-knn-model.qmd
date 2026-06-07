@@ -1,0 +1,432 @@
+---
+title: "KNN model"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+# Introduction
+
+This document provides a detailed interpretation of the KNN model applied to predict residential property prices in Pierce County. The analysis builds upon the data prepared during the exploratory phase and focuses on identifying the key drivers of house prices and assessing the predictive power of the resulting models.
+
+# Step-by-Step Analysis
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(broom)
+library(tidyr)
+library(here)
+library(dotenv)
+library(caret)
+library(tidyverse)
+library(kknn)
+options(scipen = 999)
+
+# Load the prepared data
+model_df <- read_csv(here::here("data", "house_price_model_data.csv"))
+```
+
+
+## Step 1: Data Preparation and Feature Selection
+
+The analysis utilizes the `house_price_model_data.csv` dataset, which contains processed features including property characteristics and location data.
+
+```{r}
+#| label: data-summary
+#| echo: false
+
+cat("Total observations:", nrow(model_df), "\n")
+cat("Total features available:", ncol(model_df) - 1, "\n")
+```
+
+The idea behind experimenting with KNN is to easily show the user why the given price
+has been estimated through a clear reasoning (showing n most similar observations)
+based on a very limited number of features (location and size, optionally condition).
+
+Key features include:
+
+- **Physical Characteristics**: `square_feet`, `bathrooms`, `bedrooms`
+- **Quality Indicators**: `quality_score`, `has_pool_or_spa_detail`
+- **Location**: `latitude`, `longitude`
+- **Time**: `sale year`.
+
+## Step 2: Model Development
+
+### Minimal Model
+We focus on the **Core Features Model** as it provides the most interpretable results
+to the user with using only longitude, latitude and
+the net square footage of properties.
+
+```{r}
+#| label: model-development
+
+baseline_data <- model_df %>% 
+  select(
+    sale_price, 
+    latitude, 
+    longitude, 
+    square_feet
+  ) %>% 
+  drop_na() # in case, but no NA
+
+set.seed(222) 
+train_index <- createDataPartition(
+  baseline_data$sale_price, 
+  p = 0.8, 
+  list = FALSE
+)
+
+train_data_1 <- baseline_data[train_index, ]
+test_data_1  <- baseline_data[-train_index, ]
+```
+
+We try for different values of k (2, 3, 4, 5). We decided these values as in a map
+visualization (showing the closest observations to the user) more than 5 similar 
+properties displayed would compromise the user experience.
+```{r}
+
+cv_control <- trainControl(
+  method = "cv", 
+  number = 3
+)
+
+k_grid <- data.frame(k = c(2, 3, 4, 5))
+
+set.seed(222)
+knn_baseline <- train(
+  sale_price ~ latitude + longitude + square_feet,
+  data = train_data_1,
+  method = "knn",                  
+  trControl = cv_control,
+  preProcess = c("center", "scale"),
+  tuneGrid = k_grid
+)
+
+print(knn_baseline)
+
+```
+```{r}
+saveRDS(knn_baseline, here::here("models", "knn_baseline.rds"))
+```
+
+The optimal number of k is 5. This model has an RMSE of 247 381 dollars on validation
+set. The R-squared is 0.3, which considering that we only used the property
+coordinates and the net square footage, is not a bad result.
+```{r}
+# Predict on the test data
+predictions_1 <- predict(knn_baseline, newdata = test_data_1)
+
+# Calculate performance metrics (RMSE, R-squared, MAE)
+evaluation_metrics_1 <- postResample(pred = predictions_1, obs = test_data_1$sale_price)
+print(evaluation_metrics_1)
+
+```
+The RMSE is 234 085 dollars on the test set, consistent with the cross validation
+so no over-fitting occurred.
+
+```{r}
+train_preds_1 <- predict(knn_baseline, newdata = train_data_1)
+
+# Absolute Percentage Error (APE) for training data
+train_ape_1 <- abs(train_preds_1 - train_data_1$sale_price) / train_data_1$sale_price
+
+train_within_15_1 <- mean(train_ape_1 <= 0.15) * 100
+
+# Absolute Percentage Error (APE) for test data
+test_ape_1 <- abs(predictions_1 - test_data_1$sale_price) / test_data_1$sale_price
+
+test_within_15_1 <- mean(test_ape_1 <= 0.15) * 100
+
+print(c(train_within_15_1, test_within_15_1))
+
+```
+
+
+On the minimal model almost 31% of the training data is predicted within 15% of
+the actual price, while in the test data 26%. This is rather low, so additional features
+need to be included in the model.
+
+### Adding sale year
+
+```{r}
+features_to_test <- model_df %>% 
+  select(
+    sale_price,
+    longitude,
+    latitude,
+    sale_year,
+    quality_score,
+    bathrooms,
+    bedrooms,
+    has_pool_or_spa_detail
+  ) %>% 
+  drop_na() # in case, but here no NAs
+
+cor_matrix <- cor(features_to_test)
+
+price_correlations <- cor_matrix[, "sale_price"] %>% 
+  sort(decreasing = TRUE)
+
+price_correlations
+```
+We will first try to only add one feature, the one with the highest correlation to
+sale price. This is the sale year.
+
+```{r}
+expanded_data <- model_df %>% 
+  select(
+    sale_price, 
+    latitude, 
+    longitude, 
+    square_feet,
+    sale_year # newly added feature
+  ) %>% 
+  drop_na() # none, but just in case
+
+
+train_data_2 <- expanded_data[train_index, ]
+test_data_2  <- expanded_data[-train_index, ]
+```
+
+```{r}
+
+set.seed(222)
+knn_v2 <- train(
+  sale_price ~ latitude + longitude + square_feet + sale_year,
+  data = train_data_2,
+  method = "knn", 
+  trControl = cv_control,
+  preProcess = c("center", "scale"), 
+  tuneGrid = k_grid
+)
+
+print(knn_v2)
+```
+```{r}
+saveRDS(knn_v2, here::here("models", "knn_2.rds"))
+```
+
+By adding the sale year the optimal k dropped to 2, which is great for simplicity.
+The RMSE is 153 705 a significant decrease from the
+minimal model (247 381). The R-squared has also increased to 0.75.
+
+
+```{r}
+predictions_2 <- predict(knn_v2, newdata = test_data_2)
+
+# Calculate performance metrics (RMSE, R-squared, MAE)
+evaluation_metrics_2 <- postResample(pred = predictions_2, obs = test_data_2$sale_price)
+print(evaluation_metrics_2)
+```
+The RMSE decrease and the R-squared increase is also consistent on the test set.
+
+```{r}
+test_ape_2 <- abs(predictions_2 - test_data_2$sale_price) / test_data_2$sale_price
+test_within_15_2 <- mean(test_ape_2 <= 0.15) * 100
+
+train_preds_2 <- predict(knn_v2, newdata = train_data_2)
+train_ape_2 <- abs(train_preds_2 - train_data_2$sale_price) / train_data_2$sale_price
+train_within_15_2 <- mean(train_ape_2 <= 0.15) * 100
+
+print(c(train_within_15_2, test_within_15_2))
+```
+
+To our custom benchmark, by adding sale year to this model, it performs better on
+the train set, namely almost 87% of the test data is predicted within 15% from the 
+actual market value (previous model: 31%). Interestingly the performance on the 
+training data is remarkably worse, 66.5% but still singificant improvement from the
+previous 26%.
+
+### Adding quality score
+
+We add another variable with the second highest correlation to the target variable 
+on an additional dimension (quality) next to location, size and time.
+
+```{r}
+expanded_data_2 <- model_df %>% 
+  select(
+    sale_price, 
+    latitude, 
+    longitude, 
+    square_feet,
+    sale_year,
+    quality_score  # newly added feature
+  ) %>% 
+  drop_na() # none, but just in case
+
+train_data_3 <- expanded_data_2[train_index, ]
+test_data_3  <- expanded_data_2[-train_index, ]
+```
+
+```{r}
+
+set.seed(222)
+knn_v3 <- train(
+  sale_price ~ latitude + longitude + square_feet + sale_year + quality_score,
+  data = train_data_3,
+  method = "knn", 
+  trControl = cv_control,
+  preProcess = c("center", "scale"), 
+  tuneGrid = k_grid
+)
+
+print(knn_v3)
+```
+```{r}
+saveRDS(knn_v3, here::here("models", "knn_3.rds"))
+```
+
+Again the optimal value for k is 2. RMSE showed a minor improvement to 140 185, compared
+to previous 153 705 . The R-squared imporved from 0.74 to 0.79.
+
+
+```{r}
+predictions_3 <- predict(knn_v3, newdata = test_data_3)
+
+# Calculate performance metrics (RMSE, R-squared, MAE)
+evaluation_metrics_3 <- postResample(pred = predictions_3, obs = test_data_3$sale_price)
+print(evaluation_metrics_3)
+```
+
+Adding the quality_score yields even better results on the test set, reducing the
+RSME to 118 931, and increasing the R-squared above 80.
+
+```{r}
+test_ape_3 <- abs(predictions_3 - test_data_3$sale_price) / test_data_3$sale_price
+test_within_15_3 <- mean(test_ape_3 <= 0.15) * 100
+
+train_preds_3 <- predict(knn_v3, newdata = train_data_3)
+train_ape_3 <- abs(train_preds_3 - train_data_3$sale_price) / train_data_3$sale_price
+train_within_15_3 <- mean(train_ape_3 <= 0.15) * 100
+
+print(c(train_within_15_3, test_within_15_3))
+```
+To our custom benchmark, by adding quality_score to this model, it performs marginally better on
+the train set, namely  88.5% of the test data is predicted within 15% from the 
+actual market value (previous model: 87%). Interestingly the performance on the 
+training data show the same marginal improvement, almost 70% compared to previous 66.5%.
+
+### All features
+
+For the sake of seeing how much explanation or preciseness we are trading for better
+user experience, we will fit a model that uses all selected predictors from above. 
+Namely:
+- **Physical Characteristics**: `square_feet`, `bathrooms`, `bedrooms`
+- **Quality Indicators**: `quality_score`, `has_pool_or_spa_detail`
+- **Location**: `latitude`, `longitude`
+- **Time**: `sale year`.
+
+```{r}
+df_full <- model_df %>% 
+  select(
+    sale_price, 
+    latitude, 
+    longitude, 
+    square_feet,
+    sale_year,
+    quality_score,
+    bedrooms,
+    bathrooms,
+    has_pool_or_spa_detail
+  ) %>% 
+  drop_na() # none, but just in case
+
+train_data_4 <- df_full[train_index, ]
+test_data_4  <- df_full[-train_index, ]
+```
+
+```{r}
+set.seed(222)
+knn_full <- train(
+  sale_price ~ latitude + longitude + square_feet + sale_year + quality_score + bathrooms
+  + bedrooms,
+  data = train_data_4,
+  method = "knn", 
+  trControl = cv_control,
+  preProcess = c("center", "scale"), 
+  tuneGrid = data.frame(k=k_grid)
+)
+
+print(knn_full)
+```
+
+```{r}
+saveRDS(knn_full, here::here("models", "knn_full.rds"))
+```
+
+When all available features were used, the RMSE actually started to increase. At 
+the same time the R-squared dropped slightly.
+
+```{r}
+predictions_full <- predict(knn_full, newdata = test_data_4)
+
+# Calculate performance metrics (RMSE, R-squared, MAE)
+evaluation_metrics_full <- postResample(pred = predictions_full, obs = test_data_4$sale_price)
+print(evaluation_metrics_full)
+```
+The performance on the test data also slightly worsened with a 5 000 dollar increase
+in RMSE compared to the best model.
+
+```{r}
+test_ape_full <- abs(predictions_full - test_data_4$sale_price) / test_data_4$sale_price
+test_within_15_full <- mean(test_ape_full <= 0.15) * 100
+
+train_preds_full <- predict(knn_full, newdata = train_data_4)
+train_ape_full <- abs(train_preds_full - train_data_4$sale_price) / train_data_4$sale_price
+train_within_15_full <- mean(train_ape_full <= 0.15) * 100
+
+print(c(train_within_15_full, test_within_15_full))
+```
+To our custom benchmark, we see a slight drop in the percentage of observations predicted within 15%
+of actual price in both train and test data.
+
+## Step 3: Model Evaluation
+
+| Model | RMSE | R-squared | MAE | 
+|:----------|:-------|:-------|:-------|
+| **minimal** | `r evaluation_metrics_1[["RMSE"]]` | `r evaluation_metrics_1[["Rsquared"]]` | `r evaluation_metrics_1[["MAE"]]` |
+| **+sale_year** | `r evaluation_metrics_2[["RMSE"]]`  | `r evaluation_metrics_2[["Rsquared"]]` | `r evaluation_metrics_2[["MAE"]]` |
+| **+sale_year+quality** | `r evaluation_metrics_3[["RMSE"]]`  | `r evaluation_metrics_3[["Rsquared"]]` | `r evaluation_metrics_3[["MAE"]]` |
+| **full** | `r evaluation_metrics_full[["RMSE"]]` | `r evaluation_metrics_full[["Rsquared"]]` | `r evaluation_metrics_full[["MAE"]]` |
+
+
+| Model | within 15% train | within 15% test
+|:----------|:-------|:-------|
+| **minimal** | `r train_within_15_1` | `r test_within_15_1` |
+| **+sale_year** | `r train_within_15_2` | `r test_within_15_2` |
+| **+sale_year+quality** | `r train_within_15_3` | `r test_within_15_3` |
+| **full** | `r train_within_15_full` | `r test_within_15_full` |
+
+```{r}
+# assemble results
+metrics_table <- data.frame(
+  Model = c("minimal", "+sale_year", "+sale_year+quality", "full"),
+  RMSE = c(evaluation_metrics_1[["RMSE"]], evaluation_metrics_2[["RMSE"]], 
+           evaluation_metrics_3[["RMSE"]], evaluation_metrics_full[["RMSE"]]),
+  Rsquared = c(evaluation_metrics_1[["Rsquared"]], evaluation_metrics_2[["Rsquared"]], 
+               evaluation_metrics_3[["Rsquared"]], evaluation_metrics_full[["Rsquared"]]),
+  MAE = c(evaluation_metrics_1[["MAE"]], evaluation_metrics_2[["MAE"]], 
+          evaluation_metrics_3[["MAE"]], evaluation_metrics_full[["MAE"]])
+)
+
+within_15_table <- data.frame(
+  Model = c("minimal", "+sale_year", "+sale_year+quality", "full"),
+  within_15_train = c(train_within_15_1, train_within_15_2, train_within_15_3, train_within_15_full),
+  within_15_test  = c(test_within_15_1,  test_within_15_2,  test_within_15_3,  test_within_15_full)
+)
+
+```
+
+```{r}
+# save
+saveRDS(metrics_table,    here::here("analysis", "03-knn-files", "metrics_table.rds"))
+saveRDS(within_15_table,  here::here("analysis", "03-knn-files", "within_15_table.rds"))
+```
+
