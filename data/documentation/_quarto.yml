@@ -23,10 +23,12 @@ book:
     - 03-project-organization.qmd
     - 04-development-plan.qmd
     - 05-project-schedule-and-workpackages.qmd
-    - 07-data-dictionary-appendix.qmd
+    - 07-eda_summary.qmd
+    - 06-data-dictionary-appendix.qmd
     - 08-knn-model.qmd
     - 08-analysis-interpretation.qmd
     - 09-key-findings-and-refinements.qmd
+    - 09-LightGBM-model.qmd.qmd
 
   appendices:
     - 07-data-dictionary-appendix.qmd
