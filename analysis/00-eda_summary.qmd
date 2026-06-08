@@ -1,0 +1,73 @@
+---
+title: "eda_summary"
+format: html
+editor: visual
+---
+
+## EDA Summary
+
+File saved under: /workspaces/SOE-R-House-Price-Prediction/analysis/00-eda-analysis/eda.qmd
+
+The exploratory data analysis was conducted to prepare the property dataset, understand the distribution of sale prices, identify the strongest predictors, and reduce the number of variables before modeling.
+
+The original property, sales, appraisal, improvement, land, parcel, and tax datasets were first reviewed for missing values, duplicates, repeated parcel records, and irrelevant administrative fields. Variables with very high missingness, identifier columns, redundant measurements, detailed text fields, and assessor value variables that could cause target leakage were removed. The remaining data sources were then joined into one analytical dataset.
+
+The sales data was restricted to valid and confirmed market transactions with positive sale prices. Transactions below 10,000 USD were removed because many represented unusual or non-market transfers. The analysis was also limited to residential properties, removing commercial, industrial, vacant-land, and other non-comparable sales. After filtering and removing duplicates, the dataset contained approximately 254,567 residential observations. The median residential sale price was around 320,000 USD, while the mean was higher because the sale-price distribution remained right-skewed.
+
+### Most important EDA results
+
+The analysis showed that house prices are mainly influenced by **time, location, construction quality, building size, property age, land size, and bathroom count**.
+
+- **Sale year** was one of the strongest predictors. Median prices increased over time, with a decline around the 2008–2010 period followed by strong growth in more recent years.
+- **Quality** showed one of the clearest price patterns. Higher-quality properties had substantially higher median sale prices, especially at the highest quality levels.
+- **Building square footage** had a strong positive relationship with sale price. Larger homes generally sold for higher prices.
+- **Location** was highly important. Neighborhood, latitude, longitude, and geographic clusters showed clear differences in price levels.
+- **Year built** contributed useful information because newer homes generally had higher sale prices.
+- **Land size** had a positive but more scattered relationship with price.
+- **Bathrooms** showed a clearer relationship with sale price than bedrooms and became one of the final selected predictors.
+- Amenities such as waterfront access, finished space, garages, porches, pools, and spas showed some price differences, but several were rare or added limited information after stronger variables were included.
+
+Categorical analysis identified `quality` and `neighborhood` as the strongest categorical variables. Exterior and HVAC type showed moderate differences, while condition, utilities, street access, and residential classification variables provided little additional information after filtering.
+
+The boolean-feature analysis showed that waterfront, finished-space, pool/spa, garage, and deck/porch indicators could be useful, but their importance was lower than the main time, location, size, and quality variables.
+
+### Further EDA results
+
+During the EDA were created additional measures for price, size, quality, room density, location, and feature interactions.
+
+`price_per_sqft` was useful for comparing properties of different sizes, but it was excluded from modeling because it was calculated from `sale_price` and would cause target leakage.
+
+A numeric `quality_score` was created from the ordered quality categories. This feature showed a strong positive relationship with median sale price and became one of the most important modeling variables.
+
+Room-density features, location clusters, and several interaction features were also evaluated. The strongest interactions involved:
+
+- building size and quality,
+- bathrooms and quality,
+- building size and finished space,
+- and location with time.
+
+These results confirmed that the effect of one property characteristic can depend on other characteristics. However, the later model-based feature-reduction analysis showed that several engineered and amenity features could be removed without a meaningful loss in performance.
+
+### Final feature selection
+
+The initial feature-importance analysis identified 15 relevant candidates:
+
+- `sale_year`
+- `quality_score`
+- `year_built`
+- `square_feet`
+- `latitude`
+- `land_net_square_feet`
+- `bathrooms`
+- `longitude`
+- `bedrooms_per_1000_sqft`
+- `bathrooms_per_1000_sqft`
+- `has_waterfront_detail`
+- `location_cluster`
+- `bedrooms`
+- `has_finished_space_detail`
+- `has_garage_or_carport_detail`
+
+### Overall conclusion
+
+The EDA showed that residential sale price is primarily explained by a combination of **market year, location, construction quality, building size, property age, land size, and bathrooms**.
