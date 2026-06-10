@@ -581,3 +581,4 @@ Because the model that eliminates 7 features removes 4 additional input variable
 The final LightGBM model recommends using the following features: `sale_year`, `quality_score`, `year_built`, `square_feet`, `latitude`, `land_net_square_feet`, `bathrooms`, and `longitude`.
 
 It suggests excluding `bedrooms_per_1000_sqft`, `bathrooms_per_1000_sqft`, `has_waterfront_detail`, `location_cluster`, `bedrooms`, `has_finished_space_detail`, and `has_garage_or_carport_detail`.
+

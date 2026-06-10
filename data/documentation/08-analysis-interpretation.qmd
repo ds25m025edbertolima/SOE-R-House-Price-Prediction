@@ -6,6 +6,7 @@ format:
     number-sections: true
 ---
 
+::: {.content-visible unless-format="revealjs"}
 # Introduction
 
 This document provides a detailed interpretation of the linear regression analysis performed to predict residential property prices in Pierce County. The analysis builds upon the data prepared during the exploratory phase and focuses on identifying the key drivers of house prices and assessing the predictive power of the resulting models.
@@ -39,13 +40,16 @@ The analysis utilizes the `house_price_model_data.csv` dataset, which contains p
 cat("Total observations:", nrow(model_df), "\n")
 cat("Total features available:", ncol(model_df) - 1, "\n")
 ```
+:::
 
 Key features include:
+
 - **Physical Characteristics**: `square_feet`, `bedrooms`, `bathrooms`, `year_built`.
 - **Quality Indicators**: `quality_score`, `total_size_score`.
 - **Location**: `latitude`, `longitude`.
 - **Interactions**: `square_feet_quality_interaction`, `waterfront_land_interaction`.
 
+::: {.content-visible unless-format="revealjs"}
 ## Step 2: Model Development
 
 We focus on the **Core Features Model** as it provides the most interpretable results for documentation purposes.
@@ -68,7 +72,7 @@ formula_core <- as.formula(
 
 model_core <- lm(formula_core, data = model_df)
 ```
-
+:::
 ## Step 3: Performance Evaluation
 
 The model performance is assessed using R-squared and error metrics.
@@ -89,6 +93,7 @@ The $R^2$ value indicates that approximately `r round(model_stats$r.squared * 10
 
 The coefficients reveal the impact of each unit change in the predictors on the home price.
 
+::: {style="overflow-y: auto; max-height: 400px; font-size: 0.75em;"}
 ```{r}
 #| label: coefficient-table
 #| echo: false
@@ -99,6 +104,14 @@ tidy(model_core) %>%
   arrange(desc(abs(statistic))) %>%
   knitr::kable(caption = "Model Coefficients and Significance")
 ```
+
+:::
+
+::: {.content-visible when-format="revealjs"}
+
+---
+
+:::
 
 ### Key Drivers
 

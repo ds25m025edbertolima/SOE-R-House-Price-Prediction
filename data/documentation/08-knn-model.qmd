@@ -1,19 +1,22 @@
 ---
-title: "KNN model"
 format:
   html:
     toc: true
     number-sections: true
+  revealjs: default
 ---
 
-# Introduction
+# KNN model
+
+::: {.content-visible unless-format="revealjs"}
+## Introduction
 
 This document provides a detailed interpretation of the KNN model applied to predict residential property prices in Pierce County. The analysis builds upon the data prepared during the exploratory phase and focuses on identifying the key drivers of house prices and assessing the predictive power of the resulting models.
 
-# Step-by-Step Analysis
+## Step-by-Step Analysis
 
 ```{r}
-#| label: setup
+#| label: setup_2
 #| message: false
 #| warning: false
 
@@ -34,12 +37,12 @@ model_df <- read.table(here::here("..", "..", "data", "app_model_df.txt"), heade
 ```
 
 
-## Step 1: Data Preparation and Feature Selection
+### Step 1: Data Preparation and Feature Selection
 
 The analysis utilizes the `house_price_model_data.csv` dataset, which contains processed features including property characteristics and location data.
 
 ```{r}
-#| label: data-summary
+#| label: data-summary-2
 #| echo: false
 
 cat("Total observations:", nrow(model_df), "\n")
@@ -57,10 +60,16 @@ Key features include:
 - **Location**: `latitude`, `longitude`
 - **Time**: `sale year`.
 
-## Step 2: Model Development
+:::
 
+### Step 2: Model Development
+
+::: {.content-visible unless-format="revealjs"}
 We developed four KNN models iteratively, adding features at each step to explore 
 how different dimensions of the data contribute to price prediction.
+:::
+
+::: {style="font-size: 0.75em;"}
 
 The **baseline model** uses the three core spatial and size features — latitude, 
 longitude, and square footage — as a minimal starting point.
@@ -74,9 +83,10 @@ quality dimension that reflects the physical state of the property beyond its si
 Finally, the **full model** adds `bathrooms` and `bedrooms`, rounding out the 
 feature set with the most common descriptors of residential property layout.
 
+:::
 
-## Step 3: Model Evaluation
-
+### Step 3: Model Evaluation
+::: {style="overflow-y: auto; max-height: 400px; font-size: 0.75em;"}
 ```{r}
 # load (in any other chunk/file)
 metrics_table   <- readRDS(here("..", "..","analysis", "03-knn-files", "metrics_table.rds"))
@@ -97,5 +107,5 @@ within_15_table <- readRDS(here("..", "..","analysis", "03-knn-files", "within_1
 | **+sale_year+quality** | `r within_15_table[3, "within_15_train"]` | `r within_15_table[3, "within_15_test"]` |
 | **full** | `r within_15_table[4, "within_15_train"]` | `r within_15_table[4, "within_15_test"]` |
 
-
+:::
 

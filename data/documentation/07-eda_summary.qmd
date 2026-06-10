@@ -18,14 +18,14 @@ The sales data was restricted to valid and confirmed market transactions with po
 
 The analysis showed that house prices are mainly influenced by **time, location, construction quality, building size, property age, land size, and bathroom count**.
 
-- **Sale year** was one of the strongest predictors. Median prices increased over time, with a decline around the 2008–2010 period followed by strong growth in more recent years.
-- **Quality** showed one of the clearest price patterns. Higher-quality properties had substantially higher median sale prices, especially at the highest quality levels.
-- **Building square footage** had a strong positive relationship with sale price. Larger homes generally sold for higher prices.
-- **Location** was highly important. Neighborhood, latitude, longitude, and geographic clusters showed clear differences in price levels.
-- **Year built** contributed useful information because newer homes generally had higher sale prices.
-- **Land size** had a positive but more scattered relationship with price.
-- **Bathrooms** showed a clearer relationship with sale price than bedrooms and became one of the final selected predictors.
-- Amenities such as waterfront access, finished space, garages, porches, pools, and spas showed some price differences, but several were rare or added limited information after stronger variables were included.
+-   **Sale year** was one of the strongest predictors. Median prices increased over time, with a decline around the 2008–2010 period followed by strong growth in more recent years.
+-   **Quality** showed one of the clearest price patterns. Higher-quality properties had substantially higher median sale prices, especially at the highest quality levels.
+-   **Building square footage** had a strong positive relationship with sale price. Larger homes generally sold for higher prices.
+-   **Location** was highly important. Neighborhood, latitude, longitude, and geographic clusters showed clear differences in price levels.
+-   **Year built** contributed useful information because newer homes generally had higher sale prices.
+-   **Land size** had a positive but more scattered relationship with price.
+-   **Bathrooms** showed a clearer relationship with sale price than bedrooms and became one of the final selected predictors.
+-   Amenities such as waterfront access, finished space, garages, porches, pools, and spas showed some price differences, but several were rare or added limited information after stronger variables were included.
 
 Categorical analysis identified `quality` and `neighborhood` as the strongest categorical variables. Exterior and HVAC type showed moderate differences, while condition, utilities, street access, and residential classification variables provided little additional information after filtering.
 
@@ -41,10 +41,10 @@ A numeric `quality_score` was created from the ordered quality categories. This 
 
 Room-density features, location clusters, and several interaction features were also evaluated. The strongest interactions involved:
 
-- building size and quality,
-- bathrooms and quality,
-- building size and finished space,
-- and location with time.
+-   building size and quality,
+-   bathrooms and quality,
+-   building size and finished space,
+-   and location with time.
 
 These results confirmed that the effect of one property characteristic can depend on other characteristics. However, the later model-based feature-reduction analysis showed that several engineered and amenity features could be removed without a meaningful loss in performance.
 
@@ -52,21 +52,21 @@ These results confirmed that the effect of one property characteristic can depen
 
 The initial feature-importance analysis identified 15 relevant candidates:
 
-- `sale_year`
-- `quality_score`
-- `year_built`
-- `square_feet`
-- `latitude`
-- `land_net_square_feet`
-- `bathrooms`
-- `longitude`
-- `bedrooms_per_1000_sqft`
-- `bathrooms_per_1000_sqft`
-- `has_waterfront_detail`
-- `location_cluster`
-- `bedrooms`
-- `has_finished_space_detail`
-- `has_garage_or_carport_detail`
+-   `sale_year`
+-   `quality_score`
+-   `year_built`
+-   `square_feet`
+-   `latitude`
+-   `land_net_square_feet`
+-   `bathrooms`
+-   `longitude`
+-   `bedrooms_per_1000_sqft`
+-   `bathrooms_per_1000_sqft`
+-   `has_waterfront_detail`
+-   `location_cluster`
+-   `bedrooms`
+-   `has_finished_space_detail`
+-   `has_garage_or_carport_detail`
 
 ### Overall conclusion
 
