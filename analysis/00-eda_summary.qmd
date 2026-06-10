@@ -18,7 +18,7 @@ The sales data was restricted to valid and confirmed market transactions with po
 
 The analysis showed that house prices are mainly influenced by **time, location, construction quality, building size, property age, land size, and bathroom count**.
 
-- **Sale year** was one of the strongest predictors. Median prices increased over time, with a decline around the 2008–2010 period followed by strong growth in more recent years.
+- **Sale year** was one of the strongest predictors. Median prices increased over time, with a decline around the 2008–2010 period followed by strong growth in more recent years. 
 - **Quality** showed one of the clearest price patterns. Higher-quality properties had substantially higher median sale prices, especially at the highest quality levels.
 - **Building square footage** had a strong positive relationship with sale price. Larger homes generally sold for higher prices.
 - **Location** was highly important. Neighborhood, latitude, longitude, and geographic clusters showed clear differences in price levels.

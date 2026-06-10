@@ -1,0 +1,403 @@
+---
+title: "Baseline Model"
+format: html
+editor: visual
+---
+
+```{r}
+# install.packages("glmnet")
+```
+
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(caret)
+library(glmnet)   # for Ridge and LASSO
+```
+
+# Prepare Baseline Dataset
+
+Same modeling dataset for LightGBM.
+
+```{r}
+baseline_df <- read.csv(
+  "~/virtual_environments/Technikum/SS_26/22_Sol_Eng_R/SOE-R-House-Price-Prediction/data/house_price_model_data.csv",
+  header = TRUE,
+  stringsAsFactors = FALSE
+)
+
+baseline_df <- baseline_df %>%
+  drop_na() %>%
+  mutate(
+    log_sale_price = log(sale_price),
+    across(where(is.character), as.factor),
+    across(where(is.logical), as.factor)
+  )
+```
+
+Train- test split for baseline models (same split as LightGBM for fair comparison).
+
+```{r}
+set.seed(123)
+
+train_index <- createDataPartition(
+  baseline_df$log_sale_price,
+  p = 0.8,
+  list = FALSE
+)
+
+train_df <- baseline_df[train_index, ]
+test_df  <- baseline_df[-train_index, ]
+```
+
+# Baseline models
+
+## Baseline 1: Mean Model (Naïve Benchmark)
+
+“Predict the same value for every house.”
+
+This is the simplest possible model. It predicts the mean log sale price for all properties.
+
+This baseline matters because:
+
+```         
+1. It is the minimum performance any model must beat.
+
+2. If a complex model performs similarly, something is wrong.
+
+3. It helps detect data leakage or preprocessing issues.
+```
+
+```{r}
+# Baseline prediction: mean of training log sale price
+mean_log_price <- mean(train_df$log_sale_price)
+
+test_results_mean <- test_df %>%
+  mutate(
+    predicted_log_sale_price = mean_log_price,
+    predicted_sale_price = exp(predicted_log_sale_price),
+    percent_error = abs(predicted_sale_price - sale_price) / sale_price,
+    within_15_percent = percent_error <= 0.15
+  )
+
+baseline1_metrics <- test_results_mean %>%
+  summarise(
+    RMSE = sqrt(mean((sale_price - predicted_sale_price)^2)),
+    MAE = mean(abs(sale_price - predicted_sale_price)),
+    R_squared = cor(sale_price, predicted_sale_price)^2,
+    MAPE = mean(percent_error) * 100,
+    percent_within_15 = mean(within_15_percent) * 100
+  )
+
+baseline1_metrics
+```
+
+The Baseline 1 model predicts the mean log sale price for all properties. Its performance is extremely poor. The RMSE of 315,683 USD and MAE of 185,274 USD indicate that the model cannot capture any meaningful variation in sale prices. The MAPE of 64.25% and the fact that only 17.86% of predictions fall within 15% of the true price further confirm that the naïve mean predictor is inadequate. This baseline serves as a lower bound for model performance: any useful predictive model must substantially outperform this benchmark.
+
+## Baseline 2: Linear Regression (Simple)
+
+“Predict sale price using only the strongest numeric predictors.”
+
+This baseline uses only the top numeric features identified in the EDA:
+
+```         
+- square_feet
+
+- bathrooms
+
+- bedrooms
+
+- year_built
+
+- sale_year
+```
+
+This baseline matters because:
+
+```         
+1. It is interpretable
+
+2. It provides a realistic benchmark
+
+3. It shows how much linear structure exists in the data
+
+4. It is easy to compare e.g. against LightGBM
+```
+
+```{r}
+lm_formula <- log_sale_price ~ square_feet + bathrooms + bedrooms +
+  year_built + sale_year
+
+lm_model <- lm(lm_formula, data = train_df)
+
+summary(lm_model)
+
+# Predict
+lm_pred_log <- predict(lm_model, newdata = test_df)
+
+lm_results <- data.frame(
+  actual_log_sale_price = test_df$log_sale_price,
+  predicted_log_sale_price = lm_pred_log
+) %>%
+  mutate(
+    actual_sale_price = exp(actual_log_sale_price),
+    predicted_sale_price = exp(predicted_log_sale_price),
+    percent_error = abs(predicted_sale_price - actual_sale_price) / actual_sale_price,
+    within_15_percent = percent_error <= 0.15
+  )
+
+lm_metrics <- lm_results %>%
+  summarise(
+    RMSE = sqrt(mean((actual_sale_price - predicted_sale_price)^2)),
+    MAE = mean(abs(actual_sale_price - predicted_sale_price)),
+    R_squared = cor(actual_sale_price, predicted_sale_price)^2,
+    MAPE = mean(percent_error) * 100,
+    percent_within_15 = mean(within_15_percent) * 100
+  )
+
+lm_metrics
+```
+
+The simple linear regression baseline performs substantially better than the naïve mean model, reducing RMSE from 315k USD to 226k USD and increasing R² to 0.465. However, the model still leaves more than half of the variance unexplained and produces a MAPE of 33%, indicating that linear effects alone are insufficient to model residential sale prices. This confirms that house prices exhibit strong nonlinear and interaction effects, which require more flexible models such as gradient boosting.
+
+## Baseline 3: Regularized Regression
+
+“A stronger linear baseline that handles multicollinearity and feature selection.”
+
+This baseline uses glmnet, which supports:
+
+```         
+1. Ridge regression (L2 penalty)
+
+2. LASSO regression (L1 penalty)
+
+3. Elastic Net (α·L1 + (1–α)·L2 penalty)
+```
+
+This baseline matters because:
+
+```         
+Handles correlated predictors
+
+Performs automatic feature shrinkage
+
+Often outperforms simple linear regression
+
+Still interpretable
+```
+
+```{r}
+x_train <- model.matrix(
+  log_sale_price ~ . - sale_price,
+  data = train_df
+)[, -1]
+
+x_test <- model.matrix(
+  log_sale_price ~ . - sale_price,
+  data = test_df
+)[, -1]
+
+y_train <- train_df$log_sale_price
+y_test  <- test_df$log_sale_price
+```
+
+### Ridge Regression
+
+```{r}
+ridge_model <- cv.glmnet(
+  x_train,
+  y_train,
+  alpha = 0,   # Ridge
+  nfolds = 5
+)
+
+ridge_pred_log <- predict(
+  ridge_model,
+  newx = x_test,
+  s = "lambda.min"
+)
+
+ridge_pred_log <- as.numeric(ridge_pred_log)
+
+ridge_results <- data.frame(
+  actual_log_sale_price = y_test,
+  predicted_log_sale_price = ridge_pred_log
+) %>%
+  mutate(
+    actual_sale_price = exp(actual_log_sale_price),
+    predicted_sale_price = exp(predicted_log_sale_price),
+    percent_error = abs(predicted_sale_price - actual_sale_price) / actual_sale_price,
+    within_15_percent = percent_error <= 0.15
+  )
+
+ridge_metrics <- ridge_results %>%
+  summarise(
+    RMSE = sqrt(mean((actual_sale_price - predicted_sale_price)^2)),
+    MAE = mean(abs(actual_sale_price - predicted_sale_price)),
+    R_squared = cor(actual_sale_price, predicted_sale_price)^2,
+    MAPE = mean(percent_error) * 100,
+    percent_within_15 = mean(within_15_percent) * 100
+  )
+
+ridge_metrics
+```
+
+Ridge regression improves over the simple linear baseline, increasing R² from 0.465 to 0.641 and reducing RMSE by nearly 20,000 USD. This confirms that multicollinearity is present in the dataset and that regularization stabilizes the model. However, the MAPE remains high at 33.7% and only 39% of predictions fall within 15% of the true price, indicating that linear models—even regularized ones—cannot capture the nonlinear and interaction-heavy structure of residential sale prices.
+
+### LASSO Regression
+
+```{r}
+lasso_model <- cv.glmnet(
+  x_train,
+  y_train,
+  alpha = 1,   # LASSO
+  nfolds = 5
+)
+
+lasso_pred_log <- predict(
+  lasso_model,
+  newx = x_test,
+  s = "lambda.min"
+)
+
+lasso_pred_log <- as.numeric(lasso_pred_log)
+
+lasso_results <- data.frame(
+  actual_log_sale_price = y_test,
+  predicted_log_sale_price = lasso_pred_log
+) %>%
+  mutate(
+    actual_sale_price = exp(actual_log_sale_price),
+    predicted_sale_price = exp(predicted_log_sale_price),
+    percent_error = abs(predicted_sale_price - actual_sale_price) / actual_sale_price,
+    within_15_percent = percent_error <= 0.15
+  )
+
+lasso_metrics <- lasso_results %>%
+  summarise(
+    RMSE = sqrt(mean((actual_sale_price - predicted_sale_price)^2)),
+    MAE = mean(abs(actual_sale_price - predicted_sale_price)),
+    R_squared = cor(actual_sale_price, predicted_sale_price)^2,
+    MAPE = mean(percent_error) * 100,
+    percent_within_15 = mean(within_15_percent) * 100
+  )
+
+lasso_metrics
+```
+
+LASSO regression provides the strongest performance among all linear baselines, achieving an RMSE of 184,569 USD and an R² of 0.682. By shrinking weak coefficients to zero, LASSO performs implicit feature selection and reduces overfitting, which improves both RMSE and MAE compared to OLS and Ridge. However, the MAPE of 30.35% and the fact that only 44.6% of predictions fall within 15% of the true price indicate that linear models remain insufficient for capturing the nonlinear and interaction-heavy structure of residential sale prices. These results further justify the use of more flexible models.
+
+### Elastic Net Regression
+
+Elastic Net combines Ridge and LASSO by applying both L1 and L2 penalties. This allows it to handle multicollinearity while also performing feature selection.
+
+```{r}
+# Elastic Net with alpha = 0.5 (balanced L1/L2)
+elastic_model <- cv.glmnet(
+  x_train,
+  y_train,
+  alpha = 0.5,
+  nfolds = 5
+)
+
+elastic_pred_log <- predict(
+  elastic_model,
+  newx = x_test,
+  s = "lambda.min"
+) |> as.numeric()
+
+elastic_pred_log <- as.numeric(elastic_pred_log)
+
+elastic_results <- data.frame(
+  actual_log_sale_price = y_test,
+  predicted_log_sale_price = elastic_pred_log
+) %>%
+  mutate(
+    actual_sale_price = exp(actual_log_sale_price),
+    predicted_sale_price = exp(predicted_log_sale_price),
+    percent_error = abs(predicted_sale_price - actual_sale_price) / actual_sale_price,
+    within_15_percent = percent_error <= 0.15
+  )
+
+elastic_metrics <- elastic_results %>%
+  summarise(
+    RMSE = sqrt(mean((actual_sale_price - predicted_sale_price)^2)),
+    MAE = mean(abs(actual_sale_price - predicted_sale_price)),
+    R_squared = cor(actual_sale_price, predicted_sale_price)^2,
+    MAPE = mean(percent_error) * 100,
+    percent_within_15 = mean(within_15_percent) * 100
+  )
+
+elastic_metrics
+```
+
+Elastic Net regression provides the strongest performance among all linear baselines, achieving an RMSE of 185,218 USD and an R² of 0.683. By combining L1 and L2 penalties, Elastic Net balances feature selection and coefficient shrinkage, which improves stability and predictive accuracy. The model performs nearly identically to LASSO but slightly improves the percentage of predictions within 15% of the true price (44.97%). However, the MAPE of 30.36% and the fact that more than half of the variance remains unexplained indicate that linear models are insufficient for capturing the nonlinear and interaction‑heavy structure of residential sale prices.
+
+# Comparison and Summary
+
+```{r}
+baseline_comparison <- data.frame(
+  Model = c("Mean Model", "Linear Regression", "Ridge Regression", "LASSO Regression", "Elastic Net Regression"),
+  RMSE = c(baseline1_metrics$RMSE, lm_metrics$RMSE, ridge_metrics$RMSE, lasso_metrics$RMSE, elastic_metrics$RMSE),
+  MAE = c(baseline1_metrics$MAE, lm_metrics$MAE, ridge_metrics$MAE, lasso_metrics$MAE, elastic_metrics$MAE),
+  R_squared = c(baseline1_metrics$R_squared, lm_metrics$R_squared, ridge_metrics$R_squared, lasso_metrics$R_squared, elastic_metrics$R_squared),
+  MAPE = c(baseline1_metrics$MAPE, lm_metrics$MAPE, ridge_metrics$MAPE, lasso_metrics$MAPE, elastic_metrics$MAPE),
+  Percent_within_15 = c(baseline1_metrics$percent_within_15, lm_metrics$percent_within_15, ridge_metrics$percent_within_15, lasso_metrics$percent_within_15, elastic_metrics$percent_within_15)
+)
+print(baseline_comparison, width = Inf)
+```
+
+Overall Pattern
+
+The baseline models show a consistent and improvement as model complexity increases:
+
+```         
+- The Mean Model performs extremely poorly, confirming that sale prices vary widely and cannot be approximated by a single central value.
+
+- Simple Linear Regression captures some structure, cutting error metrics nearly in half.
+
+- Ridge Regression improves stability and handles multicollinearity, raising R² from 0.465 to 0.641.
+
+- LASSO and Elastic Net provide the strongest linear baselines, achieving the lowest RMSE/MAE and the highest R² and % within 15%.
+```
+
+The progression shows that regularization is essential for linear models in this dataset.
+
+Key Insights 1. Linear models capture meaningful structure but remain limited
+
+```         
+R² increases from 0.465 → 0.683 across the linear baselines.
+
+This shows that size, rooms, age, and time trends contain strong linear signals.
+
+However, even the best linear model leaves ~32% of variance unexplained.
+```
+
+2.  Regularization dramatically improves performance
+
+    Ridge, LASSO, and Elastic Net outperform OLS across all metrics.
+
+    LASSO and Elastic Net achieve \~45% within 15% accuracy, compared to 39% for OLS and Ridge.
+
+    This confirms that the dataset contains correlated predictors and irrelevant/noisy features that benefit from shrinkage.
+
+3.  LASSO and Elastic Net are nearly identical
+
+    RMSE, MAE, R², and MAPE differ only marginally.
+
+    This indicates that:
+
+    ```         
+     the dataset benefits from both L1 and L2 penalties,
+
+     but the optimal balance is close to LASSO’s behavior.
+    ```
+
+4.  Even the best linear models are far from LightGBM
+
+    LASSO/Elastic Net: R² ≈ 0.68
+
+    LightGBM: R² ≈ 0.92
+
+This gap confirms that nonlinearities, interactions, and spatial effects dominate the structure of house prices.

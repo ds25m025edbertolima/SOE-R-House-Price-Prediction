@@ -1,0 +1,613 @@
+---
+title: "Decision Tree and Random Forest"
+format: html
+editor: visual
+---
+
+```{r}
+# install.packages("rpart.plot")
+# install.packages("randomForest")
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(caret)
+library(ggplot2)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+```
+
+# Conceptual overview: Decision Tree vs Random Forest
+
+Similarities
+
+```         
+Both are tree‑based models  
+They split the feature space into regions using decision rules (e.g., square_feet < 1500, quality_score >= 7).
+
+Both handle nonlinearities and interactions naturally  
+Interactions like square_feet × quality_score are captured by the tree structure itself.
+
+Both work well with mixed data types  
+Numeric, categorical, and boolean features can be used directly (after encoding factors).
+```
+
+Differences
+
+```         
+Decision Tree (single tree)
+
+    One tree, easy to visualize and interpret.
+
+    High variance: tends to overfit if not pruned.
+
+    Good as an interpretable baseline, but rarely the best performer.
+
+Random Forest (ensemble of trees)
+
+    Many trees trained on bootstrapped samples + random feature subsets.
+
+    Strong reduction in variance → more stable and accurate.
+
+    Less interpretable than a single tree, but still offers feature importance.
+```
+
+In out modeling story:
+
+```         
+Decision Tree → first nonlinear, interpretable tree baseline.
+
+Random Forest → stronger nonlinear baseline before LightGBM.
+```
+
+# Prepare Baseline Dataset
+
+Same modeling dataset for LightGBM.
+
+```{r}
+# Load model data
+app_model_df <- read.csv(
+  "~/virtual_environments/Technikum/SS_26/22_Sol_Eng_R/SOE-R-House-Price-Prediction/data/house_price_model_data.csv",
+  header = TRUE,
+  stringsAsFactors = FALSE
+)
+
+# Use the same app-focused feature set as LightGBM
+app_model_features <- c(
+  "sale_price",
+  "latitude",
+  "longitude",
+  "location_cluster",
+  "sale_year",
+  "square_feet",
+  "land_net_square_feet",
+  "porch_square_feet",
+  "attached_garage_square_feet",
+  "quality_score",
+  "bedrooms",
+  "bathrooms",
+  "bedrooms_per_1000_sqft",
+  "bathrooms_per_1000_sqft",
+  "year_built",
+  "has_deck_or_porch_detail",
+  "has_garage_or_carport_detail",
+  "has_pool_or_spa_detail",
+  "has_waterfront_detail",
+  "has_finished_space_detail"
+)
+
+tree_rf_df <- app_model_df %>%
+  select(any_of(app_model_features)) %>%
+  distinct() %>%
+  drop_na() %>%
+  mutate(
+    log_sale_price = log(sale_price),
+    location_cluster = as.factor(location_cluster),
+    across(where(is.character), as.factor),
+    across(where(is.logical), as.factor)
+  )
+
+str(tree_rf_df)
+```
+
+Train- test split for baseline models (same split as LightGBM for fair comparison).
+
+```{r}
+set.seed(123)
+
+train_index <- createDataPartition(
+  tree_rf_df$log_sale_price,
+  p = 0.8,
+  list = FALSE
+)
+
+tree_rf_train <- tree_rf_df[train_index, ]
+tree_rf_test  <- tree_rf_df[-train_index, ]
+
+```
+
+# Decision Tree and Random Forest
+
+Tree-based models extend the baseline linear models by capturing nonlinear relationships and interactions between predictors. This section introduces a single Decision Tree as an interpretable nonlinear baseline and a Random Forest as a more powerful ensemble model.
+
+## Decision Tree model
+
+### Train Decision Tree
+
+```{r}
+tree_formula <- log_sale_price ~ . - sale_price
+
+set.seed(123)
+
+tree_model <- rpart(
+  formula = tree_formula,
+  data = tree_rf_train,
+  method = "anova",
+  control = rpart.control(
+    cp = 0.001,      # complexity parameter (smaller = deeper tree)
+    minsplit = 20,   # minimum observations to attempt a split
+    maxdepth = 10    # maximum depth of the tree
+  )
+)
+
+printcp(tree_model)
+rpart.plot(tree_model, main = "Decision Tree for Log Sale Price")
+```
+
+**Interpreting the Decision Tree Visualization**
+
+The Decision Tree diagram provides a visual map of how the model predicts log sale prices by recursively splitting the dataset into increasingly homogeneous groups. Each internal node represents a decision rule, and each leaf node represents a predicted log sale price for properties that fall into that branch.
+
+**1. The tree confirms the dominant role of time, quality, and size**
+
+The top splits in a decision tree are the most important because they reduce the most variance. The first few splits are:
+
+- sub_year ≤ 2017  
+- quality_score ≤ 6 
+- year_built ≤ 2003 
+- square_feet thresholds
+
+This tells:
+
+- Sale year is the strongest predictor — consistent with market appreciation trends.  
+- Quality score is the next major driver — higher quality homes consistently command higher prices.  
+- Year built and square footage refine the prediction further.
+
+**2. The tree captures nonlinear thresholds**
+
+The tree structure shows clear threshold effects, such as:
+
+- “quality_score ≤ 6”  
+- “square_feet ≤ 1103”  
+- “year_built ≤ 2003”
+
+This means the model is learning patterns like:
+
+- Homes below a certain quality level behave differently in price.  
+- Very small homes form a distinct price segment.  
+- Older homes follow different pricing dynamics.
+
+**3. The tree reveals interactions between features**
+
+Because splits occur sequentially, the tree naturally models interactions such as:
+
+- sale_year × quality_score
+- square_feet × year_built 
+- location_cluster × land_net_square_feet
+
+For example, a branch might say:
+
+If sale_year ≤ 2008 AND year_built ≤ 2000 AND square_feet ≤ 1103 → lower predicted price
+
+This means the model has learned that small, older homes sold before 2008 form a distinct pricing group.
+
+**4. The tree is interpretable but also unstable**
+
+The visualization shows:
+
+- Many branches  
+- Deep splits  
+- Several small leaf nodes
+
+This indicates:
+
+- The tree is capturing meaningful structure  
+- But it is also high‑variance
+- Small changes in the data could produce a different tree
+
+**5. Leaf nodes represent average log sale prices**
+
+Each terminal node (leaf) contains:
+
+- The predicted log sale price
+- The number of observations in that leaf  
+- The variance within that leaf
+
+Leaves with many observations are more reliable; leaves with few observations are more prone to overfitting.
+
+Summing up:
+
+The tree shows:
+
+- Strong nonlinearities  
+- Strong interactions  
+- Threshold effects  
+- Complex segmentation of the housing market
+
+But it also shows:
+
+- Deep branches  
+- Small leaves  
+- High variance
+
+This is exactly why ensemble methods (Random Forest, LightGBM) are needed.
+
+### Evaluate Decision Tree
+
+```{r}
+tree_pred_log <- predict(
+  tree_model,
+  newdata = tree_rf_test
+)
+
+tree_results <- data.frame(
+  actual_log_sale_price = tree_rf_test$log_sale_price,
+  predicted_log_sale_price = tree_pred_log
+) %>%
+  mutate(
+    actual_sale_price = exp(actual_log_sale_price),
+    predicted_sale_price = exp(predicted_log_sale_price),
+    percent_error = abs(predicted_sale_price - actual_sale_price) / actual_sale_price,
+    within_15_percent = percent_error <= 0.15
+  )
+
+tree_metrics <- tree_results %>%
+  summarise(
+    RMSE = sqrt(mean((actual_sale_price - predicted_sale_price)^2)),
+    MAE = mean(abs(actual_sale_price - predicted_sale_price)),
+    R_squared = cor(actual_sale_price, predicted_sale_price)^2,
+    MAPE = mean(percent_error) * 100,
+    percent_within_15 = mean(within_15_percent) * 100
+  )
+
+tree_metrics
+```
+**1. RMSE = 177,775 USD**  
+RMSE measures the magnitude of large errors.
+
+Interpretation
+
+- The Decision Tree reduces RMSE from LASSO’s 184,569 → 177,775, an improvement of ~6,800 USD.  
+- This shows that the tree captures nonlinearities and interactions that linear models cannot.  
+
+**2. MAE = 83,653 USD  
+MAE measures the average absolute error.
+
+Interpretation
+
+- MAE improves substantially compared to all linear baselines (LASSO: 92,309 → Tree: 83,653).  
+- This means the Decision Tree is better at predicting typical homes.  
+- The improvement reflects the tree’s ability to model threshold effects (e.g., “quality_score ≥ 7”).
+
+**3. R² = 0.667**  
+The model explains 66.7% of the variance in sale prices.
+
+Interpretation
+
+- This is slightly below LASSO/Elastic Net (~0.683), but still far above OLS (0.465).  
+- Trees often have slightly lower R² than LASSO because they are piecewise constant and can underfit in some regions.  
+- Still, the Decision Tree captures important nonlinear splits (e.g., square_feet, quality_score, sale_year).
+
+---
+
+**4. MAPE = 24.46%**  
+MAPE measures average percentage error.
+
+Interpretation
+
+- This is a major improvement over all linear models (LASSO: 30.35%).  
+- A ~24% MAPE indicates the tree is capturing nonlinear price patterns well.  
+
+**5. Within 15% = 49.10%**  
+This measures how many predictions fall within ±15% of the true price.
+
+Interpretation
+
+- Nearly half of predictions are within 15% of the true price.  
+- This is the best performance so far among all baselines:  
+  - Mean model: 17.9%  
+  - OLS: 39.1%  
+  - Ridge: 39.0%  
+  - LASSO: 44.6%  
+  - Decision Tree: 49.1% 
+- This confirms that the tree captures meaningful nonlinear structure.
+
+
+```{r}
+ggplot(tree_results, aes(x = actual_sale_price, y = predicted_sale_price)) +
+  geom_point(alpha = 0.3) +
+  scale_x_log10() +
+  scale_y_log10() +
+  geom_abline(slope = 1, intercept = 0) +
+  labs(
+    title = "Actual vs Predicted Sale Price - Decision Tree",
+    x = "Actual Sale Price in USD, Log Scale",
+    y = "Predicted Sale Price in USD, Log Scale"
+  )
+
+ggplot(tree_results, aes(x = percent_error)) +
+  geom_histogram(bins = 50) +
+  labs(
+    title = "Distribution of Decision Tree Prediction Error",
+    x = "Absolute Percentage Error",
+    y = "Number of Properties"
+  )
+```
+
+**The Decision Tree is the strongest baseline model so far.**
+
+It outperforms all linear models on:
+
+- RMSE  
+- MAE  
+- MAPE  
+- % within 15%  
+
+It performs slightly below LASSO/Elastic Net on R², which is typical because:
+
+- Trees are piecewise constant  
+- They can underfit in some regions  
+- They have high variance  
+
+So, the dataset is characterized by
+
+- House prices depend on nonlinear thresholds (e.g., “quality_score ≥ 7”).  
+- There are interaction effects (e.g., size × quality, year × neighborhood).  
+- A single tree captures some of this structure, but not all.  
+- This is why Random Forest and LightGBM perform better.
+
+The Decision Tree model provides the strongest baseline performance among all linear and regularized models. It achieves an RMSE of 177,775 USD, an MAE of 83,653 USD, and a MAPE of 24.46%, with nearly half of predictions falling within 15% of the true sale price. These results demonstrate that tree-based models capture important nonlinearities and interaction effects in the data that linear models cannot. However, the single tree still exhibits high variance and limited generalization, motivating the use of ensemble methods such as Random Forest and gradient boosting.
+
+### Feature Importance Decision Tree
+
+A single Decision Tree computes feature importance based on how much each split reduces impurity (variance, in regression trees).
+
+Importance is based on (impurtiy-based importance):
+
+    Total reduction in RSS (Residual Sum of Squares) contributed by splits on each feature
+
+    Summed across all nodes where the feature is used
+
+    Normalized so the most important feature = 100
+
+```{r}
+tree_importance_decision_tree <- tree_model$variable.importance
+tree_importance_decision_tree
+```
+
+```{r}
+library(ggplot2)
+
+tree_importance_decision_tree_df <- data.frame(
+  Feature = names(tree_importance_decision_tree),
+  Importance = as.numeric(tree_importance_decision_tree)
+)
+
+ggplot(tree_importance_decision_tree_df, aes(x = reorder(Feature, Importance), y = Importance)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Decision Tree Feature Importance",
+    x = "Feature",
+    y = "Importance"
+  )
+```
+
+
+### Decision Tree hyperparameter tuning
+
+```{r}
+set.seed(123)
+
+tree_grid <- expand.grid(
+  cp = seq(0.0005, 0.02, length.out = 20)
+)
+
+tree_tuned <- train(
+  log_sale_price ~ . - sale_price,
+  data = tree_rf_train,
+  method = "rpart",
+  trControl = trainControl(
+    method = "cv",
+    number = 5
+  ),
+  tuneGrid = tree_grid
+)
+
+tree_tuned
+plot(tree_tuned)
+```
+
+Evaluation the tuned Decision Tree
+
+```{r}
+tree_pred_log <- predict(tree_tuned, newdata = tree_rf_test)
+
+tree_results <- data.frame(
+  actual_log_sale_price = tree_rf_test$log_sale_price,
+  predicted_log_sale_price = tree_pred_log
+) %>%
+  mutate(
+    actual_sale_price = exp(actual_log_sale_price),
+    predicted_sale_price = exp(predicted_log_sale_price),
+    percent_error = abs(predicted_sale_price - actual_sale_price) / actual_sale_price,
+    within_15_percent = percent_error <= 0.15
+  )
+
+tree_metrics <- tree_results %>%
+  summarise(
+    RMSE = sqrt(mean((actual_sale_price - predicted_sale_price)^2)),
+    MAE = mean(abs(actual_sale_price - predicted_sale_price)),
+    R_squared = cor(actual_sale_price, predicted_sale_price)^2,
+    MAPE = mean(percent_error) * 100,
+    percent_within_15 = mean(within_15_percent) * 100
+  )
+
+tree_metrics
+```
+
+
+
+## Random Forest model
+
+### Train Random Forest
+
+```{r}
+set.seed(123)
+
+rf_formula <- log_sale_price ~ . - sale_price
+
+rf_model <- randomForest(
+  formula = rf_formula,
+  data = tree_rf_train,
+  ntree = 500,
+  mtry = floor(sqrt(ncol(tree_rf_train) - 2)), # heuristic: sqrt(# predictors)
+  importance = TRUE
+)
+
+rf_model
+```
+
+- ntree = 500 builds 500 trees, which stabilizes predictions.
+- mtry controls how many variables are considered at each split; using sqrt(p) is a common default for regression forests.
+- The printed output shows the out-of-bag (OOB) error estimate, which is an internal cross-validation metric.
+
+### Evaluate Random Forest
+
+```{r}
+rf_pred_log <- predict(
+  rf_model,
+  newdata = tree_rf_test
+)
+
+rf_results <- data.frame(
+  actual_log_sale_price = tree_rf_test$log_sale_price,
+  predicted_log_sale_price = rf_pred_log
+) %>%
+  mutate(
+    actual_sale_price = exp(actual_log_sale_price),
+    predicted_sale_price = exp(predicted_log_sale_price),
+    percent_error = abs(predicted_sale_price - actual_sale_price) / actual_sale_price,
+    within_15_percent = percent_error <= 0.15
+  )
+
+rf_metrics <- rf_results %>%
+  summarise(
+    RMSE = sqrt(mean((actual_sale_price - predicted_sale_price)^2)),
+    MAE = mean(abs(actual_sale_price - predicted_sale_price)),
+    R_squared = cor(actual_sale_price, predicted_sale_price)^2,
+    MAPE = mean(percent_error) * 100,
+    percent_within_15 = mean(within_15_percent) * 100
+  )
+
+rf_metrics
+```
+
+```{r}
+ggplot(rf_results, aes(x = actual_sale_price, y = predicted_sale_price)) +
+  geom_point(alpha = 0.3) +
+  scale_x_log10() +
+  scale_y_log10() +
+  geom_abline(slope = 1, intercept = 0) +
+  labs(
+    title = "Actual vs Predicted Sale Price - Random Forest",
+    x = "Actual Sale Price in USD, Log Scale",
+    y = "Predicted Sale Price in USD, Log Scale"
+  )
+
+ggplot(rf_results, aes(x = percent_error)) +
+  geom_histogram(bins = 50) +
+  labs(
+    title = "Distribution of Random Forest Prediction Error",
+    x = "Absolute Percentage Error",
+    y = "Number of Properties"
+  )
+```
+
+### Feature Importance Random Forest
+
+```{r}
+importance_rf <- importance(rf_model)
+importance_rf
+
+varImpPlot(rf_model, main = "Random Forest Feature Importance")
+```
+
+### Random Forrest hyperparameter tuning
+
+```{r}
+set.seed(123)
+
+rf_grid <- expand.grid(
+  mtry = c(2, 4, 6, 8, 10, 12)
+)
+
+rf_tuned <- train(
+  log_sale_price ~ . - sale_price,
+  data = tree_rf_train,
+  method = "rf",
+  trControl = trainControl(
+    method = "cv",
+    number = 5
+  ),
+  tuneGrid = rf_grid,
+  ntree = 500
+)
+
+rf_tuned
+plot(rf_tuned)
+```
+
+Evaluating the Tuned Random Forest
+
+```{r}
+rf_pred_log <- predict(rf_tuned, newdata = tree_rf_test)
+
+rf_results <- data.frame(
+  actual_log_sale_price = tree_rf_test$log_sale_price,
+  predicted_log_sale_price = rf_pred_log
+) %>%
+  mutate(
+    actual_sale_price = exp(actual_log_sale_price),
+    predicted_sale_price = exp(predicted_log_sale_price),
+    percent_error = abs(predicted_sale_price - actual_sale_price) / actual_sale_price,
+    within_15_percent = percent_error <= 0.15
+  )
+
+rf_metrics <- rf_results %>%
+  summarise(
+    RMSE = sqrt(mean((actual_sale_price - predicted_sale_price)^2)),
+    MAE = mean(abs(actual_sale_price - predicted_sale_price)),
+    R_squared = cor(actual_sale_price, predicted_sale_price)^2,
+    MAPE = mean(percent_error) * 100,
+    percent_within_15 = mean(within_15_percent) * 100
+  )
+
+rf_metrics
+```
+
+
+## Comparison: Decision Tree vs Random Forest
+
+```{r}
+tree_rf_comparison <- bind_rows(
+  tree_metrics %>% mutate(Model = "Decision Tree"),
+  rf_metrics %>% mutate(Model = "Random Forest")
+) %>%
+  select(Model, everything())
+
+tree_rf_comparison
+```
+
