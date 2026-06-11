@@ -181,9 +181,9 @@ within_15_table <- readRDS(here::here("..", "..","analysis", "03-knn-files", "wi
 | Model | k | RMSE | R-squared | MAE |
 |:----------|:-------|:-------|:-------|:-------|
 | **minimal** | 5 | `r metrics_table[1, "RMSE"]` | `r metrics_table[1, "Rsquared"]` | `r metrics_table[1, "MAE"]` |
-| **+sale_year** | 2 | `r metrics_table[2, "RMSE"]` | `r metrics_table[2, "Rsquared"]` | `r metrics_table[2, "MAE"]` |
-| **+sale_year+quality** | 2 | `r metrics_table[3, "RMSE"]` | `r metrics_table[3, "Rsquared"]` | `r metrics_table[3, "MAE"]` |
-| **full** | 2 | `r metrics_table[4, "RMSE"]` | `r metrics_table[4, "Rsquared"]` | `r metrics_table[4, "MAE"]` |
+| **+sale_year** | 5 | `r metrics_table[2, "RMSE"]` | `r metrics_table[2, "Rsquared"]` | `r metrics_table[2, "MAE"]` |
+| **+sale_year+quality** | 5 | `r metrics_table[3, "RMSE"]` | `r metrics_table[3, "Rsquared"]` | `r metrics_table[3, "MAE"]` |
+| **full** | 5 | `r metrics_table[4, "RMSE"]` | `r metrics_table[4, "Rsquared"]` | `r metrics_table[4, "MAE"]` |
 
 ---
 
