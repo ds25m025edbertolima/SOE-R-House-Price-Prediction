@@ -47,7 +47,7 @@ At the end 63 candidate variables remained.
 
 ---
 
-![Median Slale Prices over Time](diagrams/eda/salesprice_time.png)
+![Median Sale Prices over Time](diagrams/eda/salesprice_time.png)
 
 ---
 
@@ -67,21 +67,10 @@ At the end 63 candidate variables remained.
 
 ---
 
-![Median price over time by top neighborhoods](diagrams/eda/price_by_time_and_neighborhood.png)
-
----
-
-![Median price over time by building size](diagrams/eda/price_by_time_and_size.png)
-
----
-
 ![Interaction between building size and quality](diagrams/eda/building_size_and_quality.png)
 
 ---
 
-![Median price by quality with the preence and absence of a pool](diagrams/eda/price_by_quality_and_pool.png)
-
----
 
 ### Constructed Variables
 
@@ -99,12 +88,7 @@ At the end 63 candidate variables remained.
 
 ---
 
-![Distribution of squarefeet price](diagrams/eda/price_per_squarefeet.png)
-
----
-
-
-![Number of bathrooms/ bedrooms per 1,000 squarefeet](diagrams/eda/bath_bed_per_1000.png)
+![Distribution of squarefoot price](diagrams/eda/price_per_squarefeet.png)
 
 ---
 
@@ -162,6 +146,18 @@ The simple **linear regression** baseline performs substantially better than the
 ---
 
 **Elastic Net regression** provides the strongest performance among all linear baselines, achieving an RMSE of **185,218 USD** and an R² of **0.683**. By combining L1 and L2 penalties, Elastic Net balances feature selection and coefficient shrinkage, which improves stability and predictive accuracy. The model performs nearly identically to LASSO but slightly improves the percentage of predictions within 15% of the true price (44.97%). However, the MAPE of 30.36% and the fact that more than half of the variance remains unexplained indicate that linear models are insufficient for capturing the nonlinear and interaction‑heavy structure of residential sale prices.
+
+---
+
+::: {style="font-size: 0.75em;"}
+| Model | RMSE | MAE | R_squared | MAPE |
+|:---|:---|:---|:---|:---|
+| Mean Model | 315682.7 | 185274.24 | NA | 64.25098 |
+| Linear Regression | 225930.5 | 108037.99 | 0.4654660 | 33.11315 |
+| Ridge Regression | 203716.4 | 101554.28 | 0.6456080 | 33.25099 |
+| LASSO Regression | 183186.9 | 91825.22 | 0.6843780 | 30.28490 |
+| Elastic Net Regression | 188257.1 | 93482.68 | 0.6780421 | 30.58247 |
+:::
 
 ---
 
