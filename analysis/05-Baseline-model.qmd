@@ -1,8 +1,42 @@
 ---
-title: "Baseline Model"
-format: html
-editor: visual
+title: "Baseline Models for House Price Prediction"
+subtitle: "Pierce County Project"
+author: "Edberto, Gerta, Helga, & Mira "
+date: today
+embed-resources: true
+format:
+  html: 
+    output-file: Group 12 - wm2 - Western Austria.html
+    #output-ext: "html.html" 
+    toc: true
+    toc-location: right
+    code-link: true
+    code-tools: true
+    #df-print: kable
+    theme:
+      light: flatly
+      dark: darkly
+    #echo: fenced
+  pdf: 
+    output-file: Group 12 - wm2 - Western Austria.pdf 
+    fig-width: 14
+    fig-height: 8
+    toc: true
+    number-sections: true
+    code-link: true
+    df-print: tibble
+    crossref: 
+      lof-title: "List of Figures"
+fig-align: center
+execute: 
+  warning: false
+  echo: true
+  message: false
 ---
+
+\listoffigures 
+\listoftables
+\listoflistings
 
 ```{r}
 # install.packages("glmnet")
