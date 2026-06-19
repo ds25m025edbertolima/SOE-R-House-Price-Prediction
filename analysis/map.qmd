@@ -1,0 +1,100 @@
+---
+title: "Untitled"
+format: html
+---
+
+
+```{r}
+library(shiny)
+library(sf)
+library(leaflet)
+
+# Load files
+council <- st_read("D:/Documents/00-Personal/01-FHTW/SS2026/MAD-BB-2-SS2026-SOE-R/99-Project-SolutionEngineering/data/Pierce_County_Council_Districts_8934877056349991897.geojson")
+
+zipcodes <- st_read("D:/Documents/00-Personal/01-FHTW/SS2026/MAD-BB-2-SS2026-SOE-R/99-Project-SolutionEngineering/data/Zip Codes.geojson")
+
+# Transform to WGS84
+council <- st_transform(council, 4326)
+zipcodes <- st_transform(zipcodes, 4326)
+
+ui <- fluidPage(
+  titlePanel("Pierce County Map"),
+
+  sidebarLayout(
+    sidebarPanel(
+      h4("Selected information"),
+      verbatimTextOutput("click_info")
+    ),
+
+    mainPanel(
+      leafletOutput("map", height = 700)
+    )
+  )
+)
+
+server <- function(input, output, session) {
+
+  output$map <- renderLeaflet({
+    leaflet() %>%
+      addProviderTiles(providers$CartoDB.Positron) %>%
+
+      addPolygons(
+        data = zipcodes,
+        group = "ZIP Codes",
+        color = "gray",
+        weight = 1,
+        fillOpacity = 0.15
+      ) %>%
+
+      addPolygons(
+        data = council,
+        group = "Districts",
+        layerId = ~District_Number,
+        color = "red",
+        weight = 2,
+        fillOpacity = 0.30,
+        popup = ~paste0(
+          "<b>District</b><br>",
+          "District: ", District_Number
+        )
+      ) %>%
+
+      addLayersControl(
+        overlayGroups = c("ZIP Codes", "Districts"),
+        options = layersControlOptions(collapsed = FALSE)
+      )
+  })
+
+  # Click on Council District polygon:
+  # returns district + coordinates
+  observeEvent(input$map_shape_click, {
+    click <- input$map_shape_click
+
+    output$click_info <- renderText({
+      paste0(
+        "Council District selected\n",
+        "District: ", click$id, "\n",
+        "Latitude: ", round(click$lat, 6), "\n",
+        "Longitude: ", round(click$lng, 6)
+      )
+    })
+  }, ignoreInit = TRUE)
+
+  # Click outside polygon:
+  # returns only coordinates
+  observeEvent(input$map_click, {
+    click <- input$map_click
+
+    output$click_info <- renderText({
+      paste0(
+        "Coordinates selected\n",
+        "Latitude: ", round(click$lat, 6), "\n",
+        "Longitude: ", round(click$lng, 6)
+      )
+    })
+  }, ignoreInit = TRUE)
+}
+
+shinyApp(ui, server)
+```
