@@ -1,0 +1,130 @@
+# Baseline Model Evaluation Report
+
+| **Model**              | **RMSE**  | **MAE**    | **R²**    | **MAPE** | **Within 15%** |
+|------------|------------|------------|------------|------------|------------|
+| Mean Model             | 315,682.7 | 185,274.24 | NA        | 64.25098 | 17.85924       |
+| Linear Regression      | 225,930.5 | 108,037.99 | 0.4654660 | 33.11315 | 39.08113       |
+| Ridge Regression       | 203,716.4 | 101,554.28 | 0.6456080 | 33.25099 | 39.95846       |
+| LASSO Regression       | 183,186.9 | 91,825.22  | 0.6843780 | 30.28490 | 44.70674       |
+| Elastic Net Regression | 188,257.1 | 93,482.68  | 0.6780421 | 30.58247 | 44.61632       |
+
+## Evaluation Metrics
+
+-   **RMSE** — Root Mean Squared Error\
+    Measures the square‑root of average squared prediction error. Penalizes large errors strongly. Sensitive to outliers.
+
+-   **MAE** — Mean Absolute Error\
+    Average absolute deviation between predicted and true prices. More robust to outliers than RMSE.
+
+-   **R²** — Coefficient of Determination\
+    Proportion of variance in house prices explained by the model. Higher is better.
+
+-   **MAPE** — Mean Absolute Percentage Error\
+    Measures average percentage error. Useful for interpretability but unstable when true values are small.
+
+-   **% Within 15%**\
+    Share of predictions within ±15% of the true price. A practical accuracy measure for real‑estate valuation.
+
+## Model Descriptions
+
+### 1. Mean Model
+
+A naïve baseline predicting the **average sale price** for all homes.
+
+-   **Complexity:** Minimal (no features, no learning).\
+-   **Purpose:** Establishes a lower bound for model performance.\
+-   **Limitation:** Cannot capture any structure in the data.
+
+### 2. Linear Regression
+
+A parametric model assuming a **linear relationship** between predictors and price:
+
+$$
+\hat{y} = \beta_0 + \sum_{j=1}^{p} \beta_j x_j
+$$
+
+-   **Complexity:** Low.\
+-   **Strength:** Fully interpretable; fast to train.\
+-   **Limitation:** Cannot model nonlinearities, interactions, or threshold effects common in real estate (e.g., lot size effects, renovation quality).
+
+### 3. Ridge Regression (L2 Regularization)
+
+Adds an **L2 penalty** to shrink coefficients:
+
+$$
+\text{Loss}_{\text{Ridge}} = \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 
++ \lambda \sum_{j=1}^{p} \beta_j^2
+$$
+
+-   **Effect:** Shrinks coefficients smoothly toward zero.\
+-   **Complexity:** Moderate.\
+-   **Strength:** Handles multicollinearity well; reduces variance.\
+-   **Limitation:** Does **not** perform feature selection; all predictors remain in the model.
+
+### 4. LASSO Regression (L1 Regularization)
+
+Adds an **L1 penalty**:
+
+$$
+\text{Loss}_{\text{LASSO}} = \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 
++ \lambda \sum_{j=1}^{p} |\beta_j|
+$$
+
+-   **Effect:** Drives some coefficients **exactly to zero** → **automatic feature selection**.\
+-   **Complexity:** Higher than Ridge due to non‑differentiability at zero.\
+-   **Strength:** Produces sparse, interpretable models; reduces overfitting.\
+-   **Limitation:** Can be unstable when predictors are highly correlated.
+
+### **5. Elastic Net Regression**
+
+Combines L1 and L2:
+
+$$
+\text{Loss}_{\text{EN}} = \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 
++ \lambda_1 \sum_{j=1}^{p} |\beta_j|
++ \lambda_2 \sum_{j=1}^{p} \beta_j^2
+$$
+
+-   **Effect:** Balances sparsity (L1) and stability (L2).\
+-   **Complexity:** Highest among linear models.\
+-   **Strength:** Ideal when predictors are correlated groups.\
+-   **Limitation:** Requires tuning two hyperparameters.
+
+## Limitations Across All Linear Models
+
+-   **Linearity assumption:** Real estate pricing is highly nonlinear.\
+-   **No automatic interaction modeling:** E.g., “square footage × neighborhood quality.”\
+-   **Poor handling of threshold effects:** Renovation quality, zoning, and view ratings often behave nonlinearly.\
+-   **Sensitivity to outliers:** Especially for RMSE.\
+-   **Feature engineering required:** Without transformations, linear models plateau in performance.
+
+## Patterns Observed
+
+1.  **Performance improves with model complexity**\
+    Mean → Linear → Ridge → Elastic Net → LASSO\
+    This reflects the increasing ability to control variance and reduce overfitting.
+
+2.  **Regularization is essential**\
+    Ridge and LASSO significantly outperform plain linear regression.
+
+3.  **LASSO achieves the best overall balance**
+
+    -   Lowest RMSE
+    -   Lowest MAE
+    -   Highest R²
+    -   Best MAPE
+    -   Highest % within 15%
+
+4.  **Elastic Net is close but slightly less sharp**\
+    Likely due to correlated predictors where LASSO’s sparsity is advantageous.
+
+## Baseline model choice: LASSO Regression
+
+LASSO is well‑suited for tabular real‑estate data because:
+
+-   **It performs feature selection**, removing irrelevant or redundant predictors.\
+-   **It reduces model variance**, improving generalization.\
+-   **It handles high‑dimensional data** where many predictors may be weakly informative.\
+-   **It produces interpretable models**, which is crucial for valuation tasks.\
+-   **It avoids overfitting** better than plain linear regression.\
+-   **It captures the dominant linear structure** before moving to more complex models (LightGBM, kNN).

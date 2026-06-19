@@ -25,6 +25,7 @@ book:
     - 05-project-schedule-and-workpackages.qmd
     - 07-eda_summary.qmd
     - 06-data-dictionary-appendix.qmd
+    - 05-Baseline-model-short.qmd
     - 08-knn-model.qmd
     - 08-analysis-interpretation.qmd
     - 09-key-findings-and-refinements.qmd
