@@ -9,12 +9,8 @@ Each week has a dedicated folder with source files and rendered outputs:
 ```
 presentations/
 ├── 01-week-1/      (13-19 May)   - Project Setup & Proposal
-├── 02-week-2/      (20-26 May)   - Data Integration
-├── 03-week-3/      (27 May-2 Jun) - Data Cleaning
-├── 04-week-4/      (3-9 Jun)     - EDA & Features
-├── 05-week-5/      (10-16 Jun)   - Model Development
-├── 06-week-6/      (17-23 Jun)   - Model Evaluation & Shiny App
-└── 07-week-7/      (24 Jun)      - Final Presentation
+├── 02-week-4/      (3-9 Jun)     - 
+└── 03-week-7/      (24 Jun)      - Final Presentation
 ```
 
 ## Weekly Deliverables

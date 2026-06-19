@@ -24,9 +24,10 @@ library(scales)
 library(here)
 library(patchwork)
 
+
 # Load the prepared data
-model_df <- read_csv(here("data/house_price_model_data.csv")) %>%
-  select(-location_cluster)
+model_df <- read_csv(here::here("..", "..", "data", "house_price_model_data.csv")) %>%
+  dplyr::select(-location_cluster)
 ```
 
 # The Initial Hunt for Predictors
