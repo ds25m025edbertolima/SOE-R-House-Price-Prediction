@@ -3,6 +3,7 @@ title: "LightGBM"
 format: html
 editor: visual
 ---
+
 ## LightGBM Model Summary
 
 After the EDA and feature engineering steps, LightGBM was used as the main predictive model for house price prediction. LightGBM was selected because it can handle non-linear relationships, interactions between variables, and complex patterns in housing data better than simpler models.
@@ -21,17 +22,17 @@ The main model features came from the app-focused feature set created during the
 
 A tuning process was performed to find a stronger LightGBM model. Different combinations of model parameters were tested, including:
 
-* `learning_rate`
-* `num_leaves`
-* `max_depth`
-* `min_data_in_leaf`
-* `feature_fraction`
-* `bagging_fraction`
+- `learning_rate`
+- `num_leaves`
+- `max_depth`
+- `min_data_in_leaf`
+- `feature_fraction`
+- `bagging_fraction`
 
 The best-performing tuned model used:
 
 | Parameter          | Selected value |
-| ------------------ | -------------: |
+|--------------------|---------------:|
 | `learning_rate`    |           0.08 |
 | `num_leaves`       |             63 |
 | `max_depth`        |              8 |
@@ -47,7 +48,7 @@ The tuned LightGBM model performed substantially better than the SVM baseline. I
 For the full LightGBM model, the test results were approximately:
 
 | Metric                 |    Result |
-| ---------------------- | --------: |
+|------------------------|----------:|
 | RMSE                   | 94,220.16 |
 | MAE                    | 46,398.06 |
 | R-squared              |    0.9033 |
@@ -61,7 +62,7 @@ These results show that the model explains about 90% of the variation in house p
 The LightGBM feature-importance analysis showed that the strongest predictors were:
 
 | Rank | Feature                        |
-| ---: | ------------------------------ |
+|-----:|--------------------------------|
 |    1 | `sale_year`                    |
 |    2 | `quality_score`                |
 |    3 | `year_built`                   |
@@ -78,7 +79,7 @@ The LightGBM feature-importance analysis showed that the strongest predictors we
 |   14 | `has_finished_space_detail`    |
 |   15 | `has_garage_or_carport_detail` |
 
-The results confirmed the findings from the EDA. Time, quality, property age, building size, location, land size, and bathrooms were the most important predictors of sale price.
+Ranked from the most important to least.
 
 ### Feature reduction
 
@@ -86,27 +87,27 @@ After training the full LightGBM model, a stepwise feature-reduction process was
 
 The model that eliminated three features had the best predictive performance. It removed:
 
-* `bedrooms`
-* `has_finished_space_detail`
-* `has_garage_or_carport_detail`
+- `bedrooms`
+- `has_finished_space_detail`
+- `has_garage_or_carport_detail`
 
 However, a simpler model that eliminated seven features was also tested. It removed:
 
-* `bedrooms_per_1000_sqft`
-* `bathrooms_per_1000_sqft`
-* `has_waterfront_detail`
-* `location_cluster`
-* `bedrooms`
-* `has_finished_space_detail`
-* `has_garage_or_carport_detail`
+- `bedrooms_per_1000_sqft`
+- `bathrooms_per_1000_sqft`
+- `has_waterfront_detail`
+- `location_cluster`
+- `bedrooms`
+- `has_finished_space_detail`
+- `has_garage_or_carport_detail`
 
 The comparison showed that the model eliminating seven features performed only slightly worse than the model eliminating three features.
 
-| Model                        |      RMSE |       MAE | R-squared |     MAPE | Within 15% |
-| ---------------------------- | --------: | --------: | --------: | -------: | ---------: |
-| Model eliminating 3 features | 88,896.91 | 41,668.10 |    0.9095 |   12.53% |     76.86% |
-| Model eliminating 7 features | 90,574.49 | 42,210.63 |    0.9058 |   12.63% |     76.38% |
-| Difference                   | +1,677.58 |   +542.53 |   -0.0037 | +0.10 pp |   -0.48 pp |
+| Model | RMSE | MAE | R-squared | MAPE | Within 15% |
+|------------|-----------:|-----------:|-----------:|-----------:|-----------:|
+| Model eliminating 3 features | 88,896.91 | 41,668.10 | 0.9095 | 12.53% | 76.86% |
+| Model eliminating 7 features | 90,574.49 | 42,210.63 | 0.9058 | 12.63% | 76.38% |
+| Difference | +1,677.58 | +542.53 | -0.0037 | +0.10 pp | -0.48 pp |
 
 ### Final selected LightGBM model
 
@@ -115,7 +116,7 @@ Although the model eliminating three features had the best accuracy, the model e
 The final selected LightGBM model uses the following eight predictors:
 
 | Final feature          | Reason for inclusion                         |
-| ---------------------- | -------------------------------------------- |
+|------------------------|----------------------------------------------|
 | `sale_year`            | Captures market changes over time.           |
 | `quality_score`        | Represents construction quality.             |
 | `year_built`           | Captures property age.                       |

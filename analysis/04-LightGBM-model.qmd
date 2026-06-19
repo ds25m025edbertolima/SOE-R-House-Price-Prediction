@@ -3,7 +3,6 @@ title: "LightGBM"
 format: html
 editor: visual
 ---
-
 ```{r}
 library(dplyr)
 library(tidyr)
@@ -22,9 +21,10 @@ LightGBM is a gradient boosting algorithm that builds many decision trees sequen
 ```{r}
 
 app_model_df <- read.csv(
-  "/workspaces/SOE-R-House-Price-Prediction/data/house_price_model_data.csv",
+  "/workspaces/SOE-R-House-Price-Prediction/data/app_model_df.txt",
   header = TRUE,
-  stringsAsFactors = FALSE
+  stringsAsFactors = FALSE,
+  sep = "\t"
 )
 
 # Select app-focused model features
@@ -67,6 +67,16 @@ lgb_df <- lgb_df %>%
   )
 
 head(lgb_df)
+
+
+```
+
+```{r}
+# Check column names first
+names(app_model_df)
+
+# Check if sale_price exists
+"sale_price" %in% names(app_model_df)
 ```
 
 ## Train-Test Split and Data Preparation for LightGBM
@@ -104,12 +114,14 @@ y_test_lgb <- lgb_test$log_sale_price
 # Convert to LightGBM dataset format
 dtrain_lgb <- lgb.Dataset(
   data = as.matrix(x_train_lgb),
-  label = y_train_lgb
+  label = y_train_lgb,
+  params = list(feature_pre_filter = FALSE)
 )
 
 dtest_lgb <- lgb.Dataset(
   data = as.matrix(x_test_lgb),
-  label = y_test_lgb
+  label = y_test_lgb,
+  params = list(feature_pre_filter = FALSE)
 )
 
 ```
@@ -222,35 +234,20 @@ lgb.plot.importance(
   lgb_importance,
   top_n = 10
 )
-
-# Save LightGBM model and dummy transformation object
-lgb.save(
-  lgb_model,
-  "lightgbm_house_price_model.txt"
-)
-
-saveRDS(
-  dummy_model_lgb,
-  "lightgbm_dummy_model.rds"
-)
 ```
 
 ```{r}
-# -------------------------------
-# Tune LightGBM Model
-# -------------------------------
-
-library(dplyr)
-library(lightgbm)
 
 # Define tuning grid
 lgb_grid <- expand.grid(
-  learning_rate = c(0.03, 0.05, 0.08),
+  learning_rate = c(0.08),
   num_leaves = c(31, 63),
-  max_depth = c(-1, 8),
+  max_depth = c(8),
   min_data_in_leaf = c(20, 50),
   feature_fraction = c(0.8),
-  bagging_fraction = c(0.8)
+  bagging_fraction = c(0.8),
+  lambda_l1 = c(0, 0.1),
+  lambda_l2 = c(0)
 )
 
 # Empty table to store results
@@ -260,16 +257,19 @@ lgb_tuning_results <- data.frame()
 for (i in 1:nrow(lgb_grid)) {
   
   params <- list(
-    objective = "regression",
-    metric = "rmse",
-    learning_rate = lgb_grid$learning_rate[i],
-    num_leaves = lgb_grid$num_leaves[i],
-    max_depth = lgb_grid$max_depth[i],
-    min_data_in_leaf = lgb_grid$min_data_in_leaf[i],
-    feature_fraction = lgb_grid$feature_fraction[i],
-    bagging_fraction = lgb_grid$bagging_fraction[i],
-    bagging_freq = 5
-  )
+  objective = "regression",
+  metric = "rmse",
+  learning_rate = lgb_grid$learning_rate[i],
+  num_leaves = lgb_grid$num_leaves[i],
+  max_depth = lgb_grid$max_depth[i],
+  min_data_in_leaf = lgb_grid$min_data_in_leaf[i],
+  feature_fraction = lgb_grid$feature_fraction[i],
+  bagging_fraction = lgb_grid$bagging_fraction[i],
+  bagging_freq = 5,
+  lambda_l1 = lgb_grid$lambda_l1[i],
+  lambda_l2 = lgb_grid$lambda_l2[i],
+  feature_pre_filter = FALSE
+)
   
   set.seed(123)
   
@@ -334,7 +334,7 @@ lgb_tuning_results %>%
   arrange(desc(percent_within_15))
 ```
 
-The tuning results show that the best LightGBM model used a learning rate of `0.08`, `63` leaves, a maximum depth of `8`, and `20` minimum observations per leaf. This model achieved the lowest RMSE of 83,321 USD and an R-squared of 0.924, meaning it explains about 92.4 percent of the variation in sale price.
+The tuning results show that the best LightGBM model used a learning rate of `0.08`, `63` leaves, a maximum depth of `8`, and `20` minimum observations per leaf. This model achieved the lowest RMSE of 83,321 USD and an R-squared of 0.914, meaning it explains about 91.4 percent of the variation in sale price.
 
 Overall, models with `num_leaves = 63` performed better than models with `num_leaves = 31`, suggesting that the model benefited from more complex tree structures. The best results were also achieved with `learning_rate = 0.08`, meaning this learning rate worked better than the smaller values tested in this tuning grid.
 
@@ -343,10 +343,6 @@ Overall, models with `num_leaves = 63` performed better than models with `num_le
 After tuning the LightGBM model, a reduced feature set based on feature importance can be tested. The goal is to check whether the model can achieve similar performance with fewer input variables. This is especially important for the final app, because a simpler input form improves usability. However, features should only be removed if model performance does not decrease meaningfully.
 
 ```{r}
-library(dplyr)
-library(tidyr)
-library(caret)
-library(lightgbm)
 
 # Features ordered from MOST important to LEAST important
 feature_importance_order <- c(
@@ -581,3 +577,186 @@ Because the model that eliminates 7 features removes 4 additional input variable
 The final LightGBM model recommends using the following features: `sale_year`, `quality_score`, `year_built`, `square_feet`, `latitude`, `land_net_square_feet`, `bathrooms`, and `longitude`.
 
 It suggests excluding `bedrooms_per_1000_sqft`, `bathrooms_per_1000_sqft`, `has_waterfront_detail`, `location_cluster`, `bedrooms`, `has_finished_space_detail`, and `has_garage_or_carport_detail`.
+
+# Train and Save the final model
+
+```{r}
+
+# -------------------------------
+# 1. Final selected features
+# -------------------------------
+
+final_lgb_features <- c(
+  "sale_year",
+  "quality_score",
+  "year_built",
+  "square_feet",
+  "latitude",
+  "land_net_square_feet",
+  "bathrooms",
+  "longitude"
+)
+
+# -------------------------------
+# 2. Prepare final train and test data
+# -------------------------------
+
+final_train_data <- lgb_train_base %>%
+  select(all_of(c("sale_price", "log_sale_price", final_lgb_features)))
+
+final_test_data <- lgb_test_base %>%
+  select(all_of(c("sale_price", "log_sale_price", final_lgb_features)))
+
+# -------------------------------
+# 3. Create dummy/preprocessing model
+# -------------------------------
+
+final_dummy_model_lgb <- dummyVars(
+  log_sale_price ~ . - sale_price,
+  data = final_train_data,
+  fullRank = TRUE
+)
+
+# Convert train and test data into numeric matrices
+x_train_final_lgb <- predict(
+  final_dummy_model_lgb,
+  newdata = final_train_data
+) %>%
+  as.data.frame()
+
+x_test_final_lgb <- predict(
+  final_dummy_model_lgb,
+  newdata = final_test_data
+) %>%
+  as.data.frame()
+
+# Target variables
+y_train_final_lgb <- final_train_data$log_sale_price
+y_test_final_lgb <- final_test_data$log_sale_price
+
+# -------------------------------
+# 4. Convert to LightGBM dataset format
+# -------------------------------
+
+dtrain_final_lgb <- lgb.Dataset(
+  data = as.matrix(x_train_final_lgb),
+  label = y_train_final_lgb
+)
+
+dtest_final_lgb <- lgb.Dataset(
+  data = as.matrix(x_test_final_lgb),
+  label = y_test_final_lgb
+)
+
+# -------------------------------
+# 5. Best tuned LightGBM parameters
+# -------------------------------
+
+final_lgb_params <- list(
+  objective = "regression",
+  metric = "rmse",
+  learning_rate = 0.08,
+  num_leaves = 63,
+  max_depth = 8,
+  min_data_in_leaf = 20,
+  feature_fraction = 0.8,
+  bagging_fraction = 0.8,
+  bagging_freq = 5
+)
+
+# -------------------------------
+# 6. Train final LightGBM model
+# -------------------------------
+
+set.seed(123)
+
+final_lgb_model <- lgb.train(
+  params = final_lgb_params,
+  data = dtrain_final_lgb,
+  nrounds = 1000,
+  valids = list(test = dtest_final_lgb),
+  early_stopping_rounds = 50,
+  verbose = 50
+)
+
+# -------------------------------
+# 7. Evaluate final model
+# -------------------------------
+
+final_pred_log <- predict(
+  final_lgb_model,
+  newdata = as.matrix(x_test_final_lgb)
+)
+
+final_lgb_results <- data.frame(
+  actual_log_sale_price = y_test_final_lgb,
+  predicted_log_sale_price = final_pred_log
+) %>%
+  mutate(
+    actual_sale_price = exp(actual_log_sale_price),
+    predicted_sale_price = exp(predicted_log_sale_price),
+    percent_error = abs(predicted_sale_price - actual_sale_price) / actual_sale_price,
+    within_15_percent = percent_error <= 0.15
+  )
+
+final_lgb_metrics <- final_lgb_results %>%
+  summarise(
+    RMSE = sqrt(mean((actual_sale_price - predicted_sale_price)^2)),
+    MAE = mean(abs(actual_sale_price - predicted_sale_price)),
+    R_squared = cor(actual_sale_price, predicted_sale_price)^2,
+    MAPE = mean(percent_error) * 100,
+    percent_within_15 = mean(within_15_percent) * 100
+  )
+
+final_lgb_metrics
+
+# -------------------------------
+# 8. Save final model as RDS
+# -------------------------------
+
+final_lgb_app_object <- list(
+  model = final_lgb_model,
+  dummy_model = final_dummy_model_lgb,
+  features = final_lgb_features,
+  params = final_lgb_params,
+  best_iter = final_lgb_model$best_iter,
+  target_transform = "log",
+  prediction_back_transform = "exp"
+)
+
+saveRDS(
+  final_lgb_app_object,
+  file = "/workspaces/SOE-R-House-Price-Prediction/models/final_lightgbm_app_model.rds"
+)
+
+# -------------------------------
+# 9. Test that the RDS file was saved correctly
+# -------------------------------
+
+loaded_lgb_app_object <- readRDS(
+  "/workspaces/SOE-R-House-Price-Prediction/models/final_lightgbm_app_model.rds"
+)
+
+loaded_lgb_app_object$features
+loaded_lgb_app_object$best_iter
+loaded_lgb_app_object$params
+
+# -------------------------------
+# 10. Test prediction with loaded model
+# -------------------------------
+
+x_test_loaded <- predict(
+  loaded_lgb_app_object$dummy_model,
+  newdata = final_test_data
+) %>%
+  as.data.frame()
+
+pred_log_loaded <- predict(
+  loaded_lgb_app_object$model,
+  newdata = as.matrix(x_test_loaded)
+)
+
+predicted_price_loaded <- exp(pred_log_loaded)
+
+head(predicted_price_loaded)
+```
