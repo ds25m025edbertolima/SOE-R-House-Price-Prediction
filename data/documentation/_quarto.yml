@@ -30,6 +30,7 @@ book:
     - 08-analysis-interpretation.qmd
     - 09-key-findings-and-refinements.qmd
     - 09-LightGBM-model.qmd
+    - 10-model_comparison.qmd
 
   appendices:
     - 06-data-dictionary-appendix.qmd
