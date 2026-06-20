@@ -60,19 +60,7 @@ selectInput(
   "bathrooms",
   "Bathrooms",
   choices = c(
-    0.00, 0.25, 0.50, 0.75,
-    1.00, 1.25, 1.50, 1.73, 1.75, 1.76, 1.78,
-    2.00, 2.25, 2.50, 2.55, 2.75,
-    3.00, 3.10, 3.24, 3.25, 3.50, 3.75,
-    4.00, 4.25, 4.50, 4.75,
-    5.00, 5.25, 5.50, 5.75,
-    6.00, 6.25, 6.50, 6.75,
-    7.00, 7.15, 7.50,
-    8.00, 8.50,
-    9.00, 9.50,
-    17.00,
-    32.00,
-    2025.00
+    0.00, 1.00, 2.00, 3.00, 4.00, 5.00, 6.00, 7.00, 8.00, 9.00
   ),
   selected = 2.00
 )
@@ -234,8 +222,12 @@ prediction <- reactive({
 
 # Button-triggered prediction
 observeEvent(input$predict, {
+  # Show a "Calculating ..." panel while the model runs, then display the result.
+  withProgress(message = "Calculating ...", value = 1, {
+    pred <- prediction()
+  })
   output$prediction <- renderText({
-    paste("Predicted price =", prediction())
+    paste("Predicted price =", pred)
   })
 })
 ```
