@@ -1,0 +1,243 @@
+---
+title: "SOE-R-Hous-Price Prediction (Shiny)"
+author: "Edberta, Gerta, Helga, & Mira"
+date: today #"2026-06-20"
+format: html
+editor: visual
+server: shiny
+echo: false 
+---
+
+## Libraries
+
+```{r warning=FALSE, message=FALSE}
+## load libraries 
+library(tidyverse)
+library(rsample)
+library(rpart)
+library(rpart.plot)
+library(lightgbm)
+library(dplyr)
+library(caret)
+library(shiny)
+library(sf)
+library(leaflet)
+```
+
+::::: columns
+::: {.column width="50%"}
+<!-- ## UI -->
+
+```{r cache=FALSE}
+#| echo=FALSE
+
+selectInput(
+  "quality_score",
+  "Quality Score",
+  choices = 1:11,
+  selected = 6
+)
+
+sliderInput(
+  "sale_year",
+  "Sale Year",
+  min = 1997,
+  max = 2026,
+  value = round(mean(c(1997, 2026))),
+  step  = 1
+)
+
+sliderInput(
+  "year_built",
+  "Year Built",
+  min   = 1870,
+  max   = 2026,
+  value = round(mean(c(1870, 2026))),
+  step  = 1
+)
+
+selectInput(
+  "bathrooms",
+  "Bathrooms",
+  choices = c(
+    0.00, 0.25, 0.50, 0.75,
+    1.00, 1.25, 1.50, 1.73, 1.75, 1.76, 1.78,
+    2.00, 2.25, 2.50, 2.55, 2.75,
+    3.00, 3.10, 3.24, 3.25, 3.50, 3.75,
+    4.00, 4.25, 4.50, 4.75,
+    5.00, 5.25, 5.50, 5.75,
+    6.00, 6.25, 6.50, 6.75,
+    7.00, 7.15, 7.50,
+    8.00, 8.50,
+    9.00, 9.50,
+    17.00,
+    32.00,
+    2025.00
+  ),
+  selected = 2.00
+)
+
+sliderInput(
+  "square_feet",
+  "Living Area (sqft)",
+  min   = 120,
+  max   = 17787,
+  # snap the initial value onto the step grid (min + n*step) so the handle works
+  value = 120 + round((mean(c(120, 17787)) - 120) / 10) * 10,
+  step  = 10
+)
+
+sliderInput(
+  "land_net_square_feet",
+  "Land Area (sqft)",
+  min   = 546,
+  max   = 2940736,
+  value = 546 + round((mean(c(546, 2940736)) - 546) / 50) * 50,
+  step  = 50
+)
+
+# Hidden numeric inputs for map coordinates
+tags$div(style="display:none;",
+  numericInput("latitude",  "Latitude",  value = NA),
+  numericInput("longitude", "Longitude", value = NA)
+)
+
+```
+:::
+
+::: {.column width="50%"}
+```{r cache=FALSE}
+#| echo=FALSE
+## action button
+actionButton("predict", "Predict")
+
+## text output from predict button
+textOutput("prediction")
+
+## map output
+leafletOutput("map", height = 500)
+
+## clicked coordinates
+verbatimTextOutput("click_info")
+```
+
+<!-- ## Server (observeEvent) -->
+
+```{r cache=FALSE}
+#| context: server
+
+library(caret)
+library(lightgbm)
+library(sf)
+library(leaflet)
+
+# Load your model bundle
+bundle <- readRDS("../models/final_lightgbm_app_model.rds")
+
+# Load map data
+council  <- st_read("../analysis/Pierce_County_Council_Districts_8934877056349991897.geojson") |> st_transform(4326)
+zipcodes <- st_read("../analysis/Zip Codes.geojson") |> st_transform(4326)
+
+# Render map
+output$map <- renderLeaflet({
+  leaflet() %>%
+    addProviderTiles(providers$CartoDB.Positron) %>%
+    addPolygons(
+      data = zipcodes,
+      group = "ZIP Codes",
+      color = "gray",
+      weight = 1,
+      fillOpacity = 0.15
+    ) %>%
+    addPolygons(
+      data = council,
+      group = "Districts",
+      layerId = ~District_Number,
+      color = "red",
+      weight = 2,
+      fillOpacity = 0.30,
+      popup = ~paste0("<b>District</b><br>District: ", District_Number)
+    ) %>%
+    addLayersControl(
+      overlayGroups = c("ZIP Codes", "Districts"),
+      options = layersControlOptions(collapsed = FALSE)
+    )
+})
+
+# Map click: district polygons
+observeEvent(input$map_shape_click, {
+  click <- input$map_shape_click
+
+  updateNumericInput(session, "latitude",  value = click$lat)
+  updateNumericInput(session, "longitude", value = click$lng)
+
+  output$click_info <- renderText({
+    paste0(
+      "District selected\n",
+      "District: ", click$id, "\n",
+      "Latitude: ", round(click$lat, 6), "\n",
+      "Longitude: ", round(click$lng, 6)
+    )
+  })
+})
+
+# Map click: outside polygons
+observeEvent(input$map_click, {
+  click <- input$map_click
+
+  updateNumericInput(session, "latitude",  value = click$lat)
+  updateNumericInput(session, "longitude", value = click$lng)
+
+  output$click_info <- renderText({
+    paste0(
+      "Coordinates selected\n",
+      "Latitude: ", round(click$lat, 6), "\n",
+      "Longitude: ", round(click$lng, 6)
+    )
+  })
+})
+
+# ---- Helper: build a prediction row from UI inputs ----
+make_row <- function(input) {
+
+  all_vars <- bundle$dummy_model$vars
+  row <- as.data.frame(as.list(rep(0, length(all_vars))))
+  names(row) <- all_vars
+
+  # selectInput() returns character strings; coerce everything to numeric so
+  # predict.dummyVars() doesn't treat them as single-level factors.
+  row$sale_year              <- as.numeric(input$sale_year)
+  row$quality_score          <- as.numeric(input$quality_score)
+  row$year_built             <- as.numeric(input$year_built)
+  row$bathrooms              <- as.numeric(input$bathrooms)
+  row$square_feet            <- as.numeric(input$square_feet)
+  row$land_net_square_feet   <- as.numeric(input$land_net_square_feet)
+  row$latitude               <- as.numeric(input$latitude)
+  row$longitude              <- as.numeric(input$longitude)
+
+  row
+}
+
+# ---- Reactive prediction (auto-updates) ----
+prediction <- reactive({
+
+  row <- make_row(input)
+
+  X <- predict(bundle$dummy_model, newdata = row)
+  X <- X[, bundle$features, drop = FALSE]
+
+  pred_log <- predict(bundle$model, data.matrix(X))
+  pred <- exp(pred_log)
+
+  round(pred)
+})
+
+# Button-triggered prediction
+observeEvent(input$predict, {
+  output$prediction <- renderText({
+    paste("Predicted price =", prediction())
+  })
+})
+```
+:::
+:::::
