@@ -22,12 +22,12 @@ The main model features came from the app-focused feature set created during the
 
 A tuning process was performed to find a stronger LightGBM model. Different combinations of model parameters were tested, including:
 
-- `learning_rate`
-- `num_leaves`
-- `max_depth`
-- `min_data_in_leaf`
-- `feature_fraction`
-- `bagging_fraction`
+-   `learning_rate`
+-   `num_leaves`
+-   `max_depth`
+-   `min_data_in_leaf`
+-   `feature_fraction`
+-   `bagging_fraction`
 
 The best-performing tuned model used:
 
@@ -87,19 +87,19 @@ After training the full LightGBM model, a stepwise feature-reduction process was
 
 The model that eliminated three features had the best predictive performance. It removed:
 
-- `bedrooms`
-- `has_finished_space_detail`
-- `has_garage_or_carport_detail`
+-   `bedrooms`
+-   `has_finished_space_detail`
+-   `has_garage_or_carport_detail`
 
 However, a simpler model that eliminated seven features was also tested. It removed:
 
-- `bedrooms_per_1000_sqft`
-- `bathrooms_per_1000_sqft`
-- `has_waterfront_detail`
-- `location_cluster`
-- `bedrooms`
-- `has_finished_space_detail`
-- `has_garage_or_carport_detail`
+-   `bedrooms_per_1000_sqft`
+-   `bathrooms_per_1000_sqft`
+-   `has_waterfront_detail`
+-   `location_cluster`
+-   `bedrooms`
+-   `has_finished_space_detail`
+-   `has_garage_or_carport_detail`
 
 The comparison showed that the model eliminating seven features performed only slightly worse than the model eliminating three features.
 

@@ -69,7 +69,7 @@ We developed four KNN models iteratively, adding features at each step to explor
 how different dimensions of the data contribute to price prediction.
 :::
 
-::: {style="font-size: 0.75em;"}
+::: {style="font-size: 0.85em;"}
 
 The **baseline model** uses the three core spatial and size features — latitude, 
 longitude, and square footage — as a minimal starting point.
@@ -93,12 +93,12 @@ metrics_table   <- readRDS(here("..", "..","analysis", "03-knn-files", "metrics_
 within_15_table <- readRDS(here("..", "..","analysis", "03-knn-files", "within_15_table.rds"))
 ```
 
-| Model | k | RMSE | R-squared | MAE |
+| Model | k | RMSE | R-squared | MAPE |
 |:----------|:-------|:-------|:-------|:-------|
-| **minimal** | 5 | `r metrics_table[1, "RMSE"]` | `r metrics_table[1, "Rsquared"]` | `r metrics_table[1, "MAE"]` |
-| **+sale_year** | 2 | `r metrics_table[2, "RMSE"]` | `r metrics_table[2, "Rsquared"]` | `r metrics_table[2, "MAE"]` |
-| **+sale_year+quality** | 2 | `r metrics_table[3, "RMSE"]` | `r metrics_table[3, "Rsquared"]` | `r metrics_table[3, "MAE"]` |
-| **full** | 2 | `r metrics_table[4, "RMSE"]` | `r metrics_table[4, "Rsquared"]` | `r metrics_table[4, "MAE"]` |
+| **minimal** | 5 | `r metrics_table[1, "RMSE"]` | `r metrics_table[1, "Rsquared"]` | `r metrics_table[1, "MAPE"]` |
+| **+sale_year** | 5 | `r metrics_table[2, "RMSE"]` | `r metrics_table[2, "Rsquared"]` | `r metrics_table[2, "MAPE"]` |
+| **+sale_year+quality** | 5 | `r metrics_table[3, "RMSE"]` | `r metrics_table[3, "Rsquared"]` | `r metrics_table[3, "MAPE"]` |
+| **full** | 5 | `r metrics_table[4, "RMSE"]` | `r metrics_table[4, "Rsquared"]` | `r metrics_table[4, "MAPE"]` |
 
 | Model | within 15% train | within 15% test |
 |:----------|:-------|:-------|

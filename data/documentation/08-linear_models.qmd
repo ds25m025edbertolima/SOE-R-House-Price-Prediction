@@ -1,5 +1,5 @@
 ---
-title: "Analysis and Interpretation of Results"
+title: "Linear Models"
 format:
   html:
     toc: true
@@ -7,11 +7,11 @@ format:
 ---
 
 ::: {.content-visible unless-format="revealjs"}
-# Introduction
+## Introduction
 
 This document provides a detailed interpretation of the linear regression analysis performed to predict residential property prices in Pierce County. The analysis builds upon the data prepared during the exploratory phase and focuses on identifying the key drivers of house prices and assessing the predictive power of the resulting models.
 
-# Step-by-Step Analysis
+## Step-by-Step Analysis
 
 ```{r}
 #| label: setup
@@ -29,7 +29,7 @@ library(here)
 model_df <- read_csv(here("..", "..", "data", "house_price_model_data.csv"))
 ```
 
-## Step 1: Data Preparation and Feature Selection
+### Step 1: Data Preparation and Feature Selection
 
 The analysis utilizes the `house_price_model_data.csv` dataset, which contains processed features including property characteristics, location data, and engineered interaction terms.
 
@@ -50,7 +50,7 @@ Key features include:
 - **Interactions**: `square_feet_quality_interaction`, `waterfront_land_interaction`.
 
 ::: {.content-visible unless-format="revealjs"}
-## Step 2: Model Development
+### Step 2: Model Development
 
 We focus on the **Core Features Model** as it provides the most interpretable results for documentation purposes.
 
@@ -73,7 +73,7 @@ formula_core <- as.formula(
 model_core <- lm(formula_core, data = model_df)
 ```
 :::
-## Step 3: Performance Evaluation
+### Step 3: Performance Evaluation
 
 The model performance is assessed using R-squared and error metrics.
 
@@ -89,7 +89,7 @@ cat("AIC:", round(model_stats$AIC, 2), "\n")
 
 The $R^2$ value indicates that approximately `r round(model_stats$r.squared * 100, 1)`% of the variation in sale prices is explained by the selected features.
 
-## Step 4: Interpretation of Coefficients
+### Step 4: Interpretation of Coefficients
 
 The coefficients reveal the impact of each unit change in the predictors on the home price.
 
@@ -113,13 +113,13 @@ tidy(model_core) %>%
 
 :::
 
-### Key Drivers
+#### Key Drivers
 
 1.  **Living Area (`square_feet`)**: A primary driver of value. 
 2.  **Quality (`quality_score`)**: Higher quality scores significantly boost the price.
 3.  **Location**: Proximity to desirable areas (captured by coordinates) shows strong geographic influence.
 
-## Step 5: Validation of Assumptions
+### Step 5: Validation of Assumptions
 
 ```{r}
 #| label: residual-plot
@@ -140,7 +140,7 @@ ggplot(df_results, aes(x = actual, y = predicted)) +
   theme_minimal()
 ```
 
-# Conclusion
+## Conclusion
 
 The linear regression analysis successfully identified a robust set of predictors for house prices. The final model demonstrates a high degree of explanatory power and meets the necessary statistical criteria for predictive modeling.
 

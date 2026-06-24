@@ -38,7 +38,7 @@ gantt
     Deployment         :crit, wp7, 2026-06-20, 5d
 ```
 
-: Timeline showing all project phases, milestones, and critical path tasks from May 13 to June 24, 2026. {#fig-gantt-timeline}
+: Timeline showing all project phases, milestones, and critical path tasks from May 13 to June 24, 2026. 
 :::
 
 :::
@@ -335,9 +335,9 @@ gantt
 ## Weekly Status Checklist
 
 - [x] **Week 1 (13–19.05)**: WP0 setup complete
-- [ ] **Week 2 (20–26.05)**: WP1 data integration done, Proposal prepared
-- [ ] **Week 3 (27.05–02.06)**: WP2 data cleaning complete, WP3 started
-- [ ] **Week 4 (03–09.06)**: WP3 features complete, WP4 preprocessing ready
-- [ ] **Week 5 (10–16.06)**: WP5 all 5 models trained and validated
-- [ ] **Week 6 (17–23.06)**: WP6 best model selected, WP7 Shiny App deployed
-- [ ] **Week 7 (24.06)**: Final presentation & report submitted
+- [x] **Week 2 (20–26.05)**: WP1 data integration done, Proposal prepared
+- [x] **Week 3 (27.05–02.06)**: WP2 data cleaning complete, WP3 started
+- [x] **Week 4 (03–09.06)**: WP3 features complete, WP4 preprocessing ready
+- [x] **Week 5 (10–16.06)**: WP5 all 5 models trained and validated
+- [x] **Week 6 (17–23.06)**: WP6 best model selected, WP7 Shiny App deployed
+- [x] **Week 7 (24.06)**: Final presentation & report submitted

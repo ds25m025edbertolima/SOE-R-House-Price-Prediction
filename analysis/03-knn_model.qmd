@@ -30,7 +30,7 @@ library(kknn)
 options(scipen = 999)
 
 # Load the prepared data
-model_df <- read_csv(here::here("..", "..", "data", "house_price_model_data.csv"))
+model_df <- read_csv(here::here("data", "house_price_model_data.csv"))
 ```
 
 
@@ -118,7 +118,7 @@ print(knn_baseline)
 
 ```
 ```{r}
-saveRDS(knn_baseline, here::here("..", "..", "models", "knn_baseline.rds"))
+saveRDS(knn_baseline, here::here( "models", "knn_baseline.rds"))
 ```
 
 The optimal number of k is 5. Predictions are made on the log scale and then
@@ -135,8 +135,8 @@ dollar_metrics <- function(preds, actuals) {
   ss_res <- sum((actuals - preds)^2)
   ss_tot <- sum((actuals - mean(actuals))^2)
   rsq <- 1 - ss_res / ss_tot
-  mae <- mean(abs(preds - actuals))
-  c(RMSE = rmse, Rsquared = rsq, MAE = mae)
+  mape <- mean(abs((actuals - preds) / actuals)) * 100
+  c(RMSE = rmse, Rsquared = rsq, MAPE = mape)
 }
 
 # Calculate performance metrics on original dollar scale
@@ -157,6 +157,8 @@ train_within_15_1 <- mean(train_ape_1 <= 0.15) * 100
 
 # Absolute Percentage Error (APE) for test data
 test_ape_1 <- abs(predictions_1 - test_data_1$sale_price) / test_data_1$sale_price
+
+test_mape_1 <- mean(test_ape_1) * 100
 
 test_within_15_1 <- mean(test_ape_1 <= 0.15) * 100
 
@@ -227,7 +229,7 @@ knn_v2 <- train(
 print(knn_v2)
 ```
 ```{r}
-saveRDS(knn_v2, here::here("..","..","models", "knn_2.rds"))
+saveRDS(knn_v2, here::here("models", "knn_2.rds"))
 ```
 
 By adding the sale year the optimal k remains at 5.
@@ -297,7 +299,7 @@ knn_v3 <- train(
 print(knn_v3)
 ```
 ```{r}
-saveRDS(knn_v3, here::here("..","..","models", "knn_3.rds"))
+saveRDS(knn_v3, here::here("models", "knn_3.rds"))
 ```
 
 Again the optimal value for k is 5. The cross-validation RMSE on the log scale
@@ -376,7 +378,7 @@ print(knn_full)
 ```
 
 ```{r}
-saveRDS(knn_full, here::here("..","..","models", "knn_full.rds"))
+saveRDS(knn_full, here::here("models", "knn_full.rds"))
 ```
 
 When all available features were used, the cross-validation RMSE on the log scale
@@ -416,10 +418,10 @@ log predictions via `exp()`).
 
 | Model | RMSE | R-squared | MAE | 
 |:----------|:-------|:-------|:-------|
-| **minimal** | `r evaluation_metrics_1[["RMSE"]]` | `r evaluation_metrics_1[["Rsquared"]]` | `r evaluation_metrics_1[["MAE"]]` |
-| **+sale_year** | `r evaluation_metrics_2[["RMSE"]]`  | `r evaluation_metrics_2[["Rsquared"]]` | `r evaluation_metrics_2[["MAE"]]` |
-| **+sale_year+quality** | `r evaluation_metrics_3[["RMSE"]]`  | `r evaluation_metrics_3[["Rsquared"]]` | `r evaluation_metrics_3[["MAE"]]` |
-| **full** | `r evaluation_metrics_full[["RMSE"]]` | `r evaluation_metrics_full[["Rsquared"]]` | `r evaluation_metrics_full[["MAE"]]` |
+| **minimal** | `r evaluation_metrics_1[["RMSE"]]` | `r evaluation_metrics_1[["Rsquared"]]` | `r evaluation_metrics_1[["MAPE"]]` |
+| **+sale_year** | `r evaluation_metrics_2[["RMSE"]]`  | `r evaluation_metrics_2[["Rsquared"]]` | `r evaluation_metrics_2[["MAPE"]]` |
+| **+sale_year+quality** | `r evaluation_metrics_3[["RMSE"]]`  | `r evaluation_metrics_3[["Rsquared"]]` | `r evaluation_metrics_3[["MAPE"]]` |
+| **full** | `r evaluation_metrics_full[["RMSE"]]` | `r evaluation_metrics_full[["Rsquared"]]` | `r evaluation_metrics_full[["MAPE"]]` |
 
 
 | Model | within 15% train | within 15% test
@@ -437,8 +439,8 @@ metrics_table <- data.frame(
            evaluation_metrics_3[["RMSE"]], evaluation_metrics_full[["RMSE"]]),
   Rsquared = c(evaluation_metrics_1[["Rsquared"]], evaluation_metrics_2[["Rsquared"]], 
                evaluation_metrics_3[["Rsquared"]], evaluation_metrics_full[["Rsquared"]]),
-  MAE = c(evaluation_metrics_1[["MAE"]], evaluation_metrics_2[["MAE"]], 
-          evaluation_metrics_3[["MAE"]], evaluation_metrics_full[["MAE"]])
+  MAPE = c(evaluation_metrics_1[["MAPE"]], evaluation_metrics_2[["MAPE"]], 
+          evaluation_metrics_3[["MAPE"]], evaluation_metrics_full[["MAPE"]])
 )
 
 within_15_table <- data.frame(
@@ -460,5 +462,5 @@ within_15_table
 ```{r}
 # save
 saveRDS(metrics_table,    here::here("analysis", "03-knn-files", "metrics_table.rds"))
-saveRDS(within_15_table,  here::here("analysis", "03-knn-files", "within_15_table.rds"))
+#saveRDS(within_15_table,  here::here("analysis", "03-knn-files", "within_15_table.rds"))
 ```
