@@ -1,0 +1,57 @@
+---
+title: "Predictive Modeling of Residential Property Prices in Pierce County"
+author:
+  - name: Edberto Moura Lima
+    affiliation: FHTW
+  - name: Gerta Hajrullahi
+    affiliation: FHTW
+  - name: Helga Deutschmann
+    affiliation: FHTW
+  - name: Mira Radakovic
+    affiliation: FHTW
+date: "2026-05-11"
+lang: en
+bibliography: references.bib
+format:
+  html:
+    theme:
+      - cosmo
+    code-fold: true
+    toc: true
+    number-sections: true
+    number-depth: 2
+    embed-resources: true
+    standalone: true
+    mermaid:
+      theme: neutral
+---
+
+{{< include index.qmd >}}
+
+{{< include 01-project-objective.qmd >}}
+
+{{< include 02-data-source-description.qmd >}}
+
+{{< include 03-project-organization.qmd >}}
+
+{{< include 04-development-plan.qmd >}}
+
+{{< include 05-project-schedule-and-workpackages.qmd >}}
+
+{{< include 06-eda_summary.qmd >}}
+
+{{< include 07-Baseline-model-short.qmd >}}
+
+{{< include 08-linear_models.qmd >}}
+
+{{< include 09-linear_models_2.qmd >}}
+
+{{< include 10-knn-model.qmd >}}
+
+{{< include 11-LightGBM-model.qmd >}}
+
+{{< include 12-model_comparison.qmd >}}
+
+{{< include 13-dashboard.qmd >}}
+
+{{< include 06-data-dictionary-appendix.qmd >}}

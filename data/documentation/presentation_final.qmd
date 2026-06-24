@@ -1,0 +1,141 @@
+---
+title: "Predictive Modeling of Residential Property Prices"
+subtitle: "Pierce County Project"
+author: "Edberto, Gerta, Helga, & Mira"
+date: "2026-05-11"
+pagetitle: "Predictive Modeling of Residential Property Prices"
+format: 
+  revealjs:
+    theme: simple
+    slide-number: true
+    transition: slide
+    embed-resources: true
+---
+
+```{r}
+#| include: false
+knitr::opts_knit$set(root.dir = here::here())
+options(scipen = 999)
+```
+
+
+## Project Goal
+
+Develop a machine learning system capable of predicting residential property prices using structural, spatial, economic, and neighborhood characteristics.
+
+---
+
+## Qualitative Objectives
+
+1.  Build a clean housing dataset for Pierce County.
+
+2.  Explore which factors influence house prices.
+
+3.  Engineer predictive variables from property and spatial data.
+
+4.  Compare traditional statistical and machine learning approaches.
+
+5.  Deploy a simple Shiny app for interactive price estimation.
+
+6.  Allow non-technical users to test predictions using custom property inputs.
+
+7.  Create visual outputs that support decision-making.
+
+---
+
+## Quantitative Objectives
+
+| Objective | Metric | Target |
+|:----------|:-------|:-------|
+| **Model Accuracy** | Root Mean Square Error (RMSE) | 80% within 15% from actual price|
+| **Explanatory Power** | Coefficient of Determination (R²) | > 0.85 |
+| **Model Diversity** | Algorithm Benchmarking | ≥ 4 distinct algorithms |
+| **Feature Richness** | Engineered Predictors | ≥ 20 model-ready features |
+| **App Performance** | Real-time Inference | Response time < 3 seconds |
+
+---
+
+## Data
+
+![ER Diagram](diagrams/er-diagram.png)
+
+---
+
+## Focus: Sales Price (target variable)
+
+---
+
+![Distribution of sale price](diagrams/eda/sales_price.png)
+
+
+---
+
+![Median Sale Prices over Time](diagrams/eda/salesprice_time.png)
+
+
+
+---
+
+![Interaction between building size and quality](diagrams/eda/building_size_and_quality.png)
+
+---
+
+![Location clustering](diagrams/eda/location_cluster.png)
+
+---
+
+![Quality levels by location cluster](diagrams/eda/quality_by_cluster.png)
+
+---
+
+## Final Variable Selection {.scrollable}
+
+::: {.smaller}
+| App input | Used to create model features |
+|-------------------------|-----------------------------------------------|
+| Address or map location | `latitude`, `longitude`, `location_cluster` - will be derived |
+| Sale year | `sale_year` |
+| Living area | `square_feet` |
+| Land size | `land_net_square_feet` |
+| Porch/deck yes/no | `has_deck_or_porch_detail` |
+| Porch/deck size | `porch_square_feet` |
+| Garage yes/no | `has_garage_or_carport_detail` |
+| Garage size | `attached_garage_square_feet` |
+| Quality rating | `quality_score` |
+| Number of bedrooms | `bedrooms`, `bedrooms_per_1000_sqft` - will be derived |
+| Number of bathrooms | `bathrooms`, `bathrooms_per_1000_sqft` - will be derived |
+| Year built | `year_built` |
+| Pool/spa yes/no | `has_pool_or_spa_detail` |
+| Waterfront yes/no | `has_waterfront_detail` |
+| Finished extra space yes/no | `has_finished_space_detail` |
+:::
+
+---
+
+## Competing models
+
+1. Base Models
+2. Linear Regression
+3. KNN
+4. LightGBM
+
+
+---
+
+::: {style="font-size: 0.75em;"}
+| Model | RMSE | MAPE | R_squared | within 15% |
+|:---|:---|:---|:---|:---|
+| Mean Model | 315,683 | 64% | NA | 18% |
+| LASSO Regression | 183,187 | 30% | 64.6 | 45% |
+| KNN Model | 118,932 | 21% | 69.9 | 65% |
+| LightGBM (small) | 90,574 | 12.6% | 76.4 | 76.4% |
+| LightGBM (big) | 88,896 | 12.5% | 76.9 | 76.9% |
+:::
+
+
+
+
+
+
+
+

@@ -1,0 +1,29 @@
+---
+title: "Model Comparison"
+format: html
+editor: visual
+---
+
+## Model comparison
+
+| Model | RMSE | Within 15% | Overall interpretation |
+|------------------|-----------------:|-----------------:|------------------|
+| Baseline 1: Mean predictor | 315,683 | 17.86% | Worst model; only used as a lower benchmark. |
+| Simple Linear Regression | 226,000 |  | Better than the mean baseline, but still weak. |
+| Ridge Regression | \~206,000 | 39.00% | Improves over linear regression, but still limited. |
+| LASSO Regression | 184,569 | 44.60% | Best among the simple linear/regularized regression models. |
+| Elastic Net Regression | 185,218 | 44.97% | Very similar to LASSO; slightly better within-15%, but slightly worse RMSE. |
+| KNN minimal | 234,086 | 25.66% | Weak performance. |
+| KNN + sale year | 133,846 | 66.51% | Strong improvement after adding time information. |
+| KNN + sale year + quality | 118,932 | 69.85% | Best KNN model. |
+| KNN full | 122,395 | 69.50% | Strong, but slightly worse than the smaller KNN model. |
+| LightGBM: eliminates 3 features | 88,896.91 | 76.86% | Best overall predictive performance. |
+| LightGBM: eliminates 7 features | 90,574.49 | 76.38% | Almost as accurate as the best model, but simpler and better for the app. |
+
+## Interpretation of results
+
+The model comparison shows that LightGBM clearly outperforms all baseline, linear, regularized, and KNN models. The best-performing model is the LightGBM model that eliminates 3 features, achieving the lowest RMSE, lowest MAE, highest R-squared, lowest MAPE, and highest percentage of predictions within 15%.
+
+However, the LightGBM model that eliminates 7 features performs only slightly worse. Its RMSE increases by only 1,677.58 USD, MAE increases by 542.53 USD, MAPE increases by 0.10 percentage points, and the percentage of predictions within 15% decreases by only 0.48 percentage points.
+
+Therefore, the LightGBM model that eliminates 3 features is the best model in terms of pure predictive performance, while the LightGBM model that eliminates 7 features is the better final choice for the user-facing app because it is simpler and requires fewer input variables.

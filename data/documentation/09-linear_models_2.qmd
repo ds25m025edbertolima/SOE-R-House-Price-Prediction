@@ -1,5 +1,5 @@
 ---
-title: "The Evolution of the Model: A Narrative of Discovery and Refinement"
+title: "Linear Models II."
 format:
   html:
     toc: true
@@ -7,12 +7,12 @@ format:
     code-fold: true
 ---
 
-# Introduction
+## Introduction
 
 Predicting the price of a home is more than just a math problem; it is an attempt to model human behavior and economic geography. Our journey began with a vast dataset of Pierce County property records and a simple question: what truly drives value? This document tells the story of how we moved from a basic linear model to a refined, high-performance predictive system, walking through the logic, the setbacks, and the "Aha!" moments that shaped our final product.
 
 ```{r}
-#| label: setup
+#| label: setup_3
 #| message: false
 #| warning: false
 
@@ -30,19 +30,19 @@ model_df <- read_csv(here::here("..", "..", "data", "house_price_model_data.csv"
   dplyr::select(-location_cluster)
 ```
 
-# The Initial Hunt for Predictors
+## The Initial Hunt for Predictors
 
 We started by casting a wide net. In our first model, we included everything from the number of bathrooms to the exact year the foundation was poured. It didn't take long for the data to speak: physical size (`square_feet`) and the `quality_score` were the clear heavy hitters. But we suspected that these features didn't work in isolation. A large house built with cheap materials shouldn't be valued the same as a large house built with premium craftsmanship.
 
 To capture this, we introduced "interaction terms." One specifically, the `square_feet_quality_interaction`, became a cornerstone of our work. When we ran an ANOVA test to compare our simple models against this more complex version, the results were clear—the interaction terms weren't just extra noise; they were essential for capturing how luxury materials "multiply" the value of space.
 
-# The Reality Check: Facing the Assumptions
+## The Reality Check: Facing the Assumptions
 
 Every linear regression comes with a set of "rules" or assumptions, and our first model was breaking several of them. When we plotted our residuals, we saw a clear, troubling pattern. The Breusch-Pagan test confirmed what our eyes were telling us: we had a case of heteroscedasticity. In plain English, our model was fairly accurate for a $300,000 starter home but became increasingly erratic as the price tags climbed into the millions.
 
 Looking at the Q-Q plots, we saw the "curved tail" of the distribution. Our model was consistently under-predicting the high-end luxury market. While our multicollinearity (VIF) checks showed that our features weren't tripping over each other, the overall fit was being pulled out of alignment by the sheer weight of the most expensive properties in the county.
 
-# Taming the Tail: The Mathematical Pivot
+## Taming the Tail: The Mathematical Pivot
 
 This realization led us to our second major phase of analysis. We calculated the skewness of the sale prices and found it was over 2.0—a massive right-hand tail. 
 
@@ -79,7 +79,7 @@ bc <- boxcox(sale_price ~ square_feet + quality_score + year_built,
 
 The test suggested a lambda very close to zero, which was our signal to move to a **Log-Linear model**. The results were immediate and rewarding. By simply predicting the *logarithm* of the price instead of the dollar amount, our error (RMSE) dropped significantly. The model was finally seeing the market not as a series of fixed dollar additions, but as a series of percentage increases—which is exactly how real estate value actually scales.
 
-# The Outlier Dilemma: To Keep or to Drop?
+## The Outlier Dilemma: To Keep or to Drop?
 
 With our new log-model in hand, we turned our attention to the "rebels" in our data—the outliers. Using the Interquartile Range (IQR) method, we identified properties that sat far outside the norm.
 
@@ -96,7 +96,7 @@ cat("Statistical Outlier Threshold: $", comma(upper_limit), "\n")
 
 We faced a critical choice. We could delete these high-value mansions, which would make our R-squared and other metrics look "perfect" on paper. Or, we could keep them. We chose to keep them. We realized that if our Shiny app was to be useful to everyone in Pierce County, it couldn't just ignore the top 5% of the market. Because we had already moved to a Log scale, these extreme values were "tamed"; they no longer had the leverage to distort the entire model, but they still provided the data we needed to estimate luxury values.
 
-# The Final Blueprint: Golden Features and Beyond
+## The Final Blueprint: Golden Features and Beyond
 
 As our analysis concluded, a definitive set of "Golden Features" emerged. We found that the north-south gradient (captured by latitude) and the "newness" premium of modern construction were just as vital as the square footage itself. 
 
@@ -120,6 +120,6 @@ knitr::kable(performance, caption = "Performance Summary of the Refined Log-Line
 
 The final system we deployed to our prediction app is the culmination of these steps. It uses a log-transformed target, embraces the complexity of quality-size interactions, and respects the presence of unique properties. It is a model that was tested against rigid statistical assumptions and refined through the practical reality of the Pierce County market.
 
-# Conclusion
+## Conclusion
 
 The evolution of this model was a process of constant course correction. We started with a simple line, faced the reality of skewed data, optimized our math with the Box-Cox method, and made a human decision to keep our outliers. The result is a system that doesn't just "fit the points," but understands the underlying relationships that determine what a home is worth.
